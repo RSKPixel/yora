@@ -12,8 +12,7 @@ const Basetemplate2 = ({ children }) => {
     },
     Transactions: {
       "Purchase Order": "/transactions/purchaseorder",
-      Purchases: "/transactions/stockentry",
-      Delivery: "/transactions/delivery",
+      "Inventory Movement": "/transactions/inventorymovement",
       Blowing: "/transactions/blowing",
     },
     Reports: {

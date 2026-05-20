@@ -18,6 +18,9 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.form-basic {
+  @apply flex flex-col gap-2 w-full border border-sky-900 rounded-b-sm text-sm p-4 shadow-lg bg-neutral-900;
+}
 label {
   @apply text-sm font-semibold;
 }
@@ -34,4 +37,62 @@ textarea:read-only {
 
 select {
   @apply text-sm uppercase tracking-wide font-bold bg-white/60 text-gray-900 border-neutral-600 w-full rounded-sm p-1.5;
+}
+
+.button-icon {
+  @apply text-white text-sm py-1 px-2 w-fit rounded-sm bg-sky-700 cursor-pointer hover:bg-sky-500 text-center flex items-center justify-center;
+}
+
+.button-basic {
+  @apply text-white tracking-wide font-bold py-1 px-2 w-fit rounded-sm cursor-pointer text-center;
+}
+
+.green {
+  @apply bg-green-700 hover:bg-green-600 border-green-700 hover:border-green-400;
+}
+
+.yellow {
+  @apply bg-yellow-600 hover:bg-yellow-400 border-yellow-600 hover:border-yellow-400;
+}
+
+.red {
+  @apply bg-red-700 hover:bg-red-400 border-red-700 hover:border-red-400;
+}
+
+.blue {
+  @apply bg-blue-700 hover:bg-blue-400 border-blue-700 hover:border-blue-400;
+}
+
+.amber {
+  @apply bg-amber-700 hover:bg-amber-400 border-amber-700 hover:border-amber-400;
+}
+/* Applies to all scrollable elements */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.1); /* soft white */
+  border-radius: 9999px; /* full pill shape */
+  transition: background-color 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(
+    255,
+    255,
+    255,
+    0.3
+  ); /* slightly more visible on hover */
+}
+
+/* Firefox Support */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
 }
