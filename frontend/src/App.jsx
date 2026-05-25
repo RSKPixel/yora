@@ -6,6 +6,7 @@ import Basetemplate2 from "./templates/Basetemplete2";
 import Inventory from "./pages/masters/inventory/Inventory";
 import AuthContext from "./templates/AuthContext";
 import InventorySearch from "./pages/masters/inventory/InventorySearch";
+import Ledger from "./pages/masters/ledger/Ledger";
 
 function App() {
   const api = import.meta.env.VITE_API;
@@ -26,7 +27,7 @@ function App() {
                 path="inventory"
                 element={<Inventory action="NEW" inventoryId={null} />}
               />
-              <Route path="inventory/search" element={<InventorySearch />} />
+              <Route path="ledger" element={<Ledger action="NEW" />} />
             </Route>
           </Routes>
         </Basetemplate2>

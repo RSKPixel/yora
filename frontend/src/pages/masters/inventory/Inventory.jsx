@@ -12,12 +12,15 @@ const Inventory = ({ action, inventoryId }) => {
     weight: 0,
     quantity_per_pack: 0,
     remarks: "",
+    shape: "",
+    capacity: 0,
   };
   const [formData, setFormData] = useState(blankFormData);
   const [formMessage, setFormMessage] = useState({});
   const [showSearch, setShowSearch] = useState(false);
   const [formAction, setFormAction] = useState(action.toLowerCase());
   const inventoryNameRef = useRef(null);
+  const { api } = useContext(AuthContext);
 
   useEffect(() => {
     if (formAction === "modify") {
@@ -51,10 +54,11 @@ const Inventory = ({ action, inventoryId }) => {
       error.push("Inventory Category is required.");
     if (!formData.quantity_per_pack || formData.quantity_per_pack <= 0)
       error.push("Quantity per Pack is required.");
+    if (!formData.capacity || formData.capacity <= 0)
+      error.push("Capacity is required.");
 
     return error;
   };
-  const { api } = useContext(AuthContext);
 
   const handleOnChange = (e) => {
     const { name, value } = e.target;
@@ -157,6 +161,24 @@ const Inventory = ({ action, inventoryId }) => {
               type="number"
               name="quantity_per_pack"
               value={formData.quantity_per_pack}
+              onChange={handleOnChange}
+            ></input>
+          </div>
+
+          <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+            <label>Shape</label>
+            <label>Capacity (ml) *</label>
+            <input
+              type="text"
+              name="shape"
+              value={formData.shape}
+              onChange={handleOnChange}
+              maxLength={50}
+            ></input>
+            <input
+              type="number"
+              name="capacity"
+              value={formData.capacity}
               onChange={handleOnChange}
             ></input>
           </div>

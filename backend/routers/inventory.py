@@ -31,6 +31,8 @@ def retrive_inventory(id: str = Form(...)):
             "weight": result.weight,
             "quantity_per_pack": result.quantity_per_pack,
             "remarks": result.remarks if result.remarks else "",
+            "shape": result.shape if result.shape else "",
+            "capacity": result.capacity if result.capacity else 0.0,
         }
 
     return {
@@ -71,6 +73,8 @@ def search_inventory(inventory_name: str = Form(...)):
                     "weight": row.weight,
                     "quantity_per_pack": row.quantity_per_pack,
                     "remarks": row.remarks,
+                    "shape": row.shape,
+                    "capacity": row.capacity,
                 }
             )
     return {
@@ -89,6 +93,8 @@ def save_inventory(
     weight: float = Form(...),
     quantity_per_pack: int = Form(...),
     remarks: Optional[str] = Form(None),
+    shape: str = Form(...),
+    capacity: float = Form(...),
 ):
 
     inventory_name = inventory_name.strip().upper()
@@ -113,8 +119,8 @@ def save_inventory(
                 }
 
             insert_sql = text("""
-                INSERT INTO inventory_master (inventory_name, inventory_category, neck_size, weight, quantity_per_pack, remarks)
-                VALUES (:inventory_name, :inventory_category, :neck_size, :weight, :quantity_per_pack, :remarks)
+                INSERT INTO inventory_master (inventory_name, inventory_category, neck_size, weight, quantity_per_pack, remarks, shape, capacity)
+                VALUES (:inventory_name, :inventory_category, :neck_size, :weight, :quantity_per_pack, :remarks, :shape, :capacity)
             """)
             conn.execute(
                 insert_sql,
@@ -125,6 +131,8 @@ def save_inventory(
                     "weight": weight,
                     "quantity_per_pack": quantity_per_pack,
                     "remarks": remarks,
+                    "shape": shape,
+                    "capacity": capacity,
                 },
             )
             conn.commit()
@@ -135,7 +143,9 @@ def save_inventory(
             neck_size = :neck_size,
             weight = :weight,
             quantity_per_pack = :quantity_per_pack,
-            remarks = :remarks
+            remarks = :remarks,
+            shape = :shape,
+            capacity = :capacity
         WHERE inventory_name = :inventory_name
         """)
 
@@ -150,6 +160,8 @@ def save_inventory(
                     "weight": weight,
                     "quantity_per_pack": quantity_per_pack,
                     "remarks": remarks,
+                    "shape": shape,
+                    "capacity": capacity,
                 },
             )
             conn.commit()

@@ -8,12 +8,12 @@ const Basetemplate2 = ({ children }) => {
   const menu = {
     Masters: {
       Inventory: "/masters/inventory",
-      Locations: "/masters/locations",
+      Ledger: "/masters/ledger",
     },
     Transactions: {
+      "Inventory Vouchers": "/transactions/inventorymovement",
       "Purchase Order": "/transactions/purchaseorder",
-      "Inventory Movement": "/transactions/inventorymovement",
-      Blowing: "/transactions/blowing",
+      Production: "/transactions/production",
     },
     Reports: {
       "Stock Position": "/reports/stockposition",

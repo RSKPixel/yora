@@ -52,7 +52,7 @@ const InventorySearch = () => {
               className="btn btn-info"
               onClick={() => setNewInventory(true)}
             >
-              New
+              Back
             </button>
           </div>
           <table className=" w-full border-collapse mt-2">
