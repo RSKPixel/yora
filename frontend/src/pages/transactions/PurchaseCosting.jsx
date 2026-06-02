@@ -5,6 +5,8 @@ import moment from "moment";
 const PurchaseCosting = () => {
   const { api } = useContext(AuthContext);
   const [pendingCostingBills, setPendingCostingBills] = useState([]);
+  const [selectedKey, setSelectedKey] = useState(null);
+  const [getKey, setGetKey] = useState([]);
 
   useEffect(() => {
     fetch(`${api}/purchases/pending-costing-bills`, {
@@ -13,11 +15,19 @@ const PurchaseCosting = () => {
       .then((response) => response.json())
       .then((data) => {
         if (data.status === "success") {
+          const getKey = (bill) => `${bill.vno}-${bill.vdt}`;
+          setGetKey(() => getKey);
+
           setPendingCostingBills(data.data);
         }
       });
   }, []);
-
+  const handleSelect = (bill) => {
+    const key = getKey(bill);
+    setSelectedKey((prev) => (prev === key ? null : key));
+    // call your original handler with the selected bill
+    handlePCChange(selectedKey === key ? null : bill);
+  };
   const handlePCChange = (e) => {
     const selectedVno = e.target.value;
     // Handle the change event, e.g., fetch costing details for the selected bill
@@ -32,15 +42,26 @@ const PurchaseCosting = () => {
 
         <form autoComplete="off" className="form-basic ">
           Pending Costing
-          <select className="w-full" onChange={handlePCChange}>
-            <option value="">Select Bill</option>
-            {pendingCostingBills.map((bill) => (
-              <option key={`${bill.vno}-${bill.vdt}`} value={bill.vno}>
-                {bill.vno} - {moment(bill.vdt).format("DD-MM-YYYY")} -{" "}
-                {bill.vendor}
-              </option>
-            ))}
-          </select>
+          <div className="bill-list">
+            {pendingCostingBills.map((bill) => {
+              const key = getKey(bill);
+              const isSelected = selectedKey === key;
+              return (
+                <div
+                  key={key}
+                  className={`bill-item ${isSelected ? "selected" : ""}`}
+                  onClick={() => handleSelect(bill)}
+                >
+                  <span className="vno">{bill.vno}</span>
+                  <span className="vendor">{bill.vendor}</span>
+                  <span className="vdt">
+                    {moment(bill.vdt).format("DD-MM-YYYY")}
+                  </span>
+                  {isSelected && <CheckIcon />}
+                </div>
+              );
+            })}
+          </div>
         </form>
       </div>
     </div>
