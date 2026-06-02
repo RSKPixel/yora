@@ -4,7 +4,9 @@ from sqlalchemy import text
 
 router = APIRouter()
 
+
 @router.post("/pending-costing-bills")
+@router.get("/pending-costing-bills")
 def pending_costing_bills():
     sql = text("""
         SELECT p.VNO, date(p.vdt) as VDT, p.LEDGER_NAME as VENDOR
@@ -23,14 +25,22 @@ def pending_costing_bills():
 
     pending_bills = []
     for row in result:
-        pending_bills.append({
-            "vno": row.VNO,
-            "vdt": row.VDT,
-            "vendor": row.VENDOR,
-        })
+        pending_bills.append(
+            {
+                "vno": row.VNO,
+                "vdt": row.VDT,
+                "vendor": row.VENDOR,
+            }
+        )
 
     return {
         "status": "success",
         "message": "Pending costing bills fetched successfully!",
         "data": pending_bills,
     }
+
+
+@router.post("/purchase")
+def purchase(vno: str = Form(...), vdt: str = Form(...)):
+
+    pass

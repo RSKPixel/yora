@@ -37,6 +37,3 @@ engine_mysql = create_engine(
     max_overflow=20,
     pool_pre_ping=True,
 )
-
-metadata = MetaData()
-inventory_master = Table("inventory_master", metadata, autoload_with=engine)
