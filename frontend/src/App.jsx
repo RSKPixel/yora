@@ -7,7 +7,7 @@ import Inventory from "./pages/masters/inventory/Inventory";
 import AuthContext from "./templates/AuthContext";
 import InventorySearch from "./pages/masters/inventory/InventorySearch";
 import Ledger from "./pages/masters/ledger/Ledger";
-
+import PurchaseCosting from "./pages/transactions/PurchaseCosting";
 function App() {
   const api = import.meta.env.VITE_API;
   document.title = "YORA (ERP)";
@@ -28,6 +28,9 @@ function App() {
                 element={<Inventory action="NEW" inventoryId={null} />}
               />
               <Route path="ledger" element={<Ledger action="NEW" />} />
+            </Route>
+            <Route path="/transactions">
+              <Route path="purchasecosting" element={<PurchaseCosting />} />
             </Route>
           </Routes>
         </Basetemplate2>

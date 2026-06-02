@@ -15,8 +15,24 @@ DATABASE_URL = URL.create(
     database="yora",
 )
 
+MSQL_DATABASE_URL = URL.create(
+    drivername="mysql+pymysql",
+    username="sysadmin",
+    password="Apple@1239",
+    host="trialnerror.in",
+    port=3306,
+    database="yora",
+)
+
 engine = create_engine(
     DATABASE_URL,
+    pool_size=10,
+    max_overflow=20,
+    pool_pre_ping=True,
+)
+
+engine_mysql = create_engine(
+    MSQL_DATABASE_URL,
     pool_size=10,
     max_overflow=20,
     pool_pre_ping=True,
