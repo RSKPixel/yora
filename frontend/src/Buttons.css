@@ -2,7 +2,7 @@
 
 /* base button style */
 .btn {
-  @apply tracking-wide font-bold inline-block cursor-pointer text-center  select-none border text-sm px-4 py-1.5 rounded transition duration-150 ease-in-out;
+  @apply tracking-wide font-bold inline-block cursor-pointer text-center  select-none border text-sm px-4 py-1 rounded transition duration-150 ease-in-out;
 }
 
 /* Primary (Bootstrap: btn-primary) */

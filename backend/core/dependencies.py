@@ -21,7 +21,7 @@ MYSQL_DATABASE_URL = URL.create(
     password="Apple@1239",
     host="trialnerror.in",
     port=3306,
-    database="yora",
+    database="sivendhiind.trueerp.in",
 )
 
 engine = create_engine(

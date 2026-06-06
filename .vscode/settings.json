@@ -4,6 +4,13 @@
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "explicit"
   },
+  "editor.quickSuggestions": {
+    "other": true,
+    "comments": false,
+    "strings": true
+  },
+  "editor.suggestOnTriggerCharacters": true,
+  "editor.inlineSuggest.enabled": true,
   "editor.rulers": [100, 120],
   "files.trimTrailingWhitespace": true,
   "editor.wordWrapColumn": 120,
