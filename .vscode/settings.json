@@ -9,6 +9,7 @@
     "comments": false,
     "strings": true
   },
+  "python.terminal.activateEnvironment": true,
   "editor.suggestOnTriggerCharacters": true,
   "editor.inlineSuggest.enabled": true,
   "editor.rulers": [100, 120],
@@ -46,5 +47,7 @@
   },
   "python.analysis.extraPaths": ["./"],
   "python.testing.cwd": "${workspaceFolder}",
-  "python-envs.defaultEnvManager": "ms-python.python:system"
+  "python-envs.defaultEnvManager": "ms-python.python:system",
+  "cursorpyright.analysis.extraPaths": ["./"],
+  "python-envs.pythonProjects": []
 }
