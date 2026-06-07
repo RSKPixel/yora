@@ -12,6 +12,7 @@ const Basetemplate2 = ({ children }) => {
     },
     Transactions: {
       "Purchase Costing": "/transactions/purchasecosting",
+      "Credit Note": "/transactions/creditnote",
     },
     Reports: {
       "Stock Position": "/reports/stockposition",
