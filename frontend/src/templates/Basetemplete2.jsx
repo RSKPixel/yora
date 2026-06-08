@@ -11,7 +11,8 @@ const Basetemplate2 = ({ children }) => {
       Ledger: "/masters/ledger",
     },
     Transactions: {
-      "Purchase Costing": "/transactions/purchasecosting",
+      "Purchase": "/transactions/purchase",
+      "Sales": "/transactions/sales",
       "Credit Note": "/transactions/creditnote",
     },
     Reports: {
