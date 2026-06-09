@@ -16,11 +16,24 @@ def update_purchase(
     details: str = Form(...),
 ):
 
-    details = json.loads(details)
+    try:
+        details = json.loads(details)
+
+        if not isinstance(details, list):
+            raise HTTPException(
+                status_code=400,
+                detail="Details must be a list",
+            )
+
+    except json.JSONDecodeError:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid details JSON",
+        )
 
     purchase_sql = text(
         """
-        INSERT INTO yora_purchases
+        INSERT INTO yora_purchase
         (
             purchase_id,
             purchase_date,
@@ -37,12 +50,20 @@ def update_purchase(
         ON DUPLICATE KEY UPDATE
             vendor = VALUES(vendor),
             expenses = VALUES(expenses)
-    """
+        """
     )
 
-    purchase_detail_sql = text(
+    delete_details_sql = text(
         """
-        INSERT INTO yora_purchases_details
+        DELETE FROM yora_purchase_details
+        WHERE purchase_id = :purchase_id
+          AND purchase_date = :purchase_date
+        """
+    )
+
+    insert_detail_sql = text(
+        """
+        INSERT INTO yora_purchase_details
         (
             purchase_id,
             purchase_date,
@@ -76,70 +97,73 @@ def update_purchase(
             :cost_with_gst,
             :gst
         )
-        ON DUPLICATE KEY UPDATE
-            qty = VALUES(qty),
-            carton = VALUES(carton),
-            qty_per_carton = VALUES(qty_per_carton),
-            item_count = VALUES(item_count),
-            item_no = VALUES(item_no),
-            list_price = VALUES(list_price),
-            cost_price = VALUES(cost_price),
-            expenses = VALUES(expenses),
-            landing_cost = VALUES(landing_cost),
-            cost_with_gst = VALUES(cost_with_gst),
-            gst = VALUES(gst)
-    """
+        """
     )
 
-    detail_params = []
+    detail_params = [
+        {
+            "purchase_id": purchase_id,
+            "purchase_date": purchase_date,
+            "stock_item": d["stock_item"],
+            "qty": d["qty"],
+            "carton": d["carton"],
+            "qty_per_carton": d["qty_per_carton"],
+            "item_count": d["item_count"],
+            "item_no": d["item_no"],
+            "list_price": d["rate"],
+            "cost_price": d["cost_price"],
+            "expenses": d["expenses"],
+            "landing_cost": d["landing_cost"],
+            "cost_with_gst": d["cost_with_gst"],
+            "gst": d["gst"],
+        }
+        for d in details
+    ]
 
-    for detail in details:
-        detail_params.append(
-            {
-                "purchase_id": purchase_id,
-                "purchase_date": purchase_date,
-                "stock_item": detail["stock_item"],
-                "qty": detail["qty"],
-                "carton": detail["carton"],
-                "qty_per_carton": detail["qty_per_carton"],
-                "item_count": detail["item_count"],
-                "item_no": detail["item_no"],
-                "list_price": detail["rate"],
-                "cost_price": detail["cost_price"],
-                "expenses": detail["expenses"],
-                "landing_cost": detail["landing_cost"],
-                "cost_with_gst": detail["cost_with_gst"],
-                "gst": detail["gst"],
-            }
+    try:
+        with engine_mysql.begin() as connection:
+
+            # Purchase Header
+            connection.execute(
+                purchase_sql,
+                {
+                    "purchase_id": purchase_id,
+                    "purchase_date": purchase_date,
+                    "vendor": vendor,
+                    "expenses": expenses,
+                },
+            )
+
+            # Remove Existing Details
+            connection.execute(
+                delete_details_sql,
+                {
+                    "purchase_id": purchase_id,
+                    "purchase_date": purchase_date,
+                },
+            )
+
+            # Insert Current Details
+            if detail_params:
+                connection.execute(
+                    insert_detail_sql,
+                    detail_params,
+                )
+
+        return {
+            "status": "success",
+            "message": "Purchase updated successfully!",
+        }
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=str(e),
         )
 
-    with engine_mysql.begin() as connection:
 
-        connection.execute(
-            purchase_sql,
-            {
-                "purchase_id": purchase_id,
-                "purchase_date": purchase_date,
-                "vendor": vendor,
-                "expenses": expenses,
-            },
-        )
-
-        connection.execute(
-            purchase_detail_sql,
-            detail_params,
-        )
-
-        connection.commit()
-
-    return {
-        "status": "success",
-        "message": "Purchase updated successfully!",
-    }
-
-
-@router.post("/details")
-def purchase_details(purchase_id: str = Form(...), purchase_date: str = Form(...)):
+@router.post("/tally-details")
+def tally_details(purchase_id: str = Form(...), purchase_date: str = Form(...)):
     sql = text(
         """
             SELECT
@@ -219,7 +243,7 @@ def pending_purchase_bills():
             FROM purchases p
         WHERE NOT EXISTS (
             SELECT 1
-                FROM yora_purchases pc
+                FROM yora_purchase pc
             WHERE pc.purchase_id = p.vno
                 AND pc.purchase_date = p.vdt
         )
@@ -241,6 +265,71 @@ def pending_purchase_bills():
 
 
 @router.post("/purchase")
-def purchase(vno: str = Form(...), vdt: str = Form(...)):
+def purchase(
+    purchase_id: str = Form(None),
+    purchase_date: str = Form(None),
+    date_from: str = Form(None),
+    date_to: str = Form(None),
+):
 
-    pass
+    base_sql = """
+        SELECT *
+        FROM yora_purchase
+        INNER JOIN yora_purchase_details
+            ON yora_purchase.purchase_id = yora_purchase_details.purchase_id
+            AND yora_purchase.purchase_date = yora_purchase_details.purchase_date
+    """
+
+    params = {}
+
+    # Fetch specific purchase
+    if purchase_id and purchase_date:
+
+        sql = text(
+            base_sql
+            + """
+            WHERE yora_purchase.purchase_id = :purchase_id
+            AND yora_purchase.purchase_date = :purchase_date
+            """
+        )
+
+        params = {
+            "purchase_id": purchase_id,
+            "purchase_date": purchase_date,
+        }
+
+    # Fetch date range
+    elif date_from and date_to:
+
+        sql = text(
+            base_sql
+            + """
+            WHERE yora_purchase.purchase_date
+            BETWEEN :date_from AND :date_to
+            """
+        )
+
+        params = {
+            "date_from": date_from,
+            "date_to": date_to,
+        }
+
+    # Fetch everything
+    else:
+
+        sql = text(base_sql)
+
+    with engine_mysql.connect() as connection:
+
+        result = connection.execute(sql, params)
+
+        purchase = [
+            dict(row._mapping)
+            for row in result
+        ]
+
+    return {
+        "status": "success",
+        "message": "Purchase fetched successfully!",
+        "data": purchase,
+    }
