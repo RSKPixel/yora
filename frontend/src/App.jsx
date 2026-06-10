@@ -5,10 +5,9 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Basetemplate2 from "./templates/Basetemplete2";
 import Inventory from "./pages/masters/inventory/Inventory";
 import AuthContext from "./templates/AuthContext";
-import InventorySearch from "./pages/masters/inventory/InventorySearch";
 import Ledger from "./pages/masters/ledger/Ledger";
-import PurchaseCosting from "./pages/transactions/PurchaseCosting";
 import Purchase from "./pages/transactions/Purchase";
+
 function App() {
   const api = import.meta.env.VITE_API;
   document.title = "YORA (ERP)";
