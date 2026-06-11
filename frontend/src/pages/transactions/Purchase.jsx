@@ -142,6 +142,14 @@ const Purchase = () => {
                 </span>
                 <span className="text-start font-bold">Vendor</span>
                 <span className="font-bold text-end">{purchase.vendor}</span>
+                <span>Total Cartons</span>
+                <span className="font-bold text-end">
+                  {numeral(purchase.carton).format("0,0")}
+                </span>
+                <span>Total Quantity</span>
+                <span className="font-bold text-end">
+                  {numeral(purchase.qty).format("0,0")}
+                </span>
               </div>
               <div className="w-full rounded-md grid grid-cols-[3fr_1fr] gap-2 items-center justify-baseline text-sm border border-gray-600 px-2 py-1 bg-gray-700/50">
                 <label htmlFor="transport">

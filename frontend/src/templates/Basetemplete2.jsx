@@ -11,8 +11,8 @@ const Basetemplate2 = ({ children }) => {
       Ledger: "/masters/ledger",
     },
     Transactions: {
-      "Purchase": "/transactions/purchase",
-      "Sales": "/transactions/sales",
+      Purchase: "/transactions/purchase",
+      Sales: "/transactions/sales",
       "Credit Note": "/transactions/creditnote",
     },
     Reports: {
@@ -26,12 +26,10 @@ const Basetemplate2 = ({ children }) => {
       {/* Top Bar */}
       <div className="flex flex-row w-full justify-between items-center bg-sky-950 px-4 py-1 shadow text-stone-100 border-b border-sky-900">
         <div className="flex flex-col cursor-pointer hover:text-yellow-300">
-          <Link to={"/"} className="text-xl text-center font-bold ">
-            YORA
+          <Link to={"/"} className="text-xl text-center font-bold w-full">
+            YORA ERP
           </Link>
-          <span className="text-xs italic font-bold text-gray-400">
-            PET - Enterprise Resource Planning
-          </span>
+          <span className="text-xs italic font-bold text-gray-400"></span>
         </div>
         <div className="ms-auto" />
         <div className="flex flex-col">
