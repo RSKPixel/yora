@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Form
 from core.dependencies import engine_mysql
-from sqlalchemy import text
+from sqlalchemy import text, bindparam
 import pandas as pd
 import json
+from fastapi import HTTPException
 
 router = APIRouter()
 
@@ -26,10 +27,10 @@ def update_purchase(
             )
 
     except json.JSONDecodeError:
-        raise HTTPException(
-            status_code=400,
-            detail="Invalid details JSON",
-        )
+        return {
+            "status": "error",
+            "message": "Invalid details",
+        }
 
     purchase_sql = text(
         """
@@ -110,7 +111,7 @@ def update_purchase(
             "qty_per_carton": d["qty_per_carton"],
             "item_count": d["item_count"],
             "item_no": d["item_no"],
-            "list_price": d["rate"],
+            "list_price": d["list_price"],
             "cost_price": d["cost_price"],
             "expenses": d["expenses"],
             "landing_cost": d["landing_cost"],
@@ -156,10 +157,11 @@ def update_purchase(
         }
 
     except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=str(e),
-        )
+        print(e.args)
+        return {
+            "status": "error",
+            "message": str(e.args),
+        }
 
 
 @router.post("/tally-details")
@@ -196,7 +198,7 @@ def tally_details(purchase_id: str = Form(...), purchase_date: str = Form(...)):
             "VALUE": "value",
             "GST": "gst",
             "STOCK_ITEM": "stock_item",
-            "RATE": "rate",
+            "RATE": "list_price",
             "COST_PRICE": "cost_price",
             "LANDING_COST": "landing_cost",
             "COST_WITH_GST": "cost_with_gst",
@@ -264,72 +266,165 @@ def pending_purchase_bills():
     }
 
 
-@router.post("/purchase")
-def purchase(
-    purchase_id: str = Form(None),
-    purchase_date: str = Form(None),
-    date_from: str = Form(None),
-    date_to: str = Form(None),
-):
-
-    base_sql = """
-        SELECT *
-        FROM yora_purchase
-        INNER JOIN yora_purchase_details
-            ON yora_purchase.purchase_id = yora_purchase_details.purchase_id
-            AND yora_purchase.purchase_date = yora_purchase_details.purchase_date
+@router.post("/fetch")
+def fetch_purchase(purchase_id: str = Form(...), purchase_date: str = Form(...)):
+    sql = text(
+        """
+        SELECT p.*, sum(pd.qty) as qty, sum(pd.carton) as carton FROM yora_purchase p
+        INNER JOIN yora_purchase_details pd
+            ON p.purchase_id = pd.purchase_id
+            AND p.purchase_date = pd.purchase_date
+        WHERE p.purchase_id = :purchase_id
+        AND p.purchase_date = :purchase_date
+        GROUP BY p.purchase_id, p.purchase_date
     """
+    )
 
-    params = {}
-
-    # Fetch specific purchase
-    if purchase_id and purchase_date:
-
-        sql = text(
-            base_sql
-            + """
-            WHERE yora_purchase.purchase_id = :purchase_id
-            AND yora_purchase.purchase_date = :purchase_date
-            """
-        )
-
-        params = {
-            "purchase_id": purchase_id,
-            "purchase_date": purchase_date,
-        }
-
-    # Fetch date range
-    elif date_from and date_to:
-
-        sql = text(
-            base_sql
-            + """
-            WHERE yora_purchase.purchase_date
-            BETWEEN :date_from AND :date_to
-            """
-        )
-
-        params = {
-            "date_from": date_from,
-            "date_to": date_to,
-        }
-
-    # Fetch everything
-    else:
-
-        sql = text(base_sql)
+    detail_sql = text(
+        """
+        SELECT * FROM yora_purchase_details
+        WHERE purchase_id = :purchase_id
+        AND purchase_date = :purchase_date
+    """
+    )
 
     with engine_mysql.connect() as connection:
+        purchase_row = (
+            connection.execute(
+                sql, {"purchase_id": purchase_id, "purchase_date": purchase_date}
+            )
+            .mappings()
+            .fetchone()
+        )
 
-        result = connection.execute(sql, params)
+        detail_rows = (
+            connection.execute(
+                detail_sql, {"purchase_id": purchase_id, "purchase_date": purchase_date}
+            )
+            .mappings()
+            .fetchall()
+        )
 
-        purchase = [
-            dict(row._mapping)
-            for row in result
-        ]
+    # Handle no data case
+    if not purchase_row:
+        return {
+            "status": "error",
+            "message": "Purchase not found",
+            "data": None,
+        }
+
+    purchase = dict(purchase_row)
+    details = [dict(row) for row in detail_rows]
+
+    purchase["details"] = details
 
     return {
         "status": "success",
         "message": "Purchase fetched successfully!",
         "data": purchase,
+    }
+
+
+@router.post("/list")
+def purchase(
+    date_from: str = Form(...),
+    date_to: str = Form(...),
+    include_details: bool = Form(True),
+):
+
+    purchase_sql = text(
+        """
+        SELECT p.*, sum(pd.qty) as qty, sum(pd.carton) as carton
+        FROM yora_purchase p
+        INNER JOIN yora_purchase_details pd
+            ON p.purchase_id = pd.purchase_id
+            AND p.purchase_date = pd.purchase_date
+        WHERE p.purchase_date BETWEEN :date_from AND :date_to
+        GROUP BY p.purchase_id, p.purchase_date
+        ORDER BY p.purchase_date DESC, p.purchase_id DESC
+    """
+    )
+
+    with engine_mysql.connect() as connection:
+        result = (
+            connection.execute(
+                purchase_sql,
+                {
+                    "date_from": date_from,
+                    "date_to": date_to,
+                },
+            )
+            .mappings()
+            .all()
+        )
+
+    purchases = [dict(row) for row in result]
+
+    if not purchases:
+        return {
+            "status": "success",
+            "message": "No purchases found",
+            "data": [],
+        }
+
+    if include_details:
+
+        purchase_ids = list({row["purchase_id"] for row in purchases})
+
+        detail_sql = text(
+            """
+            SELECT *
+            FROM yora_purchase_details
+            WHERE purchase_id IN :purchase_ids
+        """
+        ).bindparams(
+            bindparam(
+                "purchase_ids",
+                expanding=True,
+            )
+        )
+
+        with engine_mysql.connect() as connection:
+            detail_rows = (
+                connection.execute(
+                    detail_sql,
+                    {
+                        "purchase_ids": purchase_ids,
+                    },
+                )
+                .mappings()
+                .all()
+            )
+
+        detail_map = {}
+
+        for row in detail_rows:
+            row = dict(row)
+
+            key = (
+                row["purchase_id"],
+                str(row["purchase_date"]),
+            )
+
+            detail_map.setdefault(
+                key,
+                [],
+            ).append(row)
+
+        for purchase in purchases:
+
+            key = (
+                purchase["purchase_id"],
+                str(purchase["purchase_date"]),
+            )
+
+            purchase["details"] = detail_map.get(
+                key,
+                [],
+            )
+
+    return {
+        "status": "success",
+        "message": "Purchase fetched successfully!",
+        "data": purchases,
     }
