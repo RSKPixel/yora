@@ -7,6 +7,7 @@ import Inventory from "./pages/masters/inventory/Inventory";
 import AuthContext from "./templates/AuthContext";
 import Ledger from "./pages/masters/ledger/Ledger";
 import Purchase from "./pages/transactions/Purchase";
+import Sales from "./pages/transactions/Sales";
 
 function App() {
   const api = import.meta.env.VITE_API;
@@ -30,8 +31,8 @@ function App() {
               <Route path="ledger" element={<Ledger action="NEW" />} />
             </Route>
             <Route path="/transactions">
-              {/* <Route path="purchase" element={<PurchaseCosting />} /> */}
               <Route path="purchase" element={<Purchase />} />
+              <Route path="sales" element={<Sales />} />
             </Route>
           </Routes>
         </Basetemplate2>
