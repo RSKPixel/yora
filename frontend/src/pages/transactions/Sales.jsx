@@ -97,13 +97,37 @@ const Sales = () => {
 const PackingList = ({ salesInvoice, setSalesInvoice }) => {
   return (
     <div className="fixed inset-0 flex flex-col items-center justify-center bg-black/60 backdrop-blur-xs z-50">
-      <div className="flex flex-col w-2/4 items-center shadow-xl">
+      <div className="flex flex-col w-3/4 items-center shadow-xl">
         <div className="flex flex-row w-full justify-between items-center px-2 text-sm text-white/50 font-bold z-10 border border-sky-900 py-1 rounded-t-sm bg-sky-950">
           <span>Packing List</span>
           <span>{salesInvoice.invoice_no} | {moment(salesInvoice.invoice_date).format("DD-MM-YYYY")} | {salesInvoice.buyer}</span>
           <span className="text-red-500 cursor-pointer hover:text-red-700"><i className="bi bi-x-lg" onClick={() => setSalesInvoice(null)}></i></span>
         </div>
         <div className="form-basic">
+          <table className="w-full rounded-2xl text-sm border border-gray-600">
+            <thead>
+              <tr className="border-0 border-gray-600 bg-gray-700/50">
+                <th className="text-left px-2 py-1 border border-gray-600">Stock Item</th>
+                <th className="text-left px-2 py-1 border border-gray-600">Carton</th>
+                <th className="text-left px-2 py-1 border border-gray-600">Qty / Carton</th>
+                <th className="text-left px-2 py-1 border border-gray-600">Total Qty</th>
+                <th className="text-end px-2 py-1 border border-gray-600">Quantity</th>
+                <th className="text-end px-2 py-1 border border-gray-600">Difference</th>
+              </tr>
+            </thead>
+            <tbody>
+              {salesInvoice?.details?.map((detail) => (
+                <tr key={detail.id} className="border border-gray-600 px-2 py-2">
+                  <td className="text-left px-2 py-1 border border-gray-600">{detail.stock_item}</td>
+                  <td className="text-end px-2 py-1 border border-gray-600"></td>
+                  <td className="text-end px-2 py-1 border border-gray-600"></td>
+                  <td className="text-end px-2 py-1 border border-gray-600"></td>
+                  <td className="text-end px-2 py-1 border border-gray-600">{detail.qty}</td>
+                  <td className="text-end px-2 py-1 border border-gray-600"></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
