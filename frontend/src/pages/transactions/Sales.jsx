@@ -6,6 +6,7 @@ import Loader from "../../components/Loader";
 const Sales = () => {
   const { api } = useContext(AuthContext);
   const [salesList, setSalesList] = useState([]);
+  const [salesInvoice, setSalesInvoice] = useState(null);
   const [loading, setLoading] = useState(false);
   const [refresh, setRefresh] = useState(false);
 
@@ -40,6 +41,7 @@ const Sales = () => {
     <div className="flex flex-col items-center justify-center w-full">
       <div className="flex flex-col w-full items-center shadow-xl">
         {loading && <Loader message="Loading Tally data..." />}
+        {salesInvoice && <PackingList salesInvoice={salesInvoice} />}
         <div className="flex flex-row w-full justify-between items-center px-2 text-sm text-white/50 font-bold z-10 border border-sky-900 py-1 rounded-t-sm bg-sky-950">
           <span>Sales</span>
           <i
@@ -56,7 +58,9 @@ const Sales = () => {
                   <th className="text-left px-2 py-1">Invoice Date</th>
                   <th className="text-left px-2 py-1">Invoice No</th>
                   <th className="text-left px-2 py-1">Customer</th>
+                  <th className="text-end px-2 py-1">No of Items</th>
                   <th className="text-end px-2 py-1">Total Quantity</th>
+                  <th className="text-center px-2 py-1">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -72,12 +76,33 @@ const Sales = () => {
                       {invoice.invoice_no}
                     </td>
                     <td className="text-left px-2 py-1">{invoice.buyer}</td>
+                    <td className="text-end px-2 py-1">{invoice.no_of_items}</td>
                     <td className="text-end px-2 py-1">{invoice.qty}</td>
+                    <td className="text-center px-2 py-1 flex flex-row text-lg gap-4 justify-center">
+                      <span className="text-blue-500 cursor-pointer hover:text-blue-700"><i onClick={() => setSalesInvoice(invoice)} className="btn btn-secondary bi bi-card-checklist"></i></span>
+                      <span className="text-blue-500 cursor-pointer hover:text-blue-700"><i className="btn btn-info bi bi-truck"></i></span>
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
+const PackingList = ({ salesInvoice }) => {
+  return (
+    <div className="fixed inset-0 flex flex-col items-center justify-center bg-black/60 backdrop-blur-xs z-50">
+      <div className="flex flex-col w-2/4 items-center shadow-xl">
+        <div className="flex flex-row w-full justify-between items-center px-2 text-sm text-white/50 font-bold z-10 border border-sky-900 py-1 rounded-t-sm bg-sky-950">
+          <span>Packing List</span>
+          <span>Invoice No: {salesInvoice.invoice_no} | {moment(salesInvoice.invoice_date).format("DD-MM-YYYY")} | {salesInvoice.buyer}</span>
+        </div>
+        <div className="form-basic">
         </div>
       </div>
     </div>

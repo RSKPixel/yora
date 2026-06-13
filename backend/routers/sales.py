@@ -14,7 +14,7 @@ def sales_list():
     sql = text(
         """
         SELECT *
-        FROM yora_sales_details
+        FROM yora_sales
         """
     )
 
@@ -55,6 +55,7 @@ def sales_list():
                 "invoice_date": invoice_date,
                 "buyer": buyer,
                 "representative": representative,
+                "no_of_items": int(group["stock_item"].count()),
                 "qty": int(group["qty"].sum()),
                 "value": float(group["value"].sum()),
                 "details": details.to_dict(orient="records"),
@@ -147,7 +148,7 @@ def import_tally_sales(sales: pd.DataFrame):
 
         sql = text(
             """
-            DELETE FROM yora_sales_details
+            DELETE FROM yora_sales
             WHERE invoice_no = :invoice_no AND invoice_date = :invoice_date
             """
         )
@@ -170,7 +171,7 @@ def import_tally_sales(sales: pd.DataFrame):
             sql = text(
                 """
                 INSERT INTO
-                    yora_sales_details
+                    yora_sales
                     (invoice_no, invoice_date, buyer, representative, stock_item, rate, qty, value)
                 VALUES
                     (:invoice_no, :invoice_date, :buyer, :representative, :stock_item, :rate, :qty, :value)
