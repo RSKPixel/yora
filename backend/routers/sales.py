@@ -3,8 +3,69 @@ from fastapi import APIRouter, Form
 from core.dependencies import engine_mysql
 from sqlalchemy import text, bindparam
 import pandas as pd
+import hashlib
+import json
 
 router = APIRouter()
+
+
+@router.post("/sales-list")
+def sales_list():
+    sql = text(
+        """
+        SELECT *
+        FROM yora_sales_details
+        """
+    )
+
+    with engine_mysql.connect() as connection:
+        result = connection.execute(sql).fetchall()
+
+    df = pd.DataFrame(result)
+
+    if df.empty:
+        return {
+            "status": "success",
+            "message": "No sales data found!",
+            "data": [],
+        }
+
+    # Convert numeric columns once (vectorized)
+    df["invoice_no"] = df["invoice_no"].astype(int)
+    df["buyer"] = df["buyer"].fillna("NA")
+    df["representative"] = df["representative"].fillna("NA")
+    df["qty"] = pd.to_numeric(df["qty"], errors="coerce")
+    df["value"] = pd.to_numeric(df["value"], errors="coerce")
+    df["rate"] = pd.to_numeric(df["rate"], errors="coerce")
+    df.sort_values(by=["invoice_no", "invoice_date"], inplace=True)
+
+    sales = []
+
+    # Group by invoice
+    grouped = df.groupby(["invoice_no", "invoice_date", "buyer", "representative"])
+
+    for (invoice_no, invoice_date, buyer, representative), group in grouped:
+        details = group.drop(
+            columns=["invoice_no", "invoice_date", "buyer", "representative"]
+        )
+
+        sales.append(
+            {
+                "invoice_no": int(invoice_no),
+                "invoice_date": invoice_date,
+                "buyer": buyer,
+                "representative": representative,
+                "qty": int(group["qty"].sum()),
+                "value": float(group["value"].sum()),
+                "details": details.to_dict(orient="records"),
+            }
+        )
+
+    return {
+        "status": "success",
+        "message": "Sales list fetched successfully!",
+        "data": sales,
+    }
 
 
 @router.post("/tally-sales-list")
@@ -14,12 +75,6 @@ def tally_sales_list():
         """
             SELECT *
             FROM invoices i
-            WHERE NOT EXISTS (
-                SELECT 1
-                FROM yora_sales y
-                WHERE y.invoice_no = i.vno
-                AND y.invoice_date = i.vdt
-            )
             ORDER BY i.vno DESC, i.vdt DESC
         """
     )
@@ -32,7 +87,7 @@ def tally_sales_list():
         columns={
             "VNO": "invoice_no",
             "VDT": "invoice_date",
-            "LEDGER_NAME": "customer",
+            "LEDGER_NAME": "buyer",
             "BROKER": "representative",
             "ITEM_NO": "item_no",
             "ITEM_COUNT": "item_count",
@@ -48,52 +103,96 @@ def tally_sales_list():
         inplace=True,
     )
     df["representative"] = df["representative"].fillna("NA")
-    # df["invoice_no"] = pd.to_numeric(df["invoice_no"], errors="coerce")
     df["invoice_date"] = df["invoice_date"].dt.strftime("%Y-%m-%d")
     df["value"] = pd.to_numeric(df["value"], errors="coerce")
     df["rate"] = pd.to_numeric(df["rate"], errors="coerce")
     df["qty"] = pd.to_numeric(df["qty"], errors="coerce")
     df["item_count"] = df["item_count"].astype(int)
     df["item_no"] = df["item_no"].astype(int)
-    df["invoice_no_numeric"] = (
-        pd.to_numeric(df["invoice_no"], errors="coerce").fillna(0).astype(int)
-    )
-    print(type(df["invoice_no_numeric"][0]))
-    df = df.sort_values(
-        by=["invoice_no_numeric", "invoice_date"], ascending=[True, False]
-    )
-    sales = []
-    for (
-        invoice_no,
-        invoice_date,
-        customer,
-        representative,
-    ), group in df.groupby(
-        ["invoice_no", "invoice_date", "customer", "representative"],
-        sort=False,
-    ):
-        sales.append(
-            {
-                "invoice_no": invoice_no,
-                "invoice_date": str(invoice_date),
-                "customer": customer,
-                "representative": representative,
-                "qty": int(group["qty"].sum()),
-                "value": round(group["value"].sum(), 2),
-                "details": group.drop(
-                    columns=[
+    df["checksum"] = df.apply(
+        lambda x: hashlib.sha256(
+            json.dumps(
+                x[
+                    [
                         "invoice_no",
                         "invoice_date",
-                        "customer",
+                        "buyer",
                         "representative",
+                        "stock_item",
+                        "rate",
+                        "qty",
+                        "value",
                     ]
-                ).to_dict(
-                    orient="records",
-                ),
-            }
-        )
+                ].to_dict()
+            ).encode()
+        ).hexdigest(),
+        axis=1,
+    )
+    import_tally_sales(df)
     return {
         "status": "success",
-        "message": "Sales list fetched successfully!",
-        "data": sales,
+        "message": "Tally Sales data fetched and imported successfully!",
+        "data": df.to_dict(orient="records"),
+    }
+
+
+def import_tally_sales(sales: pd.DataFrame):
+    invoice_nos = sales["invoice_no"].unique()
+    for invoice_no in invoice_nos:
+        details = sales[sales["invoice_no"] == invoice_no]
+        invoice_no = details["invoice_no"].values[0]
+        invoice_date = details["invoice_date"].values[0]
+        buyer = details["buyer"].values[0]
+        representative = details["representative"].values[0]
+
+        sql = text(
+            """
+            DELETE FROM yora_sales_details
+            WHERE invoice_no = :invoice_no AND invoice_date = :invoice_date
+            """
+        )
+
+        with engine_mysql.begin() as connection:
+            connection.execute(
+                sql,
+                {
+                    "invoice_no": invoice_no,
+                    "invoice_date": invoice_date,
+                },
+            )
+
+        for detail in details.to_dict(orient="records"):
+            stock_item = detail["stock_item"]
+            qty = detail["qty"]
+            rate = detail["rate"]
+            value = detail["value"]
+
+            sql = text(
+                """
+                INSERT INTO
+                    yora_sales_details
+                    (invoice_no, invoice_date, buyer, representative, stock_item, rate, qty, value)
+                VALUES
+                    (:invoice_no, :invoice_date, :buyer, :representative, :stock_item, :rate, :qty, :value)
+                """
+            )
+
+            with engine_mysql.begin() as connection:
+                connection.execute(
+                    sql,
+                    {
+                        "invoice_no": invoice_no,
+                        "invoice_date": invoice_date,
+                        "buyer": buyer,
+                        "representative": representative,
+                        "stock_item": detail["stock_item"],
+                        "rate": detail["rate"],
+                        "qty": detail["qty"],
+                        "value": detail["value"],
+                    },
+                )
+
+    return {
+        "status": "success",
+        "message": "Tally Sales data imported successfully!",
     }

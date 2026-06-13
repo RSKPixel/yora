@@ -1,36 +1,54 @@
 import React, { useContext, useEffect, useState } from "react";
 import AuthContext from "../../templates/AuthContext";
 import moment from "moment";
+import Loader from "../../components/Loader";
 
 const Sales = () => {
-  return <TallySalesImport />;
-};
-
-const TallySalesImport = () => {
   const { api } = useContext(AuthContext);
-  const [tallySalesList, setTallySalesList] = useState([]);
+  const [salesList, setSalesList] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [refresh, setRefresh] = useState(false);
 
   useEffect(() => {
+    fetch(`${api}/sales/sales-list`, {
+      method: "POST",
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.status === "success") {
+          setSalesList(data.data);
+          console.log(data.data);
+        }
+      });
+  }, [refresh]);
+
+  const loadTallyData = () => {
+    setLoading(true);
     fetch(`${api}/sales/tally-sales-list`, {
       method: "POST",
     })
       .then((response) => response.json())
       .then((data) => {
         if (data.status === "success") {
-          setTallySalesList(data.data);
-          console.log(data.data);
+          setLoading(false);
+          setRefresh(!refresh);
         }
       });
-  }, []);
+  };
 
   return (
     <div className="flex flex-col items-center justify-center w-full">
       <div className="flex flex-col w-full items-center shadow-xl">
-        <div className="w-full px-2 text-sm text-white/50 font-bold z-10 border border-sky-900 py-1 rounded-t-sm bg-sky-950">
-          Sales
+        {loading && <Loader message="Loading Tally data..." />}
+        <div className="flex flex-row w-full justify-between items-center px-2 text-sm text-white/50 font-bold z-10 border border-sky-900 py-1 rounded-t-sm bg-sky-950">
+          <span>Sales</span>
+          <i
+            className="bi bi-arrow-clockwise cursor-pointer text-lg hover:text-yellow-500"
+            onClick={() => loadTallyData()}
+          ></i>
         </div>
         <div className="form-basic">
-          <div>Tally Sales Import</div>
+          <div>Sales Data</div>
           <div className="flex flex-col w-full items-center">
             <table className="w-full rounded-2xl text-sm border border-gray-600">
               <thead>
@@ -42,7 +60,7 @@ const TallySalesImport = () => {
                 </tr>
               </thead>
               <tbody>
-                {tallySalesList?.map((invoice) => (
+                {salesList?.map((invoice) => (
                   <tr
                     key={invoice.invoice_no}
                     className="border border-gray-600 px-2 py-2"
@@ -53,7 +71,7 @@ const TallySalesImport = () => {
                     <td className="text-left px-2 py-1">
                       {invoice.invoice_no}
                     </td>
-                    <td className="text-left px-2 py-1">{invoice.customer}</td>
+                    <td className="text-left px-2 py-1">{invoice.buyer}</td>
                     <td className="text-end px-2 py-1">{invoice.qty}</td>
                   </tr>
                 ))}
