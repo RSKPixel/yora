@@ -204,7 +204,7 @@ const DeliveryChallan = ({ salesInvoice, setShowDeliveryChallan }) => {
   return (
     <div className="fixed inset-0 flex flex-col items-center justify-center bg-black/60 backdrop-blur-xs z-50">
       <div className="flex flex-col w-2/4 items-center shadow-xl">
-        <div className="flex flex-row w-full justify-between items-center px-2 text-sm text-white/50 font-bold z-10 border border-sky-900 py-1 rounded-t-sm bg-sky-950">
+        <div className="flex flex-row w-full justify-between items-center px-2 text-sm text-white/50 font-bold z-10 border border-sky-900 py-1 rounded-t-sm bg-sky-900">
           <span>Delivery Challan ({deliveryChallan.delivery_no})</span>
 
           <span className="text-red-500 cursor-pointer hover:text-red-700"><i className="bi bi-x-lg" onClick={() => setShowDeliveryChallan(false)}></i></span>
