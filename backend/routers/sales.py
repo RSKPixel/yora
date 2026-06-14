@@ -10,13 +10,19 @@ router = APIRouter()
 
 
 @router.post("/sales-list")
-def sales_list():
-    sql = text(
+def sales_list(filter: str = Form("all")):
+
+    if filter == "all":
+        sql = text(
         """
         SELECT *
         FROM yora_sales
         """
     )
+    elif filter == "delivered":
+        pass
+    elif filter == "pending_delivery":
+        pass
 
     with engine_mysql.connect() as connection:
         result = connection.execute(sql).fetchall()

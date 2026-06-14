@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from routers import inventory, ledger, purchase, sales
+from routers import delivery
 import uvicorn
 
 app = FastAPI()
@@ -11,6 +12,7 @@ app.include_router(inventory.router, prefix="/inventory", tags=["inventory"])
 app.include_router(ledger.router, prefix="/ledger", tags=["ledger"])
 app.include_router(purchase.router, prefix="/purchases", tags=["purchases"])
 app.include_router(sales.router, prefix="/sales", tags=["sales"])
+app.include_router(delivery.router, prefix="/delivery", tags=["delivery"])
 
 app.add_middleware(
     CORSMiddleware,
