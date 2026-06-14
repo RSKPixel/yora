@@ -40,7 +40,7 @@ textarea:disabled {
 }
 
 select {
-  @apply text-sm uppercase tracking-wide font-bold bg-white/60 text-gray-900 border-neutral-600 w-full rounded-sm p-1.5;
+  @apply text-sm uppercase tracking-wide font-bold bg-white/60 text-gray-900 border-neutral-600  rounded-sm p-1.5 cursor-pointer;
 }
 
 .button-icon {

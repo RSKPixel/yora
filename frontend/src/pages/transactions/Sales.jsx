@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState } from "react";
 import AuthContext from "../../templates/AuthContext";
 import moment from "moment";
 import Loader from "../../components/Loader";
+import DatePeriods from "../../utils/DatePeriods";
 
 const Sales = () => {
   const { api } = useContext(AuthContext);
@@ -10,22 +11,44 @@ const Sales = () => {
   const [showDeliveryChallan, setShowDeliveryChallan] = useState(false);
   const [salesInvoice, setSalesInvoice] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState("");
   const [refresh, setRefresh] = useState(false);
+  const [filter, setFilter] = useState("all");
+  const filterOptions = [
+    { label: "All", value: "all" },
+    { label: "Delivered", value: "delivered" },
+    { label: "Pending Delivery", value: "pending_delivery" },
+  ];
+
+  const periodValue = DatePeriods();
+  const periodOptions = Object.keys(periodValue);
+  const [period, setPeriod] = useState("This Week");
+
 
   useEffect(() => {
+    setLoading(true);
+    setLoadingMessage("Fetching sales data...");
+    const fd = new FormData();
+    fd.append("filter", filter);
+    fd.append("date_from", periodValue[period].date_from);
+    fd.append("date_to", periodValue[period].date_to);
+
     fetch(`${api}/sales/sales-list`, {
       method: "POST",
+      body: fd,
     })
       .then((response) => response.json())
       .then((data) => {
         if (data.status === "success") {
           setSalesList(data.data);
+          setLoading(false);
         }
       });
-  }, [refresh]);
+  }, [refresh, filter, period]);
 
   const loadTallyData = () => {
     setLoading(true);
+    setLoadingMessage("Fetching tally data...");
     fetch(`${api}/sales/tally-sales-list`, {
       method: "POST",
     })
@@ -41,19 +64,37 @@ const Sales = () => {
   return (
     <div className="flex flex-col items-center justify-center w-full">
       <div className="flex flex-col w-full items-center shadow-xl">
-        {loading && <Loader message="Loading Tally data..." />}
-        {/* {salesInvoice && <PackingList salesInvoice={salesInvoice} setSalesInvoice={setSalesInvoice} />} */}
+        {loading && <Loader message={loadingMessage} />}
         {showPackingList && <PackingList salesInvoice={salesInvoice} setShowPackingList={setShowPackingList} />}
         {showDeliveryChallan && <DeliveryChallan salesInvoice={salesInvoice} setShowDeliveryChallan={setShowDeliveryChallan} />}
         <div className="flex flex-row w-full justify-between items-center px-2 text-sm text-white/50 font-bold z-10 border border-sky-900 py-1 rounded-t-sm bg-sky-950">
-          <span>Sales</span>
-          <i
-            className="bi bi-arrow-clockwise cursor-pointer text-lg hover:text-yellow-500"
-            onClick={() => loadTallyData()}
-          ></i>
+          <span className="flex flex-row gap-2 items-center">
+            <span>Sales</span>
+            <i
+              className="bi bi-arrow-clockwise cursor-pointer text-lg hover:text-yellow-500"
+              onClick={() => loadTallyData()}
+            ></i>
+          </span>
+          <span>
+            {moment(periodValue[period].date_from).format("DD-MM-YYYY")} to {moment(periodValue[period].date_to).format("DD-MM-YYYY")}
+          </span>
         </div>
         <div className="form-basic">
-          <div>Sales Data</div>
+          <div className="flex flex-row w-full justify-between items-center px-2 text-sm text-white/50 font-bold z-10 border-0 border-sky-900 py-1 rounded-sm">
+            <span className="w-fit">Filters</span>
+            <span className="flex flex-row gap-2 items-center">
+              <select className="w-fit" value={period} onChange={(e) => setPeriod(e.target.value)}>
+                {periodOptions.map((option) => (
+                  <option key={option} value={option}>{option}</option>
+                ))}
+              </select>
+              <select className="w-fit" value={filter} onChange={(e) => setFilter(e.target.value)}>
+                {filterOptions.map((option) => (
+                  <option key={option.value} value={option.value}>{option.label}</option>
+                ))}
+              </select>
+            </span>
+          </div>
           <div className="flex flex-col w-full items-center">
             <table className="w-full rounded-2xl text-sm border border-gray-600">
               <thead>

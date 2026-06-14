@@ -10,22 +10,53 @@ router = APIRouter()
 
 
 @router.post("/sales-list")
-def sales_list(filter: str = Form("all")):
+def sales_list(
+    filter: str = Form(...),
+    date_from: str = Form(...),
+    date_to: str = Form(...),
+):
 
     if filter == "all":
         sql = text(
-        """
+            """
         SELECT *
         FROM yora_sales
+        WHERE invoice_date BETWEEN :date_from AND :date_to
         """
-    )
+        )
     elif filter == "delivered":
-        pass
+        sql = text(
+            """
+            SELECT * FROM yora_sales
+            WHERE invoice_date BETWEEN :date_from AND :date_to
+                AND EXISTS (
+                    SELECT 1 FROM yora_delivery_challan
+                        WHERE
+                            yora_delivery_challan.invoice_no = yora_sales.invoice_no AND
+                            yora_delivery_challan.invoice_date = yora_sales.invoice_date
+                            AND yora_delivery_challan.delivery_date BETWEEN :date_from AND :date_to)
+        """
+        )
     elif filter == "pending_delivery":
-        pass
+        sql = text(
+            """
+            SELECT * FROM yora_sales
+            WHERE invoice_date BETWEEN :date_from AND :date_to
+                AND NOT EXISTS (
+                    SELECT 1 FROM yora_delivery_challan
+                        WHERE yora_delivery_challan.invoice_no = yora_sales.invoice_no AND
+                            yora_delivery_challan.invoice_date = yora_sales.invoice_date)
+            """
+        )
 
     with engine_mysql.connect() as connection:
-        result = connection.execute(sql).fetchall()
+        result = connection.execute(
+            sql,
+            {
+                "date_from": date_from,
+                "date_to": date_to,
+            },
+        ).fetchall()
 
     df = pd.DataFrame(result)
 
