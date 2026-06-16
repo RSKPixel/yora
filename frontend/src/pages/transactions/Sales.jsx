@@ -67,7 +67,7 @@ const Sales = () => {
       <div className="flex flex-col w-full items-center shadow-xl">
         {loading && <Loader message={loadingMessage} />}
         {showPackingList && <PackingList salesInvoice={salesInvoice} setShowPackingList={setShowPackingList} />}
-        {showDeliveryChallan && <DeliveryChallan salesInvoice={salesInvoice} setShowDeliveryChallan={setShowDeliveryChallan} />}
+        {showDeliveryChallan && <DeliveryChallan salesInvoice={salesInvoice} setShowDeliveryChallan={setShowDeliveryChallan} setRefresh={setRefresh} refresh={refresh} />}
         <div className="flex flex-row w-full justify-between items-center px-2 text-sm text-white/50 font-bold z-10 border border-sky-900 py-1 rounded-t-sm bg-sky-950">
           <span className="flex flex-row gap-2 items-center">
             <span>Sales</span>
@@ -180,7 +180,7 @@ const PackingList = ({ salesInvoice, setShowPackingList }) => {
   );
 };
 
-const DeliveryChallan = ({ salesInvoice, setShowDeliveryChallan }) => {
+const DeliveryChallan = ({ salesInvoice, setShowDeliveryChallan, setRefresh, refresh }) => {
 
   const { api } = useContext(AuthContext);
   const [formMessage, setFormMessage] = useState(null);
@@ -199,7 +199,6 @@ const DeliveryChallan = ({ salesInvoice, setShowDeliveryChallan }) => {
 
 
   useEffect(() => {
-    invChecksum();
     const fd = new FormData();
     fd.append("invoice_no", salesInvoice.invoice_no);
     fd.append("invoice_date", salesInvoice.invoice_date);
@@ -242,11 +241,29 @@ const DeliveryChallan = ({ salesInvoice, setShowDeliveryChallan }) => {
       .then((response) => response.json())
       .then((data) => {
         setFormMessage({ type: data.status, message: data.message });
+        setRefresh(!refresh);
       });
 
   };
+
+  const handleDelete = () => {
+    const fd = new FormData();
+    fd.append("delivery_no", deliveryChallan.delivery_no);
+    fetch(`${api}/delivery/delete`, {
+      method: "POST",
+      body: fd,
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        setFormMessage({ type: data.status, message: data.message });
+        setRefresh(!refresh);
+        setShowDeliveryChallan(false);
+
+      });
+  };
+
   return (
-    <div className="fixed inset-0 flex flex-col items-center justify-center bg-black/60 backdrop-blur-xs z-50">
+    <div className="fixed inset-0 flex flex-col items-center justify-center bg-black/50 backdrop-blur-sm z-50">
       <div className="flex flex-col w-2/4 items-center shadow-xl">
         <div className="flex flex-row w-full justify-between items-center px-2 text-sm text-white/50 font-bold z-10 border border-sky-900 py-1 rounded-t-sm bg-sky-900">
           <span>Delivery Challan ({deliveryChallan.delivery_no})</span>
@@ -272,6 +289,7 @@ const DeliveryChallan = ({ salesInvoice, setShowDeliveryChallan }) => {
             <input type="text" name="delivery_location" value={deliveryChallan.delivery_location} onChange={handleDeliveryChallanChange} />
             <input type="text" name="delivered_by" value={deliveryChallan.delivered_by} onChange={handleDeliveryChallanChange} />
             <span className="flex flex-row gap-2 mt-4 justify-end col-span-3">
+              <button type="button" className="btn btn-info w-24 me-auto" onClick={handleDelete} disabled={deliveryChallan.delivery_no === "new"}>Delete</button>
               <button type="button" className="btn btn-primary w-24" onClick={handleDeliveryChallanSubmit}>Submit</button>
               <button type="button" className="btn btn-danger w-24" onClick={() => setShowDeliveryChallan(false)}>Cancel</button>
             </span>

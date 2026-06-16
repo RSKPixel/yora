@@ -61,3 +61,22 @@ def create_delivery_challan(
 
     return {"status": "success", "message": "Delivery challan created successfully"}
 
+@router.post("/delete")
+def delete_delivery_challan(delivery_no: str = Form(...)):
+    if delivery_no == "new":
+        return {"status": "error", "message": "Delivery challan not found"}
+
+    sql = text(
+        """
+        DELETE FROM yora_delivery_challan
+        WHERE delivery_no = :delivery_no
+        """
+    )
+
+    with engine_mysql.begin() as conn:
+        result = conn.execute(sql, {"delivery_no": delivery_no})
+
+        if not result:
+            return {"status": "error", "message": "Delivery challan not found"}
+
+    return {"status": "success", "message": "Delivery challan deleted successfully"}

@@ -5,6 +5,10 @@
   @apply tracking-wide font-bold inline-block cursor-pointer text-center  select-none border text-sm px-4 py-1 rounded transition duration-150 ease-in-out;
 }
 
+.btn:disabled {
+  @apply cursor-not-allowed bg-gray-500 text-gray-300 border-gray-500 hover:bg-gray-500 active:bg-gray-500 opacity-50;
+}
+
 /* Primary (Bootstrap: btn-primary) */
 .btn-primary {
   @apply bg-blue-600 text-white border-transparent hover:bg-blue-700 active:bg-blue-800;
