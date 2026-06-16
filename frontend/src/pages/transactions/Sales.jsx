@@ -3,6 +3,7 @@ import AuthContext from "../../templates/AuthContext";
 import moment from "moment";
 import Loader from "../../components/Loader";
 import DatePeriods from "../../utils/DatePeriods";
+import getChecksum from "../../utils/Encrypt";
 
 const Sales = () => {
   const { api } = useContext(AuthContext);
@@ -193,10 +194,12 @@ const DeliveryChallan = ({ salesInvoice, setShowDeliveryChallan }) => {
     vehicle_no: "",
     driver_name: "",
     delivered_by: "",
-
   });
+  const [invChecksumResult, setInvChecksumResult] = useState(null);
+
 
   useEffect(() => {
+    invChecksum();
     const fd = new FormData();
     fd.append("invoice_no", salesInvoice.invoice_no);
     fd.append("invoice_date", salesInvoice.invoice_date);
