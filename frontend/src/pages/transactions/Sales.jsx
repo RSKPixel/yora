@@ -4,6 +4,7 @@ import moment from "moment";
 import Loader from "../../components/Loader";
 import DatePeriods from "../../utils/DatePeriods";
 import getChecksum from "../../utils/Encrypt";
+import PackingList from "./PackingList";
 
 const Sales = () => {
   const { api } = useContext(AuthContext);
@@ -140,45 +141,7 @@ const Sales = () => {
 
 export default Sales;
 
-const PackingList = ({ salesInvoice, setShowPackingList }) => {
-  return (
-    <div className="fixed inset-0 flex flex-col items-center justify-center bg-black/60 backdrop-blur-xs z-50">
-      <div className="flex flex-col w-3/4 items-center shadow-xl">
-        <div className="flex flex-row w-full justify-between items-center px-2 text-sm text-white/50 font-bold z-10 border border-sky-900 py-1 rounded-t-sm bg-sky-950">
-          <span>Packing List</span>
-          <span>{salesInvoice.invoice_no} | {moment(salesInvoice.invoice_date).format("DD-MM-YYYY")} | {salesInvoice.buyer}</span>
-          <span className="text-red-500 cursor-pointer hover:text-red-700"><i className="bi bi-x-lg" onClick={() => setShowPackingList(false)}></i></span>
-        </div>
-        <div className="form-basic">
-          <table className="w-full rounded-2xl text-sm border border-gray-600">
-            <thead>
-              <tr className="border-0 border-gray-600 bg-gray-700/50">
-                <th className="text-left px-2 py-1 border border-gray-600">Stock Item</th>
-                <th className="text-left px-2 py-1 border border-gray-600">Carton</th>
-                <th className="text-left px-2 py-1 border border-gray-600">Qty / Carton</th>
-                <th className="text-left px-2 py-1 border border-gray-600">Total Qty</th>
-                <th className="text-end px-2 py-1 border border-gray-600">Quantity</th>
-                <th className="text-end px-2 py-1 border border-gray-600">Difference</th>
-              </tr>
-            </thead>
-            <tbody>
-              {salesInvoice?.details?.map((details, index) => (
-                <tr key={salesInvoice.invoice_no + details.stock_item + details.item_no} className="border border-gray-600 px-2 py-2">
-                  <td className="text-left px-2 py-1 border border-gray-600">{details.stock_item}</td>
-                  <td className="text-end px-2 py-1 border border-gray-600"></td>
-                  <td className="text-end px-2 py-1 border border-gray-600"></td>
-                  <td className="text-end px-2 py-1 border border-gray-600"></td>
-                  <td className="text-end px-2 py-1 border border-gray-600">{details.qty}</td>
-                  <td className="text-end px-2 py-1 border border-gray-600"></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  );
-};
+
 
 const DeliveryChallan = ({ salesInvoice, setShowDeliveryChallan, setRefresh, refresh }) => {
 
