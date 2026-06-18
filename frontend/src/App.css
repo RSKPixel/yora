@@ -43,6 +43,271 @@ select {
   @apply text-sm uppercase tracking-wide font-bold bg-white/60 text-gray-900 border-neutral-600  rounded-sm p-1.5 cursor-pointer;
 }
 
+/* Login page — override global input styles */
+.login-page .login-input-wrap {
+  @apply flex items-stretch rounded-lg border border-slate-600/80 bg-slate-50 overflow-hidden transition-colors;
+}
+
+.login-page .login-input-wrap:focus-within {
+  @apply border-sky-500 ring-2 ring-sky-500/25 bg-white;
+}
+
+.login-page .login-input-icon {
+  @apply flex items-center justify-center w-11 shrink-0 bg-slate-100 text-slate-400 border-r border-slate-200 text-base;
+}
+
+.login-page .login-input-wrap:focus-within .login-input-icon {
+  @apply text-sky-600 bg-sky-50 border-sky-200;
+}
+
+.login-page input.login-input {
+  @apply flex-1 min-w-0 border-0 rounded-none bg-transparent py-2.5 px-3 text-sm normal-case tracking-normal font-medium text-slate-800 shadow-none outline-none placeholder:text-slate-400 placeholder:font-normal;
+}
+
+.login-page input.login-input:disabled {
+  @apply cursor-not-allowed opacity-60 bg-transparent text-slate-500;
+}
+
+.login-page .login-input-action {
+  @apply flex items-center justify-center w-11 shrink-0 text-slate-400 hover:text-slate-600 bg-slate-50 border-l border-slate-200 transition-colors cursor-pointer;
+}
+
+.login-page .login-input-wrap:focus-within .login-input-action {
+  @apply bg-white border-slate-200;
+}
+
+.login-page .login-submit {
+  @apply flex items-stretch w-full rounded-lg border border-transparent bg-blue-600 overflow-hidden transition-colors cursor-pointer text-sm normal-case tracking-normal font-bold text-white;
+}
+
+.login-page .login-submit:hover:not(:disabled) {
+  @apply bg-blue-700;
+}
+
+.login-page .login-submit:active:not(:disabled) {
+  @apply bg-blue-800;
+}
+
+.login-page .login-submit:disabled {
+  @apply cursor-not-allowed opacity-50 bg-gray-500;
+}
+
+.login-page .login-submit-icon {
+  @apply flex items-center justify-center w-11 shrink-0 bg-blue-700/80 text-white/80 border-r border-blue-500/40 text-base;
+}
+
+.login-page .login-submit:hover:not(:disabled) .login-submit-icon {
+  @apply bg-blue-800/80 border-blue-500/40 text-white;
+}
+
+.login-page .login-submit-label {
+  @apply flex-1 flex items-center justify-center gap-2 py-2.5 px-3;
+}
+
+/* App shell — matches login aesthetic */
+.app-shell {
+  @apply text-white;
+}
+
+.app-shell-bg {
+  @apply absolute inset-0 overflow-hidden;
+}
+
+.app-shell-orb {
+  @apply absolute rounded-full blur-3xl;
+}
+
+.app-shell-orb-1 {
+  @apply -top-24 -left-24 h-72 w-72 bg-sky-600/15;
+}
+
+.app-shell-orb-2 {
+  @apply -bottom-32 -right-16 h-80 w-80 bg-cyan-500/8;
+}
+
+.app-shell-orb-3 {
+  @apply top-1/3 right-1/4 h-48 w-48 bg-sky-900/20 blur-2xl;
+}
+
+.app-shell-sidebar {
+  @apply bg-neutral-950/40 backdrop-blur-sm;
+}
+
+.app-shell-nav-item {
+  @apply flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-slate-400 transition-colors hover:bg-white/5 hover:text-slate-200;
+}
+
+.app-shell-nav-item-active {
+  @apply bg-sky-950/80 text-sky-300 border border-sky-800/50 hover:bg-sky-950/80 hover:text-sky-200;
+}
+
+.app-shell-header-btn {
+  @apply flex h-9 w-9 items-center justify-center rounded-lg border border-slate-600/50 bg-slate-50/95 text-slate-500 transition-colors hover:border-sky-500/50 hover:text-sky-600 cursor-pointer;
+}
+
+.app-shell-header-btn-danger:hover {
+  @apply border-red-400/50 text-red-500;
+}
+
+.app-shell-content {
+  @apply w-full;
+}
+
+/* Page panels — used inside app-shell */
+.page-card {
+  @apply rounded-xl border border-sky-900/50 bg-neutral-900/85 shadow-2xl backdrop-blur-sm overflow-hidden;
+}
+
+.page-card-header {
+  @apply flex flex-row items-center justify-between gap-3 border-b border-sky-900/50 bg-sky-950/80 px-4 py-3;
+}
+
+.page-card-title {
+  @apply flex items-center gap-2 text-sm font-bold text-white/90 normal-case tracking-normal;
+}
+
+.page-card-title-icon {
+  @apply flex h-8 w-8 items-center justify-center rounded-lg bg-sky-900/60 border border-sky-700/50 text-sky-400;
+}
+
+.page-card-subtitle {
+  @apply text-xs text-white/40 normal-case tracking-normal font-normal;
+}
+
+.page-card-body {
+  @apply p-4 space-y-4;
+}
+
+.page-toolbar {
+  @apply flex flex-wrap items-center justify-between gap-3 rounded-lg border border-sky-900/40 bg-neutral-800/50 px-3 py-2.5;
+}
+
+.page-toolbar-label {
+  @apply text-[10px] font-bold uppercase tracking-wider text-slate-400;
+}
+
+.page-select {
+  @apply rounded-lg border border-slate-600/80 bg-slate-50 px-3 py-1.5 text-sm normal-case tracking-normal font-medium text-slate-800 cursor-pointer focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/25;
+}
+
+.page-icon-btn {
+  @apply flex h-8 w-8 items-center justify-center rounded-lg border border-slate-600/50 bg-slate-50/95 text-slate-500 transition-colors hover:border-sky-500/50 hover:text-sky-600 cursor-pointer;
+}
+
+.page-icon-btn-sky {
+  @apply hover:border-sky-500/50 hover:text-sky-600 hover:bg-sky-50;
+}
+
+.page-icon-btn-cyan {
+  @apply hover:border-cyan-500/50 hover:text-cyan-600 hover:bg-cyan-50;
+}
+
+.page-table-wrap {
+  @apply overflow-x-auto rounded-lg border border-gray-600/60;
+}
+
+.page-table {
+  @apply w-full text-sm border-collapse;
+}
+
+.page-table thead tr {
+  @apply bg-gray-800/90 text-white/70 text-xs uppercase tracking-wide;
+}
+
+.page-table th {
+  @apply text-left px-3 py-2.5 border-b border-gray-600/60 font-semibold;
+}
+
+.page-table th.text-end {
+  @apply text-right;
+}
+
+.page-table th.text-center {
+  @apply text-center;
+}
+
+.page-table tbody tr {
+  @apply border-b border-gray-700/40 transition-colors hover:bg-white/[0.03];
+}
+
+.page-table td {
+  @apply px-3 py-2.5 text-slate-300 normal-case tracking-normal font-medium;
+}
+
+.page-table td.text-end {
+  @apply text-right tabular-nums;
+}
+
+.page-table-empty {
+  @apply px-3 py-8 text-center text-sm text-slate-500 normal-case tracking-normal;
+}
+
+.page-modal-overlay {
+  @apply fixed inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm z-50 p-4;
+}
+
+.page-modal {
+  @apply flex flex-col w-full max-w-2xl max-h-[90vh] shadow-2xl overflow-hidden rounded-xl border border-sky-900/80 bg-neutral-900/95;
+}
+
+.page-modal-wide {
+  @apply max-w-3xl;
+}
+
+.page-field-wrap {
+  @apply flex items-stretch rounded-lg border border-slate-600/80 bg-slate-50 overflow-hidden transition-colors;
+}
+
+.page-field-wrap:focus-within {
+  @apply border-sky-500 ring-2 ring-sky-500/25 bg-white;
+}
+
+.page-field-icon {
+  @apply flex items-center justify-center w-11 shrink-0 bg-slate-100 text-slate-400 border-r border-slate-200 text-base;
+}
+
+.page-field-wrap:focus-within .page-field-icon {
+  @apply text-sky-600 bg-sky-50 border-sky-200;
+}
+
+.page-modal input.page-field-input,
+.page-modal-overlay input.page-field-input {
+  @apply flex-1 min-w-0 border-0 rounded-none bg-transparent py-2.5 px-3 text-sm normal-case tracking-normal font-medium text-slate-800 shadow-none outline-none;
+}
+
+.page-modal input.page-field-input:disabled,
+.page-modal-overlay input.page-field-input:disabled {
+  @apply cursor-not-allowed opacity-60 bg-transparent text-slate-500;
+}
+
+.page-modal-header {
+  @apply flex flex-row items-center justify-between px-4 py-3 border-b border-sky-900/60 bg-sky-950 shrink-0;
+}
+
+.page-modal-title {
+  @apply text-sm font-bold text-white/90 normal-case tracking-normal;
+}
+
+.page-modal-close {
+  @apply text-white/50 hover:text-red-400 transition-colors p-1 rounded-md hover:bg-white/5 cursor-pointer;
+}
+
+.page-modal-body {
+  @apply p-4 overflow-y-auto;
+}
+
+.page-form-label {
+  @apply text-[10px] font-bold uppercase tracking-wider text-slate-400 normal-case;
+}
+
+.page-form-input {
+  @apply w-full rounded-lg border border-slate-600/80 bg-slate-50 px-3 py-2 text-sm normal-case tracking-normal font-medium text-slate-800 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/25;
+}
+
+.page-form-input:disabled {
+  @apply cursor-not-allowed opacity-60 bg-slate-100 text-slate-500;
+}
+
 .button-icon {
   @apply text-white text-sm py-1 px-2 w-fit rounded-sm bg-sky-700 cursor-pointer hover:bg-sky-500 text-center flex items-center justify-center;
 }

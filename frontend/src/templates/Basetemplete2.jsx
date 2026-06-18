@@ -1,10 +1,10 @@
 import React, { useContext } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import AuthContext from "./AuthContext";
 
 const Basetemplate2 = ({ children }) => {
-  //   const { api, loggedIn, client } = useContext(AuthContext);
-  const loggedIn = true;
-  const client = { name: "Saravana Kumar" };
+  const { user, isAuthenticated, logout } = useContext(AuthContext);
+  const navigate = useNavigate();
   const menu = {
     Masters: {
       Inventory: "/masters/inventory",
@@ -21,6 +21,11 @@ const Basetemplate2 = ({ children }) => {
     },
   };
 
+  const handleLogout = () => {
+    logout();
+    navigate("/login", { replace: true });
+  };
+
   return (
     <div className="flex flex-col h-screen w-full">
       {/* Top Bar */}
@@ -33,12 +38,12 @@ const Basetemplate2 = ({ children }) => {
         </div>
         <div className="ms-auto" />
         <div className="flex flex-col">
-          {loggedIn && (
+          {isAuthenticated && user && (
             <span className="font-bold flex flex-row gap-2 text-sm">
-              {client.name}
+              {user.name}
             </span>
           )}
-          {loggedIn && (
+          {isAuthenticated && (
             <div className="flex flex-row gap-4 text-xs justify-center items-center  mt-1 text-grey-400">
               <Link
                 className="hover:underline underline-offset-4"
@@ -46,12 +51,13 @@ const Basetemplate2 = ({ children }) => {
               >
                 Profile
               </Link>
-              <Link
+              <button
+                type="button"
                 className="hover:underline underline-offset-4"
-                to={"/logout"}
+                onClick={handleLogout}
               >
                 Logout
-              </Link>
+              </button>
             </div>
           )}
         </div>
@@ -60,7 +66,7 @@ const Basetemplate2 = ({ children }) => {
       {/* Main Layout */}
       <div className="flex flex-row text-stone-200 w-full flex-1 overflow-hidden">
         {/* Sidebar */}
-        {loggedIn && (
+        {isAuthenticated && (
           <div className="flex flex-col w-80 gap-2 h-full text-sm font-medium p-4 pe-6 border-r border-sky-900 bg-stone-900 overflow-y-auto">
             <ul>
               {Object.keys(menu).map((section) => (

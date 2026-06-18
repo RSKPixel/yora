@@ -1,42 +1,48 @@
-import { useState } from "react";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import "./App.css";
 import "./Buttons.css";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Basetemplate2 from "./templates/Basetemplete2";
+import BasetemplateAi from "./templates/Basetemplate-ai";
 import Inventory from "./pages/masters/inventory/Inventory";
-import AuthContext from "./templates/AuthContext";
+import { AuthProvider } from "./templates/AuthContext";
+import ProtectedRoute from "./templates/ProtectedRoute";
 import Ledger from "./pages/masters/ledger/Ledger";
 import Purchase from "./pages/transactions/Purchase";
 import Sales from "./pages/transactions/Sales";
+import Login from "./pages/Login";
 
 function App() {
-  const api = import.meta.env.VITE_API;
   document.title = "YORA (ERP)";
-
-  const provider = {
-    api,
-  };
 
   return (
     <Router>
-      <AuthContext.Provider value={provider}>
-        <Basetemplate2>
-          <Routes>
-            <Route path="/" element={<div>Hello World</div>} />
-            <Route path="/masters">
-              <Route
-                path="inventory"
-                element={<Inventory action="NEW" inventoryId={null} />}
-              />
-              <Route path="ledger" element={<Ledger action="NEW" />} />
-            </Route>
-            <Route path="/transactions">
-              <Route path="purchase" element={<Purchase />} />
-              <Route path="sales" element={<Sales />} />
-            </Route>
-          </Routes>
-        </Basetemplate2>
-      </AuthContext.Provider>
+      <AuthProvider>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route
+            path="/*"
+            element={
+              <ProtectedRoute>
+                <BasetemplateAi>
+                  <Routes>
+                    <Route path="/" element={<Navigate to="/transactions/sales" replace />} />
+                    <Route path="/masters">
+                      <Route
+                        path="inventory"
+                        element={<Inventory action="NEW" inventoryId={null} />}
+                      />
+                      <Route path="ledger" element={<Ledger action="NEW" />} />
+                    </Route>
+                    <Route path="/transactions">
+                      <Route path="purchase" element={<Purchase />} />
+                      <Route path="sales" element={<Sales />} />
+                    </Route>
+                  </Routes>
+                </BasetemplateAi>
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+      </AuthProvider>
     </Router>
   );
 }
