@@ -271,13 +271,21 @@ select {
 }
 
 .page-modal input.page-field-input,
-.page-modal-overlay input.page-field-input {
+.page-modal-overlay input.page-field-input,
+.page-card input.page-field-input {
   @apply flex-1 min-w-0 border-0 rounded-none bg-transparent py-2.5 px-3 text-sm normal-case tracking-normal font-medium text-slate-800 shadow-none outline-none;
 }
 
 .page-modal input.page-field-input:disabled,
-.page-modal-overlay input.page-field-input:disabled {
+.page-modal-overlay input.page-field-input:disabled,
+.page-card input.page-field-input:disabled {
   @apply cursor-not-allowed opacity-60 bg-transparent text-slate-500;
+}
+
+.page-modal input.page-field-input-number,
+.page-modal-overlay input.page-field-input-number,
+.page-card input.page-field-input-number {
+  @apply text-end tabular-nums;
 }
 
 .page-modal-header {
