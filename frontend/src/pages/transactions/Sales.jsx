@@ -7,7 +7,7 @@ import PackingList from "./PackingList";
 import DeliveryChallan from "./DeliveryChallan";
 
 const Sales = () => {
-  const { api } = useContext(AuthContext);
+  const { api, authFetch } = useContext(AuthContext);
   const [salesList, setSalesList] = useState([]);
   const [showPackingList, setShowPackingList] = useState(false);
   const [showDeliveryChallan, setShowDeliveryChallan] = useState(false);
@@ -34,7 +34,7 @@ const Sales = () => {
     fd.append("date_from", periodValue[period].date_from);
     fd.append("date_to", periodValue[period].date_to);
 
-    fetch(`${api}/sales/sales-list`, {
+    authFetch(`${api}/sales/sales-list`, {
       method: "POST",
       body: fd,
     })
@@ -50,7 +50,7 @@ const Sales = () => {
   const loadTallyData = () => {
     setLoading(true);
     setLoadingMessage("Fetching tally data...");
-    fetch(`${api}/sales/tally-sales-list`, {
+    authFetch(`${api}/sales/tally-sales-list`, {
       method: "POST",
     })
       .then((response) => response.json())

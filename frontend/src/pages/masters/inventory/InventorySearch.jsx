@@ -3,7 +3,7 @@ import AuthContext from "../../../templates/AuthContext";
 import Inventory from "./Inventory";
 
 const InventorySearch = () => {
-  const { api } = useContext(AuthContext);
+  const { api, authFetch } = useContext(AuthContext);
 
   const [data, setData] = useState([]);
   const [inventoryName, setInventoryName] = useState("");
@@ -13,7 +13,7 @@ const InventorySearch = () => {
   useEffect(() => {
     const fd = new FormData();
     fd.append("inventory_name", inventoryName || " ");
-    fetch(`${api}/inventory/search`, {
+    authFetch(`${api}/inventory/search`, {
       method: "POST",
       body: fd,
     })

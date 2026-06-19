@@ -5,6 +5,7 @@ from fastapi import APIRouter, Form
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 
+from core.auth import create_access_token
 from core.dependencies import engine_mysql
 
 router = APIRouter()
@@ -58,11 +59,15 @@ def login(user_id: str = Form(""), password: str = Form("")):
             "message": "This account is inactive.",
         }
 
+    access_token = create_access_token(row["user_id"], row["name"])
+
     return {
         "status": "success",
         "message": "Login successful.",
         "data": {
             "user_id": row["user_id"],
             "name": row["name"],
+            "access_token": access_token,
+            "token_type": "bearer",
         },
     }

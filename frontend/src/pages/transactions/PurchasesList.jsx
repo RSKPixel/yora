@@ -9,7 +9,7 @@ const PurchasesList = ({
   setPurchaseDetails,
   setShowForm,
 }) => {
-  const { api } = useContext(AuthContext);
+  const { api, authFetch } = useContext(AuthContext);
   const [purchasesList, setPurchasesList] = useState([]);
   const [period, setPeriod] = useState({
     date_from: moment().startOf("year").add(3, "months").format("YYYY-MM-DD"),
@@ -30,7 +30,7 @@ const PurchasesList = ({
     fd.append("date_to", period.date_to);
     fd.append("details", period.details);
 
-    fetch(`${api}/purchases/list`, { method: "POST", body: fd })
+    authFetch(`${api}/purchases/list`, { method: "POST", body: fd })
       .then((response) => response.json())
       .then((data) => {
         setPurchasesList(data.data || []);
@@ -44,7 +44,7 @@ const PurchasesList = ({
     const fd = new FormData();
     fd.append("purchase_id", p.purchase_id);
     fd.append("purchase_date", p.purchase_date);
-    fetch(`${api}/purchases/fetch`, { method: "POST", body: fd })
+    authFetch(`${api}/purchases/fetch`, { method: "POST", body: fd })
       .then((response) => response.json())
       .then((data) => {
         if (data.status === "success") {

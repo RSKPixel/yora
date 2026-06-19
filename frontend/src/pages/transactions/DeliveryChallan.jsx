@@ -20,7 +20,7 @@ const DeliveryChallan = ({
   setRefresh,
   refresh,
 }) => {
-  const { api } = useContext(AuthContext);
+  const { api, authFetch } = useContext(AuthContext);
   const [formMessage, setFormMessage] = useState(null);
   const [deliveryChallan, setDeliveryChallan] = useState({
     delivery_no: "new",
@@ -40,7 +40,7 @@ const DeliveryChallan = ({
     const fd = new FormData();
     fd.append("invoice_no", salesInvoice.invoice_no);
     fd.append("invoice_date", salesInvoice.invoice_date);
-    fetch(`${api}/delivery/search`, {
+    authFetch(`${api}/delivery/search`, {
       method: "POST",
       body: fd,
     })
@@ -73,7 +73,7 @@ const DeliveryChallan = ({
 
     const endpoint = isNew ? `${api}/delivery/create` : `${api}/delivery/update`;
 
-    fetch(endpoint, { method: "POST", body: fd })
+    authFetch(endpoint, { method: "POST", body: fd })
       .then((response) => response.json())
       .then((data) => {
         setFormMessage({ type: data.status, message: data.message });
@@ -84,7 +84,7 @@ const DeliveryChallan = ({
   const handleDelete = () => {
     const fd = new FormData();
     fd.append("delivery_no", deliveryChallan.delivery_no);
-    fetch(`${api}/delivery/delete`, { method: "POST", body: fd })
+    authFetch(`${api}/delivery/delete`, { method: "POST", body: fd })
       .then((response) => response.json())
       .then((data) => {
         setFormMessage({ type: data.status, message: data.message });

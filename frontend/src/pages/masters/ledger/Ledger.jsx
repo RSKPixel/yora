@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState } from "react";
 import AuthContext from "../../../templates/AuthContext";
 
 const Ledger = ({ action }) => {
-  const { api } = useContext(AuthContext);
+  const { api, authFetch } = useContext(AuthContext);
   const [formAction, setFormAction] = useState(action);
   const [ledgerGroups, setLedgerGroups] = useState([]);
   const [formMessage, setFormMessage] = useState([]);
@@ -23,7 +23,7 @@ const Ledger = ({ action }) => {
 
     const fd = new FormData();
     fd.append("ledger_name", formData.ledger_name);
-    fetch(`${api}/ledger/check-ledger-name`, {
+    authFetch(`${api}/ledger/check-ledger-name`, {
       method: "POST",
 
       body: fd,
@@ -38,7 +38,7 @@ const Ledger = ({ action }) => {
   };
 
   useEffect(() => {
-    fetch(`${api}/ledger/groups`, {
+    authFetch(`${api}/ledger/groups`, {
       method: "POST",
     })
       .then((res) => res.json())
@@ -70,7 +70,7 @@ const Ledger = ({ action }) => {
       fd.append(key, formData[key]);
     }
 
-    fetch(`${api}/ledger/save`, {
+    authFetch(`${api}/ledger/save`, {
       method: "POST",
       body: fd,
     })

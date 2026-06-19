@@ -5,7 +5,7 @@ import TallyPendingBills from "./TallyPendingBills";
 import PurchaseForm from "./PurchaseForm";
 
 const Purchase = () => {
-  const { api } = useContext(AuthContext);
+  const { api, authFetch } = useContext(AuthContext);
   const [selectedPurchase, setSelectedPurchase] = useState(null);
   const [showPendingBills, setShowPendingBills] = useState(false);
   const [purchaseDetails, setPurchaseDetails] = useState(null);
@@ -27,7 +27,7 @@ const Purchase = () => {
     const fd = new FormData();
     fd.append("purchase_id", selectedPurchase.purchase_id);
     fd.append("purchase_date", selectedPurchase.purchase_date);
-    fetch(`${api}/purchases/tally-details`, {
+    authFetch(`${api}/purchases/tally-details`, {
       method: "POST",
       body: fd,
     })
@@ -81,7 +81,7 @@ const Purchase = () => {
     fd.append("expenses", purchase.expenses);
     fd.append("details", JSON.stringify(purchaseDetails));
 
-    fetch(`${api}/purchases/update`, { method: "POST", body: fd })
+    authFetch(`${api}/purchases/update`, { method: "POST", body: fd })
       .then((response) => response.json())
       .then((data) => {
         setFormMessage({ message: data.message, type: data.status });

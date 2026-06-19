@@ -16,6 +16,30 @@ export const AuthProvider = ({ children }) => {
     }
   });
 
+  const logout = useCallback(() => {
+    sessionStorage.removeItem(STORAGE_KEY);
+    setUser(null);
+  }, []);
+
+  const authFetch = useCallback(
+    async (url, options = {}) => {
+      const headers = new Headers(options.headers || {});
+      if (user?.token) {
+        headers.set('Authorization', `Bearer ${user.token}`);
+      }
+
+      const response = await fetch(url, { ...options, headers });
+
+      if (response.status === 401) {
+        logout();
+        window.location.assign('/login');
+      }
+
+      return response;
+    },
+    [user?.token, logout]
+  );
+
   const login = useCallback(
     async (userId, password) => {
       const fd = new FormData();
@@ -36,6 +60,7 @@ export const AuthProvider = ({ children }) => {
       const nextUser = {
         userId: data.data.user_id,
         name: data.data.name || data.data.user_id,
+        token: data.data.access_token,
       };
 
       sessionStorage.setItem(STORAGE_KEY, JSON.stringify(nextUser));
@@ -45,20 +70,16 @@ export const AuthProvider = ({ children }) => {
     [api]
   );
 
-  const logout = useCallback(() => {
-    sessionStorage.removeItem(STORAGE_KEY);
-    setUser(null);
-  }, []);
-
   const value = useMemo(
     () => ({
       api,
       user,
-      isAuthenticated: !!user,
+      isAuthenticated: !!user?.token,
       login,
       logout,
+      authFetch,
     }),
-    [api, user, login, logout]
+    [api, user, login, logout, authFetch]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

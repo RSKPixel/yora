@@ -7,13 +7,13 @@ const TallyPendingBills = ({
   setShowPendingBills,
   setShowForm,
 }) => {
-  const { api } = useContext(AuthContext);
+  const { api, authFetch } = useContext(AuthContext);
   const [pendingCostingBills, setPendingCostingBills] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setLoading(true);
-    fetch(`${api}/purchases/pending-purchase-bills`, { method: "POST" })
+    authFetch(`${api}/purchases/pending-purchase-bills`, { method: "POST" })
       .then((response) => response.json())
       .then((data) => {
         if (data.status === "success") {

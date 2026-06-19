@@ -20,14 +20,14 @@ const Inventory = ({ action, inventoryId }) => {
   const [showSearch, setShowSearch] = useState(false);
   const [formAction, setFormAction] = useState(action.toLowerCase());
   const inventoryNameRef = useRef(null);
-  const { api } = useContext(AuthContext);
+  const { api, authFetch } = useContext(AuthContext);
 
   useEffect(() => {
     if (formAction === "modify") {
       const fd = new FormData();
       fd.append("id", inventoryId);
 
-      fetch(`${api}/inventory/retrive`, {
+      authFetch(`${api}/inventory/retrive`, {
         method: "POST",
         body: fd,
       })
@@ -88,7 +88,7 @@ const Inventory = ({ action, inventoryId }) => {
         ? `${api}/inventory/save`
         : `${api}/inventory/update`;
 
-    fetch(`${api}/inventory/save`, {
+    authFetch(`${api}/inventory/save`, {
       method: "POST",
       body: fd,
     })
