@@ -1,11 +1,13 @@
+import core.env  # noqa: F401 — load backend/.env before reading os.environ
+
 import os
 
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from core.auth import get_current_user
+from core.auth import AUTH_BYPASS, AUTH_BYPASS_TOKEN, get_current_user
 from routers import inventory, ledger, purchase, sales
-from routers import delivery, auth
+from routers import delivery, auth, masters
 import uvicorn
 
 _DEFAULT_CORS_ORIGINS = (
@@ -22,6 +24,11 @@ CORS_ORIGINS = [
 
 app = FastAPI()
 
+if AUTH_BYPASS:
+    print(
+        f"[AUTH] Postman bypass ENABLED — use Bearer token: {AUTH_BYPASS_TOKEN}"
+    )
+
 require_auth = [Depends(get_current_user)]
 
 # Inventory Routes
@@ -35,6 +42,12 @@ app.include_router(
     ledger.router,
     prefix="/ledger",
     tags=["ledger"],
+    dependencies=require_auth,
+)
+app.include_router(
+    masters.router,
+    prefix="/masters",
+    tags=["masters"],
     dependencies=require_auth,
 )
 app.include_router(

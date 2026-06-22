@@ -7,6 +7,7 @@ import { AuthProvider } from "./templates/AuthContext";
 import ProtectedRoute from "./templates/ProtectedRoute";
 import Ledger from "./pages/masters/ledger/Ledger";
 import Purchase from "./pages/transactions/Purchase";
+import PurchaseOrder from "./pages/transactions/PurchaseOrder";
 import Sales from "./pages/transactions/Sales";
 import Login from "./pages/Login";
 
@@ -33,6 +34,7 @@ function App() {
                       <Route path="ledger" element={<Ledger action="NEW" />} />
                     </Route>
                     <Route path="/transactions">
+                      <Route path="purchase-order" element={<PurchaseOrder />} />
                       <Route path="purchase" element={<Purchase />} />
                       <Route path="sales" element={<Sales />} />
                     </Route>

@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import AuthContext from "./AuthContext";
 
@@ -13,6 +13,7 @@ const menu = {
   Transactions: {
     icon: "bi-arrow-left-right",
     items: {
+      "Purchase Order": { path: "/transactions/purchase-order", icon: "bi-clipboard-check" },
       Purchase: { path: "/transactions/purchase", icon: "bi-cart-plus" },
       Sales: { path: "/transactions/sales", icon: "bi-receipt" },
       "Credit Note": { path: "/transactions/creditnote", icon: "bi-file-earmark-minus" },
@@ -33,6 +34,7 @@ const navLinkClass = ({ isActive }) =>
 const BasetemplateAi = ({ children }) => {
   const { user, isAuthenticated, logout } = useContext(AuthContext);
   const navigate = useNavigate();
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const handleLogout = () => {
     logout();
@@ -95,35 +97,54 @@ const BasetemplateAi = ({ children }) => {
 
       <div className="relative z-10 flex flex-1 min-h-0">
         {isAuthenticated && (
-          <aside className="app-shell-sidebar shrink-0 w-64 border-r border-sky-900/40 overflow-y-auto p-3">
-            <nav className="space-y-4">
-              {Object.entries(menu).map(([section, { icon, items }]) => (
-                <div
-                  key={section}
-                  className="rounded-xl border border-sky-900/50 bg-neutral-900/80 overflow-hidden backdrop-blur-sm"
-                >
-                  <div className="flex items-center gap-2 border-b border-sky-900/50 bg-sky-950/80 px-3 py-2">
-                    <i className={`bi ${icon} text-sky-400 text-xs`}></i>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-300">
-                      {section}
-                    </span>
-                  </div>
-                  <ul className="p-1.5 space-y-0.5">
-                    {Object.entries(items).map(([name, { path, icon: itemIcon }]) => (
-                      <li key={name}>
-                        <NavLink to={path} className={navLinkClass}>
-                          <i className={`bi ${itemIcon} text-sm shrink-0`}></i>
-                          <span className="truncate normal-case tracking-normal font-medium">
-                            {name}
-                          </span>
-                        </NavLink>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </nav>
-          </aside>
+          <>
+            <div
+              className={`app-shell-sidebar-wrap${sidebarOpen ? " app-shell-sidebar-wrap-open" : " app-shell-sidebar-wrap-closed"}`}
+            >
+              <aside
+                id="app-shell-sidebar"
+                className="app-shell-sidebar h-full w-64 border-r border-sky-900/40"
+              >
+                <nav className="h-full overflow-y-auto p-3 space-y-4">
+                  {Object.entries(menu).map(([section, { icon, items }]) => (
+                    <div
+                      key={section}
+                      className="rounded-xl border border-sky-900/50 bg-neutral-900/80 overflow-hidden backdrop-blur-sm"
+                    >
+                      <div className="flex items-center gap-2 border-b border-sky-900/50 bg-sky-950/80 px-3 py-2">
+                        <i className={`bi ${icon} text-sky-400 text-xs`}></i>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-300">
+                          {section}
+                        </span>
+                      </div>
+                      <ul className="p-1.5 space-y-0.5">
+                        {Object.entries(items).map(([name, { path, icon: itemIcon }]) => (
+                          <li key={name}>
+                            <NavLink to={path} className={navLinkClass}>
+                              <i className={`bi ${itemIcon} text-sm shrink-0`}></i>
+                              <span className="truncate normal-case tracking-normal font-medium">
+                                {name}
+                              </span>
+                            </NavLink>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </nav>
+              </aside>
+            </div>
+            <button
+              type="button"
+              onClick={() => setSidebarOpen((open) => !open)}
+              className={`app-shell-sidebar-toggle${sidebarOpen ? " app-shell-sidebar-toggle-open" : " app-shell-sidebar-toggle-closed"}`}
+              title={sidebarOpen ? "Hide navigation" : "Show navigation"}
+              aria-expanded={sidebarOpen}
+              aria-controls="app-shell-sidebar"
+            >
+              {sidebarOpen ? "<<" : ">>"}
+            </button>
+          </>
         )}
 
         <main className="flex-1 min-w-0 overflow-y-auto p-4 sm:p-6">

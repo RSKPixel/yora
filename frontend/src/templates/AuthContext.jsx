@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useMemo, useState } from 'react';
+import React, { createContext, useCallback, useEffect, useMemo, useState } from 'react';
 
 export const AuthContext = createContext({});
 
@@ -15,10 +15,12 @@ export const AuthProvider = ({ children }) => {
       return null;
     }
   });
+  const [company, setCompany] = useState(null);
 
   const logout = useCallback(() => {
     sessionStorage.removeItem(STORAGE_KEY);
     setUser(null);
+    setCompany(null);
   }, []);
 
   const authFetch = useCallback(
@@ -39,6 +41,22 @@ export const AuthProvider = ({ children }) => {
     },
     [user?.token, logout]
   );
+
+  useEffect(() => {
+    if (!user?.token) {
+      setCompany(null);
+      return;
+    }
+
+    authFetch(`${api}/masters/company`, { method: 'POST' })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.status === 'success') {
+          setCompany(data.data ?? null);
+        }
+      })
+      .catch(() => setCompany(null));
+  }, [api, authFetch, user?.token]);
 
   const login = useCallback(
     async (userId, password) => {
@@ -74,12 +92,13 @@ export const AuthProvider = ({ children }) => {
     () => ({
       api,
       user,
+      company,
       isAuthenticated: !!user?.token,
       login,
       logout,
       authFetch,
     }),
-    [api, user, login, logout, authFetch]
+    [api, user, company, login, logout, authFetch]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
