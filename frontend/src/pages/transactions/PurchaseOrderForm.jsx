@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import numeral from "numeral";
 import AuthContext from "../../templates/AuthContext";
-import { calcLine, calcOrderTotals, emptyLine, INSURANCE_OPTIONS, SHIPPING_OPTIONS, VENDOR_PRIMARY_GROUP, validateOrder } from "./purchaseOrderUtils";
+import { calcLine, calcOrderTotals, emptyLine, DEFAULT_PO_STATUS, PO_STATUS_OPTIONS, VENDOR_PRIMARY_GROUP, validateOrder } from "./purchaseOrderUtils";
 import StockItemAutocomplete from "./StockItemAutocomplete";
 import AutocompleteField from "./AutocompleteField";
 import { generatePurchaseOrderPdf } from "./purchaseOrderPdf";
@@ -27,6 +27,17 @@ const numInput = (value, onChange, { min, max, step = "0.01" } = {}) => (
     max={max}
     step={step}
     onChange={onChange}
+  />
+);
+
+const readOnlyAmount = (value) => (
+  <input
+    type="text"
+    className="page-field-input page-field-input-number w-full min-w-0 cursor-default opacity-90"
+    value={value}
+    readOnly
+    tabIndex={-1}
+    aria-readonly="true"
   />
 );
 
@@ -57,11 +68,15 @@ const VendorDetail = ({ label, value }) => {
 
 const PurchaseOrderForm = ({
   order,
+  displayPoNo,
   onOrderChange,
   formMessage,
   onBack,
   onSave,
+  onDelete,
   isEditing,
+  saving = false,
+  deleting = false,
 }) => {
   const { api, authFetch, company } = useContext(AuthContext);
   const [stockItems, setStockItems] = useState([]);
@@ -92,16 +107,16 @@ const PurchaseOrderForm = ({
   const vendorDetails = useMemo(() => {
     const ledger = ledgers.find((item) => item.name === order.vendor);
     return {
-      address_1: order.vendor_address_1 || ledger?.address_1 || "",
-      address_2: order.vendor_address_2 || ledger?.address_2 || "",
-      address_3: order.vendor_address_3 || ledger?.address_3 || "",
-      address_4: order.vendor_address_4 || ledger?.address_4 || "",
-      pincode: order.vendor_pincode || ledger?.pincode || "",
-      gstin: order.vendor_gstin || ledger?.gstin || "",
-      pan: order.vendor_pan || ledger?.pan || "",
-      representative: order.vendor_representative || ledger?.representative || "",
+      address_1: ledger?.address_1 || "",
+      address_2: ledger?.address_2 || "",
+      address_3: ledger?.address_3 || "",
+      address_4: ledger?.address_4 || "",
+      pincode: ledger?.pincode || "",
+      gstin: ledger?.gstin || "",
+      pan: ledger?.pan || "",
+      representative: ledger?.representative || "",
     };
-  }, [order, ledgers]);
+  }, [order.vendor, ledgers]);
 
   const vendorAddress = formatVendorAddress(vendorDetails);
 
@@ -116,33 +131,10 @@ const PurchaseOrderForm = ({
     onOrderChange({ ...order, details });
   };
 
-  const handleVendorSelect = (vendorName, ledger) => {
-    if (!vendorName) {
-      onOrderChange({
-        ...order,
-        vendor: "",
-        vendor_address_1: "",
-        vendor_address_2: "",
-        vendor_address_3: "",
-        vendor_address_4: "",
-        vendor_pincode: "",
-        vendor_gstin: "",
-        vendor_pan: "",
-        vendor_representative: "",
-      });
-      return;
-    }
+  const handleVendorSelect = (vendorName) => {
     onOrderChange({
       ...order,
-      vendor: vendorName,
-      vendor_address_1: ledger?.address_1 ?? "",
-      vendor_address_2: ledger?.address_2 ?? "",
-      vendor_address_3: ledger?.address_3 ?? "",
-      vendor_address_4: ledger?.address_4 ?? "",
-      vendor_pincode: ledger?.pincode ?? "",
-      vendor_gstin: ledger?.gstin ?? "",
-      vendor_pan: ledger?.pan ?? "",
-      vendor_representative: ledger?.representative ?? "",
+      vendor: vendorName || "",
     });
   };
 
@@ -190,6 +182,7 @@ const PurchaseOrderForm = ({
     try {
       generatePurchaseOrderPdf({
         order,
+        poDisplayNo: displayPoNo,
         company,
         vendorAddress,
         vendorDetails,
@@ -207,14 +200,14 @@ const PurchaseOrderForm = ({
   return (
     <div className="flex flex-col gap-4 min-h-0">
       <section className="rounded-lg border border-gray-700/80 bg-neutral-800/50 p-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="space-y-2">
               <label className="page-form-label">Purchase Order No</label>
               <p className="page-field-input flex items-center font-semibold text-sky-300/90 min-h-[42px]">
-                {order.po_no || "—"}
+                {displayPoNo}
               </p>
             </div>
-            <Field label="Vendor" icon="bi-building">
+            <Field label="Vendor *" icon="bi-building">
               <AutocompleteField
                 value={order.vendor}
                 items={ledgers}
@@ -226,13 +219,26 @@ const PurchaseOrderForm = ({
                 className="w-full"
               />
             </Field>
-            <Field label="Purchase Order Date" icon="bi-calendar3">
+            <Field label="Purchase Order Date *" icon="bi-calendar3">
               <input
                 type="date"
-                className="page-field-input"
+                className="page-field-input min-h-[42px]"
                 value={order.po_date}
                 onChange={(e) => updateHeader("po_date", e.target.value)}
               />
+            </Field>
+            <Field label="Status *" icon="bi-flag">
+              <select
+                className="page-field-input w-full min-h-[42px]"
+                value={order.status || DEFAULT_PO_STATUS}
+                onChange={(e) => updateHeader("status", e.target.value)}
+              >
+                {PO_STATUS_OPTIONS.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
             </Field>
           </div>
           {order.vendor && (
@@ -256,12 +262,13 @@ const PurchaseOrderForm = ({
           <table className="page-table">
             <thead>
               <tr>
-                <th>Item</th>
-                <th className="text-end w-40 min-w-40">Qty</th>
-                <th className="text-end w-44 min-w-44">Unit Price</th>
-                <th className="text-end w-24">GST %</th>
-                <th className="text-end w-28">GST Value</th>
-                <th className="text-end w-28">Total</th>
+                <th className="min-w-90 w-90">Item *</th>
+                <th className="text-end w-40 min-w-40">Qty *</th>
+                <th className="text-end w-32 min-w-32">Unit Price</th>
+                <th className="text-end w-32 min-w-32">Discount %</th>
+                <th className="text-end w-32 min-w-32">GST %</th>
+                <th className="text-end w-36 min-w-36">GST Value</th>
+                <th className="text-end w-36 min-w-36">Total</th>
                 <th className="text-center w-20"></th>
               </tr>
             </thead>
@@ -270,7 +277,7 @@ const PurchaseOrderForm = ({
                 const { gstValue, total } = calcLine(line);
                 return (
                   <tr key={index}>
-                    <td className={`min-w-48 ${line.show_description ? "align-top" : "align-middle"}`}>
+                    <td className={`min-w-90 w-90 ${line.show_description ? "align-top" : "align-middle"}`}>
                       <div className="flex flex-col gap-1.5">
                         <div className="flex items-center gap-1">
                           <div className="flex-1 min-w-0">
@@ -313,23 +320,30 @@ const PurchaseOrderForm = ({
                         step: "1",
                       })}
                     </td>
-                    <td className="w-44 min-w-44 align-top">
+                    <td className="w-32 min-w-32 align-top">
                       {numInput(
                         line.unit_price,
                         (e) => updateLine(index, "unit_price", e.target.value),
                         { min: "0" }
                       )}
                     </td>
-                    <td className="align-top">
-                      {numInput(line.gst, (e) => updateLine(index, "gst", e.target.value), {
-                        min: "0",
-                      })}
+                    <td className="w-32 min-w-32 align-top">
+                      {numInput(
+                        line.discount_pct,
+                        (e) => updateLine(index, "discount_pct", e.target.value),
+                        { min: "0", max: "100" }
+                      )}
                     </td>
-                    <td className="text-end tabular-nums text-white/95 align-middle">
-                      {numeral(gstValue).format("0,0.00")}
+                    <td className="w-32 min-w-32 align-top">
+                      {readOnlyAmount(
+                        line.gst !== "" && line.gst != null ? String(line.gst) : ""
+                      )}
                     </td>
-                    <td className="text-end tabular-nums font-medium text-white align-middle">
-                      {numeral(total).format("0,0.00")}
+                    <td className="w-36 min-w-36 align-top">
+                      {readOnlyAmount(numeral(gstValue).format("0,0.00"))}
+                    </td>
+                    <td className="w-36 min-w-36 align-top">
+                      {readOnlyAmount(numeral(total).format("0,0.00"))}
                     </td>
                     <td className="align-top">
                       <div className="flex justify-center gap-1">
@@ -364,50 +378,71 @@ const PurchaseOrderForm = ({
                 <td className="text-end tabular-nums text-white/90 w-40 min-w-40">
                   {numeral(totals.qty).format("0,0.##")}
                 </td>
-                <td className="text-end tabular-nums text-white/90 w-44 min-w-44">
+                <td className="text-end tabular-nums text-white/90 w-32 min-w-32">
                   {numeral(totals.amount).format("0,0.00")}
                 </td>
-                <td></td>
-                <td className="text-end tabular-nums text-white/90">
-                  {numeral(totals.gstValue).format("0,0.00")}
+                <td className="w-32 min-w-32"></td>
+                <td className="w-32 min-w-32"></td>
+                <td className="w-36 min-w-36 align-top">
+                  {readOnlyAmount(numeral(totals.gstValue).format("0,0.00"))}
                 </td>
-                <td className="text-end tabular-nums text-sky-300/90">
-                  {numeral(totals.total).format("0,0.00")}
+                <td className="w-36 min-w-36 align-top">
+                  {readOnlyAmount(numeral(totals.total).format("0,0.00"))}
                 </td>
                 <td></td>
               </tr>
             </tfoot>
           </table>
           <div className="page-po-extra-fields flex flex-wrap gap-4 px-3 py-3 border-t border-gray-700/40">
-            <div className="w-44">
+            <div className="min-w-[12rem] flex-1">
+              <label className="page-table-detail-label">Vendor Quotation No</label>
+              <input
+                type="text"
+                className="page-field-input w-full"
+                value={order.vendor_quotation_no || ""}
+                onChange={(e) => updateHeader("vendor_quotation_no", e.target.value)}
+                placeholder="Vendor quote reference"
+              />
+            </div>
+            <div className="min-w-[12rem] flex-1">
               <label className="page-table-detail-label">Shipping</label>
-              <select
+              <input
+                type="text"
                 className="page-field-input w-full"
                 value={order.shipping || ""}
                 onChange={(e) => updateHeader("shipping", e.target.value)}
-              >
-                <option value="">Select</option>
-                {SHIPPING_OPTIONS.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
+                placeholder="e.g. To Pay"
+              />
             </div>
-            <div className="w-44">
+            <div className="min-w-[12rem] flex-1">
               <label className="page-table-detail-label">Insurance</label>
-              <select
+              <input
+                type="text"
                 className="page-field-input w-full"
                 value={order.insurance || ""}
                 onChange={(e) => updateHeader("insurance", e.target.value)}
-              >
-                <option value="">Select</option>
-                {INSURANCE_OPTIONS.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
+                placeholder="e.g. Insured"
+              />
+            </div>
+            <div className="min-w-[12rem] flex-1">
+              <label className="page-table-detail-label">Payment Terms</label>
+              <input
+                type="text"
+                className="page-field-input w-full"
+                value={order.payment_terms || ""}
+                onChange={(e) => updateHeader("payment_terms", e.target.value)}
+                placeholder="e.g. 30 days from invoice date"
+              />
+            </div>
+            <div className="min-w-[12rem] flex-1">
+              <label className="page-table-detail-label">Delivery Terms</label>
+              <input
+                type="text"
+                className="page-field-input w-full"
+                value={order.delivery_terms || ""}
+                onChange={(e) => updateHeader("delivery_terms", e.target.value)}
+                placeholder="e.g. Ex-works, within 15 days"
+              />
             </div>
           </div>
         </div>
@@ -447,10 +482,22 @@ const PurchaseOrderForm = ({
           Back to list
         </button>
         <div className="flex flex-wrap items-center gap-3">
+          {onDelete && (
+            <button
+              type="button"
+              className="btn btn-secondary flex items-center gap-1.5 normal-case tracking-normal text-red-400 hover:text-red-300"
+              onClick={onDelete}
+              disabled={saving || deleting}
+            >
+              <i className="bi bi-trash"></i>
+              {deleting ? "Deleting..." : "Delete"}
+            </button>
+          )}
           <button
             type="button"
             className="btn btn-secondary flex items-center gap-1.5 normal-case tracking-normal"
             onClick={handleSavePdf}
+            disabled={saving || deleting}
           >
             <i className="bi bi-file-earmark-pdf"></i>
             Save as PDF
@@ -459,9 +506,10 @@ const PurchaseOrderForm = ({
             type="button"
             className="btn btn-primary flex items-center gap-1.5"
             onClick={onSave}
+            disabled={saving || deleting}
           >
             <i className="bi bi-check-lg"></i>
-            {isEditing ? "Update" : "Save"} Purchase Order
+            {saving ? "Saving..." : isEditing ? "Update" : "Save"} Purchase Order
           </button>
         </div>
       </div>

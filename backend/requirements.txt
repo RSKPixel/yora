@@ -1,3 +1,5 @@
+bcrypt
+slowapi
 annotated-doc
 annotated-types
 anyio

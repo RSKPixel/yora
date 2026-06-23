@@ -8,6 +8,7 @@ import ProtectedRoute from "./templates/ProtectedRoute";
 import Ledger from "./pages/masters/ledger/Ledger";
 import Purchase from "./pages/transactions/Purchase";
 import PurchaseOrder from "./pages/transactions/PurchaseOrder";
+import PurchaseOrderReport from "./pages/reports/PurchaseOrderReport";
 import Sales from "./pages/transactions/Sales";
 import Login from "./pages/Login";
 
@@ -37,6 +38,9 @@ function App() {
                       <Route path="purchase-order" element={<PurchaseOrder />} />
                       <Route path="purchase" element={<Purchase />} />
                       <Route path="sales" element={<Sales />} />
+                    </Route>
+                    <Route path="/reports">
+                      <Route path="purchaseorder" element={<PurchaseOrderReport />} />
                     </Route>
                   </Routes>
                 </BasetemplateAi>

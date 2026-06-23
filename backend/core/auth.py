@@ -1,23 +1,25 @@
 import core.env  # noqa: F401
 
 import hmac
-import os
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
 
-JWT_SECRET = os.environ.get("JWT_SECRET", "yora-dev-jwt-secret-change-in-production")
-JWT_ALGORITHM = "HS256"
-JWT_EXPIRE_HOURS = int(os.environ.get("JWT_EXPIRE_HOURS", "24"))
-
-# Dev/Postman only — set AUTH_BYPASS=true locally; never in production
-AUTH_BYPASS = os.environ.get("AUTH_BYPASS", "").lower() == "true"
-AUTH_BYPASS_TOKEN = os.environ.get("AUTH_BYPASS_TOKEN", "yora-postman-local")
-AUTH_BYPASS_USER_ID = os.environ.get("AUTH_BYPASS_USER_ID", "postman")
-AUTH_BYPASS_USER_NAME = os.environ.get("AUTH_BYPASS_USER_NAME", "Postman Test")
+from core.config import (
+    AUTH_BYPASS,
+    AUTH_BYPASS_TOKEN,
+    AUTH_BYPASS_USER_ID,
+    AUTH_BYPASS_USER_NAME,
+    JWT_ALGORITHM,
+    JWT_EXPIRE_HOURS,
+    JWT_SECRET,
+)
+from core.dependencies import engine_mysql
 
 security = HTTPBearer(auto_error=False)
 
@@ -39,6 +41,30 @@ def _bypass_user() -> dict:
 
 def _is_bypass_token(token: str) -> bool:
     return AUTH_BYPASS and hmac.compare_digest(token, AUTH_BYPASS_TOKEN)
+
+
+def fetch_active_user(user_id: str) -> Optional[dict]:
+    sql = text(
+        """
+        SELECT user_id, name, is_active
+        FROM yora_users
+        WHERE user_id = :user_id
+        LIMIT 1
+        """
+    )
+    try:
+        with engine_mysql.connect() as connection:
+            row = connection.execute(sql, {"user_id": user_id}).mappings().first()
+    except SQLAlchemyError:
+        return None
+
+    if not row or not row["is_active"]:
+        return None
+
+    return {
+        "user_id": row["user_id"],
+        "name": row["name"],
+    }
 
 
 def create_access_token(user_id: str, name: str) -> str:
@@ -99,7 +125,12 @@ def get_current_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    return {
-        "user_id": user_id,
-        "name": payload.get("name", user_id),
-    }
+    user = fetch_active_user(user_id)
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or inactive account",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    return user

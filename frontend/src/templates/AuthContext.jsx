@@ -4,17 +4,35 @@ export const AuthContext = createContext({});
 
 const STORAGE_KEY = 'yora_user';
 
+function isTokenExpired(token) {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return !payload.exp || payload.exp * 1000 <= Date.now();
+  } catch {
+    return true;
+  }
+}
+
+function readStoredUser() {
+  try {
+    const saved = sessionStorage.getItem(STORAGE_KEY);
+    if (!saved) return null;
+
+    const parsed = JSON.parse(saved);
+    if (!parsed?.token || isTokenExpired(parsed.token)) {
+      sessionStorage.removeItem(STORAGE_KEY);
+      return null;
+    }
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
 export const AuthProvider = ({ children }) => {
   const api = import.meta.env.VITE_API;
 
-  const [user, setUser] = useState(() => {
-    try {
-      const saved = sessionStorage.getItem(STORAGE_KEY);
-      return saved ? JSON.parse(saved) : null;
-    } catch {
-      return null;
-    }
-  });
+  const [user, setUser] = useState(() => readStoredUser());
   const [company, setCompany] = useState(null);
 
   const logout = useCallback(() => {
@@ -93,7 +111,7 @@ export const AuthProvider = ({ children }) => {
       api,
       user,
       company,
-      isAuthenticated: !!user?.token,
+      isAuthenticated: !!user?.token && !isTokenExpired(user.token),
       login,
       logout,
       authFetch,

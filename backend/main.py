@@ -4,11 +4,17 @@ import os
 
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 
 from core.auth import AUTH_BYPASS, AUTH_BYPASS_TOKEN, get_current_user
-from routers import inventory, ledger, purchase, sales
+from core.config import validate_security_config
+from core.limiter import limiter
+from routers import inventory, ledger, purchase, purchase_orders, sales
 from routers import delivery, auth, masters
 import uvicorn
+
+validate_security_config()
 
 _DEFAULT_CORS_ORIGINS = (
     "http://localhost:5173,"
@@ -23,6 +29,8 @@ CORS_ORIGINS = [
 ]
 
 app = FastAPI()
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 if AUTH_BYPASS:
     print(
@@ -54,6 +62,12 @@ app.include_router(
     purchase.router,
     prefix="/purchases",
     tags=["purchases"],
+    dependencies=require_auth,
+)
+app.include_router(
+    purchase_orders.router,
+    prefix="/purchase-orders",
+    tags=["purchase-orders"],
     dependencies=require_auth,
 )
 app.include_router(

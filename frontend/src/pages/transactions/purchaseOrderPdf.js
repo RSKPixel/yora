@@ -2,7 +2,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import moment from "moment";
 import numeral from "numeral";
-import { calcLine, calcOrderTotals } from "./purchaseOrderUtils";
+import { calcLine, calcOrderTotals, getPoPdfFileName } from "./purchaseOrderUtils";
 
 const joinParts = (parts, separator = ", ") =>
   parts.filter((part) => part?.trim()).join(separator);
@@ -24,11 +24,31 @@ const addLeftLines = (doc, lines, x, startY, lineHeight = 5) => {
   return y;
 };
 
-export const generatePurchaseOrderPdf = ({ order, company, vendorAddress, vendorDetails }) => {
+const addWrappedLabelValue = (doc, label, value, x, y, maxWidth, lineHeight = 4.5) => {
+  const text = value?.trim();
+  if (!text) return y;
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(9);
+  doc.text(`${label}:`, x, y);
+  y += lineHeight;
+
+  doc.setFont("helvetica", "normal");
+  const lines = doc.splitTextToSize(text, maxWidth);
+  lines.forEach((line) => {
+    doc.text(line, x, y);
+    y += lineHeight;
+  });
+
+  return y + 2;
+};
+
+export const generatePurchaseOrderPdf = ({ order, poDisplayNo, company, vendorAddress, vendorDetails }) => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const margin = 14;
   let y = 16;
+  const poNoLabel = poDisplayNo || order.po_no || "—";
 
   y = addCenteredLine(doc, pageWidth, company?.company_name || "Company", y, {
     fontSize: 14,
@@ -65,11 +85,17 @@ export const generatePurchaseOrderPdf = ({ order, company, vendorAddress, vendor
     fontStyle: "bold",
     lineHeight: 10,
   });
-  y = addCenteredLine(doc, pageWidth, `No: ${order.po_no || "—"}`, y, { fontSize: 10 });
+  y = addCenteredLine(doc, pageWidth, `No: ${poNoLabel}`, y, { fontSize: 10 });
   y = addCenteredLine(doc, pageWidth, `Date: ${order.po_date ? moment(order.po_date).format("DD-MM-YYYY") : "—"}`, y, {
     fontSize: 10,
     lineHeight: 8,
   });
+  if (order.status?.trim()) {
+    y = addCenteredLine(doc, pageWidth, `Status: ${order.status.trim()}`, y, {
+      fontSize: 10,
+      lineHeight: 8,
+    });
+  }
 
   y += 6;
 
@@ -148,7 +174,7 @@ export const generatePurchaseOrderPdf = ({ order, company, vendorAddress, vendor
 
   autoTable(doc, {
     startY: y,
-    head: [["#", "Item", "Qty", "Unit", "Unit Price", "GST %", "GST Value", "Total"]],
+    head: [["#", "Item", "Qty", "Unit", "Unit Price", "Disc %", "GST %", "GST Value", "Total"]],
     body: lines.map((line, index) => {
       const { gstValue, total } = calcLine(line);
       return [
@@ -157,6 +183,7 @@ export const generatePurchaseOrderPdf = ({ order, company, vendorAddress, vendor
         numeral(line.qty).format("0,0.##"),
         line.unit || "",
         numeral(line.unit_price).format("0,0.00"),
+        line.discount_pct ? `${line.discount_pct}%` : "",
         line.gst ? `${line.gst}%` : "",
         numeral(gstValue).format("0,0.00"),
         numeral(total).format("0,0.00"),
@@ -169,6 +196,7 @@ export const generatePurchaseOrderPdf = ({ order, company, vendorAddress, vendor
         numeral(totals.qty).format("0,0.##"),
         "",
         numeral(totals.amount).format("0,0.00"),
+        "",
         "",
         numeral(totals.gstValue).format("0,0.00"),
         numeral(totals.total).format("0,0.00"),
@@ -185,6 +213,7 @@ export const generatePurchaseOrderPdf = ({ order, company, vendorAddress, vendor
       5: { halign: "right" },
       6: { halign: "right" },
       7: { halign: "right" },
+      8: { halign: "right" },
     },
     margin: { left: margin, right: margin },
     didParseCell: (data) => {
@@ -237,20 +266,19 @@ export const generatePurchaseOrderPdf = ({ order, company, vendorAddress, vendor
 
   y = doc.lastAutoTable.finalY + 8;
 
-  const terms = [
-    order.shipping ? `Shipping: ${order.shipping}` : "",
-    order.insurance ? `Insurance: ${order.insurance}` : "",
-  ].filter(Boolean);
+  const termsWidth = pageWidth - margin * 2;
+  y = addWrappedLabelValue(
+    doc,
+    "Vendor Quotation No",
+    order.vendor_quotation_no,
+    margin,
+    y,
+    termsWidth
+  );
+  y = addWrappedLabelValue(doc, "Shipping", order.shipping, margin, y, termsWidth);
+  y = addWrappedLabelValue(doc, "Insurance", order.insurance, margin, y, termsWidth);
+  y = addWrappedLabelValue(doc, "Payment Terms", order.payment_terms, margin, y, termsWidth);
+  y = addWrappedLabelValue(doc, "Delivery Terms", order.delivery_terms, margin, y, termsWidth);
 
-  if (terms.length) {
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(9);
-    terms.forEach((term) => {
-      doc.text(term, margin, y);
-      y += 5;
-    });
-  }
-
-  const fileName = `${order.po_no || "purchase-order"}.pdf`;
-  doc.save(fileName);
+  doc.save(getPoPdfFileName(poNoLabel));
 };
