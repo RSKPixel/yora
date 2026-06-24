@@ -127,6 +127,16 @@ export const generatePurchaseOrderReportPdf = ({
     y,
     filterWidth
   );
+  y = addFilterLine(
+    doc,
+    "Shortage filter",
+    filters?.exclude_shortage_upto_5 || report?.summary?.exclude_shortage_upto_5
+      ? "Show only items with shortage above 5%"
+      : "Show all items",
+    margin,
+    y,
+    filterWidth
+  );
 
   if (report?.summary) {
     y = addFilterLine(

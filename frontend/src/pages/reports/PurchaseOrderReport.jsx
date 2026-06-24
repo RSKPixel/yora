@@ -12,10 +12,18 @@ const emptyFilters = () => ({
   po_date_to: "",
   purchase_date_from: "",
   purchase_date_to: "",
+  exclude_shortage_upto_5: false,
 });
 
 const formatQty = (value) => numeral(value || 0).format("0,0.##");
 const formatCount = (value) => numeral(value || 0).format("0,0");
+
+const FilterField = ({ label, title, children, className = "" }) => (
+  <label className={`page-report-filter-field ${className}`} title={title}>
+    <span className="page-report-filter-label">{label}</span>
+    {children}
+  </label>
+);
 
 const SortableQtyHeader = ({ label, sortKey, sort, onSort }) => {
   const isAsc = sort.key === sortKey && sort.direction === "asc";
@@ -119,9 +127,10 @@ const PurchaseOrderReport = () => {
   }, [orders, filters.vendor, filters.po_date_from, filters.po_date_to]);
 
   const handleFilterChange = (event) => {
-    const { name, value } = event.target;
+    const { name, value, type, checked } = event.target;
+    const nextValue = type === "checkbox" ? checked : value;
     setFilters((prev) => {
-      const next = { ...prev, [name]: value };
+      const next = { ...prev, [name]: nextValue };
       if (name === "vendor") {
         const stillValid = orders.some(
           (order) => order.po_no === prev.po_no && order.vendor === value
@@ -148,7 +157,12 @@ const PurchaseOrderReport = () => {
       const fd = new FormData();
       fd.append("vendor", filters.vendor);
       Object.entries(filters).forEach(([key, value]) => {
-        if (key !== "vendor" && value) fd.append(key, value);
+        if (key === "vendor") return;
+        if (key === "exclude_shortage_upto_5") {
+          if (value) fd.append(key, "true");
+          return;
+        }
+        if (value) fd.append(key, value);
       });
 
       const response = await authFetch(`${api}/purchase-orders/report`, {
@@ -262,106 +276,134 @@ const PurchaseOrderReport = () => {
         </div>
 
         <div className="page-card-body">
-          <div className="page-toolbar">
-            <span className="page-toolbar-label">Filters</span>
-            <div className="flex flex-wrap items-center gap-2">
-              <select
-                className="page-select min-w-52"
-                name="vendor"
-                value={filters.vendor}
-                onChange={handleFilterChange}
-                disabled={filtersLoading}
-                required
-              >
-                <option value="">Select vendor</option>
-                {vendors.map((name) => (
-                  <option key={name} value={name}>
-                    {name}
-                  </option>
-                ))}
-              </select>
+          <div className="page-report-filters">
+            <div className="page-report-filters-grid">
+              <FilterField label="Vendor *" className="w-full sm:w-52">
+                <select
+                  className="page-select page-select-compact w-full"
+                  name="vendor"
+                  value={filters.vendor}
+                  onChange={handleFilterChange}
+                  disabled={filtersLoading}
+                  required
+                >
+                  <option value="">Select vendor</option>
+                  {vendors.map((name) => (
+                    <option key={name} value={name}>
+                      {name}
+                    </option>
+                  ))}
+                </select>
+              </FilterField>
 
-              <select
-                className="page-select min-w-40"
-                name="po_no"
-                value={filters.po_no}
-                onChange={handleFilterChange}
-                disabled={filtersLoading || !filters.vendor}
-              >
-                <option value="">All purchase orders</option>
-                {poOptions.map((order) => (
-                  <option key={order.po_no} value={order.po_no}>
-                    {order.po_no}
-                  </option>
-                ))}
-              </select>
+              <FilterField label="PO" className="w-full sm:w-36">
+                <select
+                  className="page-select page-select-compact w-full"
+                  name="po_no"
+                  value={filters.po_no}
+                  onChange={handleFilterChange}
+                  disabled={filtersLoading || !filters.vendor}
+                >
+                  <option value="">All</option>
+                  {poOptions.map((order) => (
+                    <option key={order.po_no} value={order.po_no}>
+                      {order.po_no}
+                    </option>
+                  ))}
+                </select>
+              </FilterField>
 
-              <span className="text-slate-500 text-xs normal-case tracking-normal">PO date</span>
-              <input
-                className="page-select w-auto"
-                type="date"
-                name="po_date_from"
-                value={filters.po_date_from}
-                onChange={handleFilterChange}
-              />
-              <span className="text-slate-500 text-xs normal-case tracking-normal">to</span>
-              <input
-                className="page-select w-auto"
-                type="date"
-                name="po_date_to"
-                value={filters.po_date_to}
-                onChange={handleFilterChange}
-              />
+              <FilterField label="PO from" className="w-[8.75rem]">
+                <input
+                  className="page-select page-select-compact w-full"
+                  type="date"
+                  name="po_date_from"
+                  value={filters.po_date_from}
+                  onChange={handleFilterChange}
+                />
+              </FilterField>
+
+              <FilterField label="PO to" className="w-[8.75rem]">
+                <input
+                  className="page-select page-select-compact w-full"
+                  type="date"
+                  name="po_date_to"
+                  value={filters.po_date_to}
+                  onChange={handleFilterChange}
+                />
+              </FilterField>
+
+              <FilterField
+                label="Purchase from"
+                title="Leave blank to count from each item's earliest PO date"
+                className="w-[8.75rem]"
+              >
+                <input
+                  className="page-select page-select-compact w-full"
+                  type="date"
+                  name="purchase_date_from"
+                  value={filters.purchase_date_from}
+                  onChange={handleFilterChange}
+                />
+              </FilterField>
+
+              <FilterField label="Purchase to" className="w-[8.75rem]">
+                <input
+                  className="page-select page-select-compact w-full"
+                  type="date"
+                  name="purchase_date_to"
+                  value={filters.purchase_date_to}
+                  onChange={handleFilterChange}
+                />
+              </FilterField>
+
+              <label
+                className="inline-flex items-center gap-1.5 pb-1 text-[11px] normal-case tracking-normal text-slate-300 cursor-pointer shrink-0"
+                title="Hide fully received items and shortages up to 5%"
+              >
+                <input
+                  type="checkbox"
+                  className="h-3.5 w-3.5 rounded border-gray-600/60 bg-neutral-800/90 text-sky-500 focus:ring-sky-500/40"
+                  name="exclude_shortage_upto_5"
+                  checked={filters.exclude_shortage_upto_5}
+                  onChange={handleFilterChange}
+                />
+                Shortage &gt;5% only
+              </label>
+
+              <div className="page-report-filter-actions sm:ml-auto">
+                <button
+                  type="button"
+                  className="page-icon-btn page-icon-btn-sky"
+                  title="Generate report"
+                  onClick={runReport}
+                  disabled={loadingReport || !filters.vendor}
+                >
+                  <i className={`bi ${loadingReport ? "bi-arrow-repeat animate-spin" : "bi-search"}`}></i>
+                </button>
+                <button
+                  type="button"
+                  className="page-icon-btn"
+                  title="Clear filters"
+                  onClick={clearFilters}
+                  disabled={loadingReport}
+                >
+                  <i className="bi bi-x-lg"></i>
+                </button>
+                {sortedRows.length > 0 && (
+                  <button
+                    type="button"
+                    className="page-icon-btn page-icon-btn-sky"
+                    title="Save as PDF"
+                    onClick={handleSavePdf}
+                    disabled={loadingReport}
+                  >
+                    <i className="bi bi-file-earmark-pdf"></i>
+                  </button>
+                )}
+              </div>
             </div>
           </div>
-
-          <div className="page-toolbar mt-2">
-            <span className="page-toolbar-label">Purchases</span>
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-slate-500 text-xs normal-case tracking-normal">
-                Count purchases from
-              </span>
-              <input
-                className="page-select w-auto"
-                type="date"
-                name="purchase_date_from"
-                value={filters.purchase_date_from}
-                onChange={handleFilterChange}
-                title="Leave blank to count from each PO date"
-              />
-              <span className="text-slate-500 text-xs normal-case tracking-normal">to</span>
-              <input
-                className="page-select w-auto"
-                type="date"
-                name="purchase_date_to"
-                value={filters.purchase_date_to}
-                onChange={handleFilterChange}
-              />
-              <button
-                type="button"
-                className="page-icon-btn page-icon-btn-sky"
-                title="Generate report"
-                onClick={runReport}
-                disabled={loadingReport || !filters.vendor}
-              >
-                <i className={`bi ${loadingReport ? "bi-arrow-repeat animate-spin" : "bi-search"}`}></i>
-              </button>
-              <button
-                type="button"
-                className="page-icon-btn"
-                title="Clear filters"
-                onClick={clearFilters}
-                disabled={loadingReport}
-              >
-                <i className="bi bi-x-lg"></i>
-              </button>
-            </div>
-          </div>
-
-          <p className="text-slate-500 text-xs normal-case tracking-normal mt-2 mb-3">
-            Items are grouped by stock item. Received quantity is the total purchased from the
-            selected vendor for each item, counted from the earliest PO date for that item.
-          </p>
 
           {(pdfMessage || message) && (
             <div
@@ -387,34 +429,26 @@ const PurchaseOrderReport = () => {
           )}
 
           {report?.summary && (
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
-              <div className="flex flex-wrap gap-4 text-xs normal-case tracking-normal text-slate-400">
-              <span>
-                Vendor: <span className="text-sky-300/90">{report.vendor}</span>
-              </span>
-              <span>
-                POs: <span className="text-slate-200">{report.summary.po_count}</span>
-              </span>
-              <span>
-                Items: <span className="text-slate-200">{report.summary.item_count}</span>
-              </span>
-              {appliedFilters.po_no && (
+            <div className="page-report-summary">
+              <div className="flex flex-wrap gap-x-4 gap-y-1">
                 <span>
-                  PO: <span className="text-sky-300/90">{appliedFilters.po_no}</span>
+                  Vendor: <span className="text-sky-300/90">{report.vendor}</span>
                 </span>
-              )}
+                <span>
+                  POs: <span className="text-slate-200">{report.summary.po_count}</span>
+                </span>
+                <span>
+                  Items: <span className="text-slate-200">{report.summary.item_count}</span>
+                </span>
+                {appliedFilters.po_no && (
+                  <span>
+                    PO: <span className="text-sky-300/90">{appliedFilters.po_no}</span>
+                  </span>
+                )}
+                {appliedFilters.exclude_shortage_upto_5 && (
+                  <span className="text-slate-500">Shortage &gt;5% only</span>
+                )}
               </div>
-              {sortedRows.length > 0 && (
-                <button
-                  type="button"
-                  className="btn btn-secondary flex items-center gap-1.5 text-xs normal-case tracking-normal shrink-0"
-                  onClick={handleSavePdf}
-                  disabled={loadingReport}
-                >
-                  <i className="bi bi-file-earmark-pdf"></i>
-                  Save as PDF
-                </button>
-              )}
             </div>
           )}
 

@@ -214,6 +214,34 @@ select {
   @apply text-[10px] font-bold uppercase tracking-wider text-slate-400;
 }
 
+.page-report-filters {
+  @apply rounded-lg border border-sky-900/40 bg-neutral-800/50 p-3;
+}
+
+.page-report-filters-grid {
+  @apply flex flex-wrap items-end gap-x-3 gap-y-2;
+}
+
+.page-report-filter-field {
+  @apply flex flex-col gap-0.5 min-w-0;
+}
+
+.page-report-filter-label {
+  @apply text-[10px] font-semibold uppercase tracking-wider text-slate-500 leading-none;
+}
+
+.page-select-compact {
+  @apply py-1 px-2 text-xs min-h-[30px];
+}
+
+.page-report-filter-actions {
+  @apply flex items-center gap-2 shrink-0;
+}
+
+.page-report-summary {
+  @apply flex flex-wrap items-center justify-between gap-2 text-xs normal-case tracking-normal text-slate-400;
+}
+
 .page-select {
   @apply rounded-lg border border-slate-600/80 bg-slate-50 px-3 py-1.5 text-sm normal-case tracking-normal font-medium text-slate-800 cursor-pointer focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/25;
 }

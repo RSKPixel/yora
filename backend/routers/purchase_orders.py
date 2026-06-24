@@ -28,6 +28,7 @@ PO_STATUSES = (
 )
 
 DEFAULT_PO_STATUS = PO_STATUS_OPEN
+SHORTAGE_TOLERANCE_PCT = 5.0
 
 
 def _normalize_status(status: Optional[str]) -> str:
@@ -596,6 +597,21 @@ def _qty_number(value: Any) -> float:
     return float(value)
 
 
+def _form_bool(value: Optional[str]) -> bool:
+    return (value or "").strip().lower() in ("true", "1", "yes", "on")
+
+
+def _should_exclude_by_shortage_filter(
+    po_qty: float, shortage: float, tolerance_pct: float
+) -> bool:
+    """Exclude items with no shortage or shortage up to tolerance_pct."""
+    if shortage <= 0:
+        return True
+    if po_qty <= 0:
+        return False
+    return (shortage / po_qty) * 100 <= tolerance_pct
+
+
 @router.post("/vendors")
 def list_report_vendors():
     """Vendors that appear in purchase orders or purchases."""
@@ -638,11 +654,14 @@ def purchase_order_report(
     po_date_to: str = Form(""),
     purchase_date_from: str = Form(""),
     purchase_date_to: str = Form(""),
+    exclude_shortage_upto_5: str = Form(""),
 ):
     """Compare PO line quantities with purchases for the same vendor and item."""
     vendor = vendor.strip()
     if not vendor:
         raise HTTPException(status_code=400, detail="Vendor is required.")
+
+    exclude_minor_shortage = _form_bool(exclude_shortage_upto_5)
 
     filters = ["po.vendor = :vendor"]
     params: dict[str, str] = {"vendor": vendor}
@@ -784,6 +803,11 @@ def purchase_order_report(
         shortage = -variance if variance < 0 else 0.0
         no_of_po = len(entry["po_numbers"])
 
+        if exclude_minor_shortage and _should_exclude_by_shortage_filter(
+            po_qty, shortage, SHORTAGE_TOLERANCE_PCT
+        ):
+            continue
+
         totals["po_qty"] += po_qty
         totals["received_qty"] += received_qty
         totals["excess"] += excess
@@ -825,6 +849,7 @@ def purchase_order_report(
             "summary": {
                 "po_count": len(po_numbers),
                 "item_count": len(report_rows),
+                "exclude_shortage_upto_5": exclude_minor_shortage,
             },
         },
     }
