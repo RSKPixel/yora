@@ -3,6 +3,12 @@ import { Link, NavLink, useNavigate } from "react-router-dom";
 import AuthContext from "./AuthContext";
 
 const menu = {
+  Home: {
+    icon: "bi-house",
+    items: {
+      Dashboard: { path: "/dashboard", icon: "bi-speedometer2" },
+    },
+  },
   Masters: {
     icon: "bi-database",
     items: {

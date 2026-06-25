@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import numeral from "numeral";
-import AuthContext from "../../templates/AuthContext";
+import AuthContext from "../../../templates/AuthContext";
 import {
   generatePurchaseOrderReportPdf,
 } from "./purchaseOrderReportPdf";

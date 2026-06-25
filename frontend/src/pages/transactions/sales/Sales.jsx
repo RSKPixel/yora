@@ -1,8 +1,8 @@
 import React, { useContext, useEffect, useState } from "react";
-import AuthContext from "../../templates/AuthContext";
+import AuthContext from "../../../templates/AuthContext";
 import moment from "moment";
-import Loader from "../../components/Loader";
-import DatePeriods from "../../utils/DatePeriods";
+import Loader from "../../../components/Loader";
+import DatePeriods from "../../../utils/DatePeriods";
 import PackingList from "./PackingList";
 import DeliveryChallan from "./DeliveryChallan";
 

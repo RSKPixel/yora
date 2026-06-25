@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useEffect, useState } from "react";
-import AuthContext from "../../templates/AuthContext";
-import ConfirmModal from "../../components/ConfirmModal";
+import AuthContext from "../../../templates/AuthContext";
+import ConfirmModal from "../../../components/ConfirmModal";
 import PurchaseOrderList from "./PurchaseOrderList";
 import PurchaseOrderForm from "./PurchaseOrderForm";
 import {

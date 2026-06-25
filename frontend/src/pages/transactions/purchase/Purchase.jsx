@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import AuthContext from "../../templates/AuthContext";
+import AuthContext from "../../../templates/AuthContext";
 import PurchasesList from "./PurchasesList";
 import TallyPendingBills from "./TallyPendingBills";
 import PurchaseForm from "./PurchaseForm";

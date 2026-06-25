@@ -206,6 +206,62 @@ select {
   @apply p-4 space-y-4;
 }
 
+.dashboard-welcome {
+  @apply flex flex-col gap-4 rounded-lg border border-sky-900/40 bg-neutral-800/50 p-4 sm:flex-row sm:items-center sm:justify-between;
+}
+
+.dashboard-welcome-main {
+  @apply flex items-center gap-3 min-w-0;
+}
+
+.dashboard-welcome-icon {
+  @apply flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-sky-900/60 border border-sky-700/50 text-xl text-sky-400;
+}
+
+.dashboard-welcome-label {
+  @apply text-[10px] font-bold uppercase tracking-wider text-slate-500;
+}
+
+.dashboard-welcome-value {
+  @apply text-base font-semibold text-white/90 normal-case tracking-normal;
+}
+
+.dashboard-welcome-meta {
+  @apply mt-0.5 text-xs text-white/40 normal-case tracking-normal;
+}
+
+.dashboard-welcome-contact {
+  @apply flex flex-col gap-1.5 text-xs text-slate-400 normal-case tracking-normal;
+}
+
+.dashboard-welcome-contact-item {
+  @apply flex items-center gap-2;
+}
+
+.dashboard-quick-links {
+  @apply grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3;
+}
+
+.dashboard-quick-link {
+  @apply flex items-center gap-3 rounded-lg border border-sky-900/50 bg-neutral-800/50 px-4 py-3 transition-colors hover:border-sky-600/60 hover:bg-sky-950/40;
+}
+
+.dashboard-quick-link-icon {
+  @apply flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-sky-900/60 border border-sky-700/50 text-sky-400;
+}
+
+.dashboard-quick-link-section {
+  @apply block text-[10px] font-bold uppercase tracking-wider text-slate-500;
+}
+
+.dashboard-quick-link-label {
+  @apply block text-sm font-medium text-white/85 normal-case tracking-normal;
+}
+
+.dashboard-quick-link-arrow {
+  @apply ml-auto shrink-0 text-xs text-slate-500;
+}
+
 .page-toolbar {
   @apply flex flex-wrap items-center justify-between gap-3 rounded-lg border border-sky-900/40 bg-neutral-800/50 px-3 py-2.5;
 }

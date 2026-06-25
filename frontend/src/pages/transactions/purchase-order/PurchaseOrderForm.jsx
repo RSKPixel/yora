@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import numeral from "numeral";
-import AuthContext from "../../templates/AuthContext";
+import AuthContext from "../../../templates/AuthContext";
 import { calcLine, calcOrderTotals, emptyLine, DEFAULT_PO_STATUS, PO_STATUS_OPTIONS, VENDOR_PRIMARY_GROUP, validateOrder } from "./purchaseOrderUtils";
 import StockItemAutocomplete from "./StockItemAutocomplete";
 import AutocompleteField from "./AutocompleteField";

@@ -6,11 +6,12 @@ import Inventory from "./pages/masters/inventory/Inventory";
 import { AuthProvider } from "./templates/AuthContext";
 import ProtectedRoute from "./templates/ProtectedRoute";
 import Ledger from "./pages/masters/ledger/Ledger";
-import Purchase from "./pages/transactions/Purchase";
-import PurchaseOrder from "./pages/transactions/PurchaseOrder";
-import PurchaseOrderReport from "./pages/reports/PurchaseOrderReport";
-import Sales from "./pages/transactions/Sales";
+import Purchase from "./pages/transactions/purchase/Purchase";
+import PurchaseOrder from "./pages/transactions/purchase-order/PurchaseOrder";
+import PurchaseOrderReport from "./pages/reports/purchase-order/PurchaseOrderReport";
+import Sales from "./pages/transactions/sales/Sales";
 import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
 
 function App() {
   document.title = "YORA (ERP)";
@@ -26,7 +27,8 @@ function App() {
               <ProtectedRoute>
                 <BasetemplateAi>
                   <Routes>
-                    <Route path="/" element={<Navigate to="/transactions/sales" replace />} />
+                    <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/" element={<Navigate to="/dashboard" replace />} />
                     <Route path="/masters">
                       <Route
                         path="inventory"

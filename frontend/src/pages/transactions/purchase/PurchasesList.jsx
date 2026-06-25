@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import moment from "moment";
 import numeral from "numeral";
-import AuthContext from "../../templates/AuthContext";
+import AuthContext from "../../../templates/AuthContext";
 
 const PurchasesList = ({
   setShowPendingBills,

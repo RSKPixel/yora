@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import moment from "moment";
-import AuthContext from "../../templates/AuthContext";
+import AuthContext from "../../../templates/AuthContext";
 
 const TallyPendingBills = ({
   setSelectedPurchase,
