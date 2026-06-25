@@ -394,7 +394,7 @@ const PurchaseOrderForm = ({
             </tfoot>
           </table>
           <div className="page-po-extra-fields flex flex-wrap gap-4 px-3 py-3 border-t border-gray-700/40">
-            <div className="min-w-[12rem] flex-1">
+            <div className="min-w-48 flex-1">
               <label className="page-table-detail-label">Vendor Quotation No</label>
               <input
                 type="text"
@@ -404,7 +404,7 @@ const PurchaseOrderForm = ({
                 placeholder="Vendor quote reference"
               />
             </div>
-            <div className="min-w-[12rem] flex-1">
+            <div className="min-w-48 flex-1">
               <label className="page-table-detail-label">Shipping</label>
               <input
                 type="text"
@@ -414,7 +414,7 @@ const PurchaseOrderForm = ({
                 placeholder="e.g. To Pay"
               />
             </div>
-            <div className="min-w-[12rem] flex-1">
+            <div className="min-w-48 flex-1">
               <label className="page-table-detail-label">Insurance</label>
               <input
                 type="text"
@@ -424,7 +424,7 @@ const PurchaseOrderForm = ({
                 placeholder="e.g. Insured"
               />
             </div>
-            <div className="min-w-[12rem] flex-1">
+            <div className="min-w-48 flex-1">
               <label className="page-table-detail-label">Payment Terms</label>
               <input
                 type="text"
@@ -434,7 +434,7 @@ const PurchaseOrderForm = ({
                 placeholder="e.g. 30 days from invoice date"
               />
             </div>
-            <div className="min-w-[12rem] flex-1">
+            <div className="min-w-48 flex-1">
               <label className="page-table-detail-label">Delivery Terms</label>
               <input
                 type="text"
