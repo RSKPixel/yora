@@ -1,14 +1,22 @@
 import moment from "moment";
 
-export default function DatePeriods() {
+export function getCurrentAccountingYear() {
     const today = moment();
-
     const fyStart =
         today.month() >= 3
             ? moment([today.year(), 3, 1])
             : moment([today.year() - 1, 3, 1]);
-
     const fyEnd = fyStart.clone().add(1, "year").subtract(1, "day");
+
+    return {
+        date_from: fyStart.format("YYYY-MM-DD"),
+        date_to: fyEnd.format("YYYY-MM-DD"),
+    };
+}
+
+export default function DatePeriods() {
+    const today = moment();
+    const { date_from, date_to } = getCurrentAccountingYear();
 
     return {
         Today: {
@@ -37,8 +45,8 @@ export default function DatePeriods() {
         },
 
         "Current FY": {
-            date_from: fyStart.format("YYYY-MM-DD"),
-            date_to: fyEnd.format("YYYY-MM-DD"),
+            date_from,
+            date_to,
         },
     };
 }

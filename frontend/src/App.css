@@ -206,7 +206,19 @@ select {
 }
 
 .app-shell-header-center {
-  @apply flex min-w-0 items-center justify-center justify-self-center gap-2;
+  @apply flex min-w-0 max-w-full items-center justify-center justify-self-center px-2 sm:px-3;
+}
+
+.app-shell-header-company {
+  @apply flex max-w-[11rem] min-w-0 items-center gap-2.5 rounded-xl border border-sky-900/50 bg-gradient-to-r from-neutral-900/70 to-sky-950/40 px-2.5 py-1 shadow-sm shadow-black/20 sm:max-w-md sm:px-3;
+}
+
+.app-shell-header-company-icon {
+  @apply flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-sky-800/45 bg-sky-950/70 text-sm text-sky-400;
+}
+
+.app-shell-header-company-name {
+  @apply min-w-0 truncate text-sm font-semibold normal-case tracking-normal text-white/90 sm:text-[15px];
 }
 
 .app-shell-header-search {
@@ -226,23 +238,44 @@ select {
 }
 
 .app-shell-header-end {
-  @apply flex min-w-0 items-center justify-self-end gap-2 sm:gap-3;
+  @apply flex min-w-0 items-center justify-self-end;
 }
 
-.app-shell-user {
-  @apply hidden min-w-0 items-center gap-2 rounded-xl border border-sky-900/45 bg-neutral-900/45 px-2 py-1 sm:flex;
+.app-shell-user-menu {
+  @apply relative;
+}
+
+.app-shell-user-menu:hover .app-shell-user-dropdown,
+.app-shell-user-menu:focus-within .app-shell-user-dropdown {
+  @apply visible translate-y-0 opacity-100;
+}
+
+.app-shell-user-trigger {
+  @apply flex cursor-pointer items-center rounded-xl border border-sky-900/45 bg-neutral-900/45 p-1 transition-colors hover:border-sky-700/55 hover:bg-sky-950/50;
 }
 
 .app-shell-user-avatar {
-  @apply flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-sky-800/50 bg-sky-950/80 text-[10px] font-bold normal-case tracking-normal text-sky-300;
+  @apply flex h-9 w-9 items-center justify-center rounded-lg border border-sky-800/50 bg-sky-950/80 text-xs font-bold normal-case tracking-normal text-sky-300;
 }
 
-.app-shell-user-name {
-  @apply max-w-[9rem] truncate text-sm font-medium normal-case tracking-normal text-white/80;
+.app-shell-user-dropdown {
+  @apply invisible absolute right-0 top-full z-50 mt-2 min-w-[10rem] translate-y-1 overflow-hidden rounded-xl border border-sky-900/55 bg-neutral-900/95 py-1 opacity-0 shadow-xl shadow-black/40 backdrop-blur-md transition-all duration-150;
 }
 
-.app-shell-header-actions {
-  @apply flex items-center gap-1.5;
+.app-shell-user-dropdown-item {
+  @apply flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm font-medium normal-case tracking-normal text-white/80 transition-colors hover:bg-white/5 hover:text-white;
+}
+
+.app-shell-user-dropdown-item i {
+  @apply w-4 shrink-0 text-center text-sky-400/80 text-sm;
+}
+
+.app-shell-user-dropdown-item-danger {
+  @apply text-red-300/90 hover:bg-red-950/30 hover:text-red-200;
+}
+
+.app-shell-user-dropdown-item-danger i {
+  @apply text-red-400/80;
 }
 
 .app-shell-header-icon-btn {
@@ -283,19 +316,56 @@ select {
 }
 
 .dashboard {
-  @apply flex min-h-[calc(100dvh-10rem)] w-full flex-col overflow-visible;
+  @apply mx-auto flex min-h-[calc(100dvh-10rem)] w-full flex-col gap-6;
+}
+
+.dashboard-main {
+  @apply flex flex-1 flex-col items-center justify-center gap-3 px-2 py-4 sm:py-8;
+}
+
+.dashboard-search-hint {
+  @apply text-center text-sm text-white/35 normal-case tracking-normal;
 }
 
 .dashboard-spotlight {
-  @apply relative z-20 flex flex-col items-center justify-center overflow-visible px-2 py-10 sm:py-14;
+  @apply relative z-20 w-full max-w-xl overflow-visible;
 }
 
-.dashboard-body {
-  @apply flex-1 space-y-8 overflow-visible;
+.dashboard-widgets {
+  @apply grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 xl:items-stretch;
+}
+
+.dashboard-panel {
+  @apply flex h-full min-h-[14rem] flex-col rounded-xl border border-sky-900/45 bg-neutral-900/50 p-4 backdrop-blur-sm;
+}
+
+.dashboard-panel-title {
+  @apply text-[10px] font-bold uppercase tracking-wider text-slate-500;
+}
+
+.dashboard-panel-subtitle {
+  @apply mt-1 text-xs normal-case tracking-normal text-white/40;
+}
+
+.dashboard-panel-header {
+  @apply mb-3 flex items-start justify-between gap-3;
+}
+
+.dashboard-panel-action {
+  @apply flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-sky-900/55 bg-neutral-900/50 text-sky-300/70 transition-colors hover:border-sky-700/55 hover:bg-sky-950/60 hover:text-sky-200;
+}
+
+.dashboard-panel-empty,
+.dashboard-panel-error {
+  @apply mt-auto text-sm normal-case tracking-normal text-white/40;
+}
+
+.dashboard-panel-error {
+  @apply text-red-300/80;
 }
 
 .spotlight-inline-root {
-  @apply relative w-full max-w-xl;
+  @apply relative w-full;
 }
 
 .spotlight-inline-root-open {
@@ -310,64 +380,63 @@ select {
   @apply absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-sky-900/50 bg-neutral-900/95 shadow-2xl shadow-black/40 backdrop-blur-md;
 }
 
-.dashboard-hero {
-  @apply flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between;
+.dashboard-sales-widget-header {
+  @apply mb-3 flex items-start justify-between gap-3;
 }
 
-.dashboard-hero-main {
-  @apply min-w-0 flex-1;
-}
-
-.dashboard-hero-eyebrow {
-  @apply text-xs font-semibold uppercase tracking-widest text-sky-400/80 normal-case;
-}
-
-.dashboard-hero-title {
-  @apply mt-1 text-2xl font-bold text-white/95 normal-case tracking-normal sm:text-3xl;
-}
-
-.dashboard-hero-subtitle {
-  @apply mt-2 text-sm text-white/45 normal-case tracking-normal;
-}
-
-.dashboard-company {
-  @apply flex w-full gap-3 rounded-xl border border-sky-900/45 bg-neutral-900/50 p-4 backdrop-blur-sm sm:max-w-sm shrink-0;
-}
-
-.dashboard-company-icon {
-  @apply flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-sky-950/80 border border-sky-800/50 text-lg text-sky-400;
-}
-
-.dashboard-company-body {
-  @apply min-w-0 flex-1;
-}
-
-.dashboard-company-label {
+.dashboard-sales-widget-title {
   @apply text-[10px] font-bold uppercase tracking-wider text-slate-500;
 }
 
-.dashboard-company-name {
-  @apply mt-0.5 text-sm font-semibold text-white/90 normal-case tracking-normal leading-snug;
+.dashboard-sales-widget-subtitle {
+  @apply mt-1 text-xs normal-case tracking-normal text-white/40;
 }
 
-.dashboard-company-address {
-  @apply mt-1 text-xs leading-relaxed text-white/40 normal-case tracking-normal;
+.dashboard-sales-widget-link {
+  @apply flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-sky-900/55 bg-neutral-900/50 text-sky-300/70 transition-colors hover:border-sky-700/55 hover:bg-sky-950/60 hover:text-sky-200;
 }
 
-.dashboard-company-chips {
-  @apply mt-2.5 flex flex-col gap-1.5;
+.dashboard-sales-widget-table-wrap {
+  @apply flex-1 overflow-x-auto overflow-y-auto rounded-lg border border-sky-900/40;
 }
 
-.dashboard-company-chip {
-  @apply flex items-center gap-1.5 text-xs text-slate-400 normal-case tracking-normal;
+.dashboard-sales-widget-table {
+  @apply w-full border-collapse text-sm normal-case tracking-normal;
 }
 
-.dashboard-company-chip i {
-  @apply shrink-0 text-sky-500/70;
+.dashboard-sales-widget-table thead tr {
+  @apply bg-sky-950/70 text-[10px] uppercase tracking-wider text-slate-400;
 }
 
-.dashboard-market-ticker {
-  @apply mt-6 w-full max-w-sm shrink-0 self-end rounded-xl border border-sky-900/45 bg-neutral-900/50 p-4 backdrop-blur-sm;
+.dashboard-sales-widget-table th,
+.dashboard-sales-widget-table td {
+  @apply border-b border-sky-900/35 px-3 py-2 font-medium text-white/80;
+}
+
+.dashboard-sales-widget-table tbody tr:hover {
+  @apply bg-white/5;
+}
+
+.dashboard-sales-widget-table tfoot tr {
+  @apply bg-neutral-800/50 text-white/90;
+}
+
+.dashboard-sales-widget-table tfoot th,
+.dashboard-sales-widget-table tfoot td {
+  @apply border-b-0 font-semibold;
+}
+
+.dashboard-sales-widget-num {
+  @apply text-right tabular-nums;
+}
+
+.dashboard-sales-widget-empty,
+.dashboard-sales-widget-error {
+  @apply mt-auto text-sm normal-case tracking-normal text-white/40;
+}
+
+.dashboard-sales-widget-error {
+  @apply text-red-300/80;
 }
 
 .dashboard-market-ticker-title {
@@ -375,15 +444,15 @@ select {
 }
 
 .dashboard-market-ticker-rows {
-  @apply mt-3 space-y-3;
+  @apply mt-auto flex flex-1 flex-col justify-center gap-4;
 }
 
 .dashboard-market-ticker-row {
-  @apply flex items-start justify-between gap-4;
+  @apply flex items-center justify-between gap-4 rounded-lg border border-sky-900/35 bg-neutral-950/35 px-3 py-3;
 }
 
 .dashboard-market-ticker-label {
-  @apply flex items-center gap-2 text-xs font-medium text-white/60 normal-case tracking-normal shrink-0;
+  @apply flex shrink-0 items-center gap-2 text-xs font-medium text-white/60 normal-case tracking-normal;
 }
 
 .dashboard-market-ticker-label i {
@@ -395,7 +464,7 @@ select {
 }
 
 .dashboard-market-ticker-value {
-  @apply block text-lg font-bold text-white/95 tabular-nums normal-case tracking-normal;
+  @apply block text-lg font-bold tabular-nums normal-case tracking-normal text-white/95;
 }
 
 .dashboard-market-ticker-value-loading {
@@ -403,11 +472,27 @@ select {
 }
 
 .dashboard-market-ticker-meta {
-  @apply mt-0.5 block text-[11px] text-white/35 normal-case tracking-normal;
+  @apply mt-0.5 block text-[11px] normal-case tracking-normal text-white/35;
 }
 
 .dashboard-market-ticker-error {
-  @apply text-xs text-red-400/90 normal-case tracking-normal;
+  @apply text-xs normal-case tracking-normal text-red-400/90;
+}
+
+.dashboard-placeholder-widget-header {
+  @apply mb-3;
+}
+
+.dashboard-placeholder-widget-body {
+  @apply mt-auto flex flex-1 flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-sky-900/45 bg-neutral-950/30 px-4 py-8 text-center;
+}
+
+.dashboard-placeholder-widget-icon {
+  @apply flex h-12 w-12 items-center justify-center rounded-xl border border-sky-900/50 bg-sky-950/50 text-xl text-sky-400/70;
+}
+
+.dashboard-placeholder-widget-text {
+  @apply text-sm font-medium normal-case tracking-normal text-white/35;
 }
 
 .spotlight-panel {

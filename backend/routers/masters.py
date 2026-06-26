@@ -26,7 +26,7 @@ def stock_items():
     items = [
         {
             "stock_item": row.stock_item,
-            "parent": row.parent,
+            "parent": (row.parent or "").strip(),
             "unit": row.unit,
             "hsn_code": row.hsn_code,
             "gst": float(row.gst) if row.gst is not None else 0,

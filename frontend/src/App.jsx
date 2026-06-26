@@ -9,6 +9,7 @@ import Ledger from "./pages/masters/ledger/Ledger";
 import Purchase from "./pages/transactions/purchase/Purchase";
 import PurchaseOrder from "./pages/transactions/purchase-order/PurchaseOrder";
 import PurchaseOrderReport from "./pages/reports/purchase-order/PurchaseOrderReport";
+import StockReport from "./pages/reports/stock-report/StockReport";
 import Sales from "./pages/transactions/sales/Sales";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
@@ -42,6 +43,7 @@ function App() {
                       <Route path="sales" element={<Sales />} />
                     </Route>
                     <Route path="/reports">
+                      <Route path="stockposition" element={<StockReport />} />
                       <Route path="purchaseorder" element={<PurchaseOrderReport />} />
                     </Route>
                   </Routes>

@@ -10,7 +10,7 @@ from slowapi.errors import RateLimitExceeded
 from core.auth import AUTH_BYPASS, AUTH_BYPASS_TOKEN, get_current_user
 from core.config import validate_security_config
 from core.limiter import limiter
-from routers import inventory, ledger, purchase, purchase_orders, sales
+from routers import inventory, ledger, purchase, purchase_orders, sales, stock_report
 from routers import delivery, auth, masters, dashboard
 import uvicorn
 
@@ -74,6 +74,12 @@ app.include_router(
     sales.router,
     prefix="/sales",
     tags=["sales"],
+    dependencies=require_auth,
+)
+app.include_router(
+    stock_report.router,
+    prefix="/reports",
+    tags=["reports"],
     dependencies=require_auth,
 )
 app.include_router(

@@ -68,7 +68,7 @@ def _serialize_value(value: Any) -> Any:
 def _serialize_line(row: dict) -> dict:
     return {
         "stock_item": row["stock_item"] or "",
-        "parent": row["parent"] or "",
+        "parent": (row["parent"] or "").strip(),
         "unit": row["unit"] or "",
         "hsn_code": row["hsn_code"] or "",
         "qty": _serialize_value(row["qty"]) or "",

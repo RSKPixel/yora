@@ -148,7 +148,7 @@ const PurchaseOrderForm = ({
       return {
         ...line,
         stock_item: stockItemName,
-        parent: master?.parent ?? "",
+        parent: (master?.parent ?? "").trim(),
         unit: master?.unit ?? "",
         hsn_code: master?.hsn_code ?? "",
         gst: master?.gst != null ? String(master.gst) : "",

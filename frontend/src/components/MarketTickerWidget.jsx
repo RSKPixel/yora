@@ -86,7 +86,7 @@ const MarketTickerWidget = () => {
   }, [api, authFetch]);
 
   return (
-    <aside className="dashboard-market-ticker" aria-label="Market rates">
+    <aside className="dashboard-panel dashboard-market-ticker" aria-label="Market rates">
       <p className="dashboard-market-ticker-title">Market Rates</p>
       <div className="dashboard-market-ticker-rows">
         <div className="dashboard-market-ticker-row">

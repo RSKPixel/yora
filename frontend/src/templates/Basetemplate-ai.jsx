@@ -1,5 +1,5 @@
 import React, { useContext, useMemo, useState } from "react";
-import { Link, NavLink, useNavigate } from "react-router-dom";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import AuthContext from "./AuthContext";
 import { appMenu, topLevelMenu } from "../config/appMenu";
 import AppIcon from "../components/AppIcon";
@@ -20,7 +20,7 @@ function getUserInitials(name) {
 }
 
 const BasetemplateAi = ({ children }) => {
-  const { user, isAuthenticated, logout } = useContext(AuthContext);
+  const { user, isAuthenticated, logout, company } = useContext(AuthContext);
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -33,6 +33,7 @@ const BasetemplateAi = ({ children }) => {
     <SpotlightProvider>
       <BasetemplateShell
         user={user}
+        company={company}
         isAuthenticated={isAuthenticated}
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
@@ -47,13 +48,16 @@ const BasetemplateAi = ({ children }) => {
 const BasetemplateShell = ({
   children,
   user,
+  company,
   isAuthenticated,
   sidebarOpen,
   setSidebarOpen,
   onLogout,
 }) => {
   const { overlayOpen, closeOverlay } = useSpotlight();
+  const location = useLocation();
   const userInitials = useMemo(() => getUserInitials(user?.name), [user?.name]);
+  const isDashboard = location.pathname === "/dashboard";
 
   return (
     <div className="app-shell flex flex-col h-screen w-full overflow-hidden">
@@ -77,29 +81,51 @@ const BasetemplateShell = ({
             </Link>
           </div>
 
-          <div className="app-shell-header-center" aria-hidden="true" />
+          {isAuthenticated ? (
+            <div className="app-shell-header-center">
+              <div className="app-shell-header-company" title={company?.company_name || "Your business"}>
+                <span className="app-shell-header-company-icon" aria-hidden="true">
+                  <i className="bi bi-building"></i>
+                </span>
+                <span className="app-shell-header-company-name">
+                  {company?.company_name || "Your business"}
+                </span>
+              </div>
+            </div>
+          ) : (
+            <div className="app-shell-header-center" aria-hidden="true" />
+          )}
 
           {isAuthenticated && user ? (
             <div className="app-shell-header-end">
-              <div className="app-shell-user" title={user.name}>
-                <span className="app-shell-user-avatar" aria-hidden="true">
-                  {userInitials}
-                </span>
-                <span className="app-shell-user-name">{user.name}</span>
-              </div>
-
-              <div className="app-shell-header-actions">
-                <Link to="/clientprofile" className="app-shell-header-icon-btn" title="Profile">
-                  <i className="bi bi-gear"></i>
-                </Link>
+              <div className="app-shell-user-menu">
                 <button
                   type="button"
-                  onClick={onLogout}
-                  className="app-shell-header-icon-btn app-shell-header-icon-btn-danger"
-                  title="Logout"
+                  className="app-shell-user-trigger"
+                  title={user.name}
+                  aria-label={`${user.name} account menu`}
+                  aria-haspopup="menu"
                 >
-                  <i className="bi bi-box-arrow-right"></i>
+                  <span className="app-shell-user-avatar" aria-hidden="true">
+                    {userInitials}
+                  </span>
                 </button>
+
+                <div className="app-shell-user-dropdown" role="menu">
+                  <Link to="/clientprofile" className="app-shell-user-dropdown-item" role="menuitem">
+                    <i className="bi bi-gear" aria-hidden="true"></i>
+                    Settings
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={onLogout}
+                    className="app-shell-user-dropdown-item app-shell-user-dropdown-item-danger"
+                    role="menuitem"
+                  >
+                    <i className="bi bi-box-arrow-right" aria-hidden="true"></i>
+                    Logout
+                  </button>
+                </div>
               </div>
             </div>
           ) : (
@@ -182,7 +208,9 @@ const BasetemplateShell = ({
         )}
 
         <main className="flex-1 min-w-0 overflow-y-auto p-4 sm:p-6">
-          <div className="app-shell-content mx-auto w-full max-w-7xl">
+          <div
+            className={`app-shell-content mx-auto w-full${isDashboard ? "" : " max-w-7xl"}`}
+          >
             {children}
           </div>
         </main>
