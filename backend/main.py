@@ -11,7 +11,7 @@ from core.auth import AUTH_BYPASS, AUTH_BYPASS_TOKEN, get_current_user
 from core.config import validate_security_config
 from core.limiter import limiter
 from routers import inventory, ledger, purchase, purchase_orders, sales
-from routers import delivery, auth, masters
+from routers import delivery, auth, masters, dashboard
 import uvicorn
 
 validate_security_config()
@@ -83,6 +83,12 @@ app.include_router(
     dependencies=require_auth,
 )
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
+app.include_router(
+    dashboard.router,
+    prefix="/dashboard",
+    tags=["dashboard"],
+    dependencies=require_auth,
+)
 
 app.add_middleware(
     CORSMiddleware,

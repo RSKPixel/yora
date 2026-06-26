@@ -161,6 +161,10 @@ select {
   @apply bg-neutral-950/40 backdrop-blur-sm;
 }
 
+.app-shell-nav-top {
+  @apply mb-1 rounded-xl border border-sky-900/50 bg-neutral-900/80 p-1.5 backdrop-blur-sm;
+}
+
 .app-shell-nav-item {
   @apply flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-slate-400 transition-colors hover:bg-white/5 hover:text-slate-200;
 }
@@ -190,11 +194,11 @@ select {
 }
 
 .app-shell-brand-copy {
-  @apply hidden min-w-0 sm:block;
+  @apply hidden min-w-0 flex-col items-center text-center sm:flex;
 }
 
 .app-shell-brand-name {
-  @apply block text-sm font-bold normal-case tracking-normal text-white/95 leading-none;
+  @apply block text-base font-bold normal-case tracking-normal text-white/95 leading-none;
 }
 
 .app-shell-brand-tag {
@@ -279,7 +283,31 @@ select {
 }
 
 .dashboard {
-  @apply w-full space-y-8;
+  @apply flex min-h-[calc(100dvh-10rem)] w-full flex-col overflow-visible;
+}
+
+.dashboard-spotlight {
+  @apply relative z-20 flex flex-col items-center justify-center overflow-visible px-2 py-10 sm:py-14;
+}
+
+.dashboard-body {
+  @apply flex-1 space-y-8 overflow-visible;
+}
+
+.spotlight-inline-root {
+  @apply relative w-full max-w-xl;
+}
+
+.spotlight-inline-root-open {
+  @apply z-50;
+}
+
+.spotlight-panel-inline {
+  @apply w-full;
+}
+
+.spotlight-dropdown {
+  @apply absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-sky-900/50 bg-neutral-900/95 shadow-2xl shadow-black/40 backdrop-blur-md;
 }
 
 .dashboard-hero {
@@ -338,16 +366,52 @@ select {
   @apply shrink-0 text-sky-500/70;
 }
 
-.dashboard-spotlight {
-  @apply flex flex-col items-center justify-center px-2 py-10 sm:py-14;
+.dashboard-market-ticker {
+  @apply mt-6 w-full max-w-sm shrink-0 self-end rounded-xl border border-sky-900/45 bg-neutral-900/50 p-4 backdrop-blur-sm;
+}
+
+.dashboard-market-ticker-title {
+  @apply text-[10px] font-bold uppercase tracking-wider text-slate-500;
+}
+
+.dashboard-market-ticker-rows {
+  @apply mt-3 space-y-3;
+}
+
+.dashboard-market-ticker-row {
+  @apply flex items-start justify-between gap-4;
+}
+
+.dashboard-market-ticker-label {
+  @apply flex items-center gap-2 text-xs font-medium text-white/60 normal-case tracking-normal shrink-0;
+}
+
+.dashboard-market-ticker-label i {
+  @apply text-sky-400/80;
+}
+
+.dashboard-market-ticker-value-wrap {
+  @apply min-w-0 text-right;
+}
+
+.dashboard-market-ticker-value {
+  @apply block text-lg font-bold text-white/95 tabular-nums normal-case tracking-normal;
+}
+
+.dashboard-market-ticker-value-loading {
+  @apply text-white/30;
+}
+
+.dashboard-market-ticker-meta {
+  @apply mt-0.5 block text-[11px] text-white/35 normal-case tracking-normal;
+}
+
+.dashboard-market-ticker-error {
+  @apply text-xs text-red-400/90 normal-case tracking-normal;
 }
 
 .spotlight-panel {
   @apply w-full overflow-hidden rounded-2xl border border-sky-900/50 bg-neutral-900/90 shadow-2xl shadow-black/40 backdrop-blur-md;
-}
-
-.spotlight-panel-inline {
-  @apply max-w-xl;
 }
 
 .spotlight-panel-overlay {

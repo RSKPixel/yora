@@ -1,10 +1,8 @@
+export const topLevelMenu = {
+  Dashboard: { path: "/dashboard", icon: "bi-speedometer2" },
+};
+
 export const appMenu = {
-  Home: {
-    icon: "bi-house",
-    items: {
-      Dashboard: { path: "/dashboard", icon: "bi-speedometer2" },
-    },
-  },
   Masters: {
     icon: "bi-database",
     items: {
@@ -57,8 +55,21 @@ function tokenMatchesItem(token, item) {
   return item.searchWords.some((word) => word === token);
 }
 
-export function flattenMenuItems(menu = appMenu) {
-  return Object.entries(menu).flatMap(([section, { icon: sectionIcon, items }]) =>
+export function flattenMenuItems(menu = appMenu, topLevel = topLevelMenu) {
+  const topItems = Object.entries(topLevel).map(([label, { path, icon }]) => {
+    const abbreviation = buildAbbreviation(label);
+    return {
+      label,
+      path,
+      icon,
+      section: "Main",
+      sectionIcon: icon,
+      abbreviation,
+      searchWords: getSearchWords(label, "Main", path),
+    };
+  });
+
+  const sectionItems = Object.entries(menu).flatMap(([section, { icon: sectionIcon, items }]) =>
     Object.entries(items).map(([label, { path, icon }]) => {
       const abbreviation = buildAbbreviation(label);
       return {
@@ -72,6 +83,8 @@ export function flattenMenuItems(menu = appMenu) {
       };
     })
   );
+
+  return [...topItems, ...sectionItems];
 }
 
 export function searchMenuItems(items, query) {

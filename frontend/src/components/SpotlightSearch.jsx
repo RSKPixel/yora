@@ -9,6 +9,63 @@ import { useSpotlight } from "../templates/SpotlightContext";
 
 const ALL_ITEMS = flattenMenuItems();
 
+function SpotlightResults({ results, activeIndex, onSelect, onHover }) {
+  if (results.length === 0) {
+    return <p className="spotlight-empty">No modules match your search.</p>;
+  }
+
+  return (
+    <ul className="spotlight-result-list">
+      {results.map((item, index) => {
+        const isActive = index === activeIndex;
+        return (
+          <li key={item.path}>
+            <button
+              type="button"
+              id={`spotlight-result-${index}`}
+              data-spotlight-active={isActive}
+              className={`spotlight-result${isActive ? " spotlight-result-active" : ""}`}
+              onMouseEnter={() => onHover(index)}
+              onClick={() => onSelect(item.path)}
+            >
+              <span className="spotlight-result-icon" aria-hidden="true">
+                <i className={`bi ${item.icon}`}></i>
+              </span>
+              <span className="spotlight-result-text">
+                <span className="spotlight-result-label">{item.label}</span>
+                <span className="spotlight-result-meta">{item.section}</span>
+              </span>
+              <i className="bi bi-arrow-return-left spotlight-result-enter" aria-hidden="true"></i>
+            </button>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+function SpotlightFooter({ showCloseHint = false }) {
+  return (
+    <div className="spotlight-footer">
+      <span>
+        <kbd className="spotlight-kbd-sm">↑</kbd>
+        <kbd className="spotlight-kbd-sm">↓</kbd>
+        navigate
+      </span>
+      <span>
+        <kbd className="spotlight-kbd-sm">↵</kbd>
+        open
+      </span>
+      {showCloseHint && (
+        <span>
+          <kbd className="spotlight-kbd-sm">esc</kbd>
+          close
+        </span>
+      )}
+    </div>
+  );
+}
+
 const SpotlightSearch = ({ variant = "inline", open = false, onClose }) => {
   const navigate = useNavigate();
   const { registerInlineFocus } = useSpotlight();
@@ -80,9 +137,10 @@ const SpotlightSearch = ({ variant = "inline", open = false, onClose }) => {
   }, [isOverlay, open, close]);
 
   useEffect(() => {
+    if (!showResults) return;
     const activeEl = listRef.current?.querySelector("[data-spotlight-active='true']");
     activeEl?.scrollIntoView({ block: "nearest" });
-  }, [activeIndex, results.length]);
+  }, [activeIndex, results.length, showResults]);
 
   const handleKeyDown = (e) => {
     if (!showResults || results.length === 0) {
@@ -119,12 +177,13 @@ const SpotlightSearch = ({ variant = "inline", open = false, onClose }) => {
 
   if (isOverlay && !open) return null;
 
-  const panel = (
+  const inputPanel = (
     <div
-      className={`spotlight-panel${isOverlay ? " spotlight-panel-overlay" : " spotlight-panel-inline"}${showResults ? "" : " spotlight-panel-compact"}`}
+      className={`spotlight-panel${isOverlay ? " spotlight-panel-overlay" : " spotlight-panel-inline"}${!showResults || !isOverlay ? " spotlight-panel-compact" : ""}`}
       role="dialog"
       aria-label="Search modules"
       aria-modal={isOverlay ? "true" : undefined}
+      aria-expanded={!isOverlay ? showResults : undefined}
     >
       <div className="spotlight-input-wrap">
         <i className="bi bi-search spotlight-input-icon" aria-hidden="true"></i>
@@ -150,60 +209,33 @@ const SpotlightSearch = ({ variant = "inline", open = false, onClose }) => {
         )}
       </div>
 
-      {showResults && (
+      {showResults && isOverlay && (
         <>
           <div id="spotlight-results" className="spotlight-results" ref={listRef}>
-            {results.length === 0 ? (
-              <p className="spotlight-empty">No modules match your search.</p>
-            ) : (
-              <ul className="spotlight-result-list">
-                {results.map((item, index) => {
-                  const isActive = index === activeIndex;
-                  return (
-                    <li key={item.path}>
-                      <button
-                        type="button"
-                        id={`spotlight-result-${index}`}
-                        data-spotlight-active={isActive}
-                        className={`spotlight-result${isActive ? " spotlight-result-active" : ""}`}
-                        onMouseEnter={() => setActiveIndex(index)}
-                        onClick={() => goTo(item.path)}
-                      >
-                        <span className="spotlight-result-icon" aria-hidden="true">
-                          <i className={`bi ${item.icon}`}></i>
-                        </span>
-                        <span className="spotlight-result-text">
-                          <span className="spotlight-result-label">{item.label}</span>
-                          <span className="spotlight-result-meta">{item.section}</span>
-                        </span>
-                        <i className="bi bi-arrow-return-left spotlight-result-enter" aria-hidden="true"></i>
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
+            <SpotlightResults
+              results={results}
+              activeIndex={activeIndex}
+              onSelect={goTo}
+              onHover={setActiveIndex}
+            />
           </div>
-
-          <div className="spotlight-footer">
-            <span>
-              <kbd className="spotlight-kbd-sm">↑</kbd>
-              <kbd className="spotlight-kbd-sm">↓</kbd>
-              navigate
-            </span>
-            <span>
-              <kbd className="spotlight-kbd-sm">↵</kbd>
-              open
-            </span>
-            {isOverlay && (
-              <span>
-                <kbd className="spotlight-kbd-sm">esc</kbd>
-                close
-              </span>
-            )}
-          </div>
+          <SpotlightFooter showCloseHint />
         </>
       )}
+    </div>
+  );
+
+  const resultsDropdown = showResults && !isOverlay && (
+    <div className="spotlight-dropdown">
+      <div id="spotlight-results" className="spotlight-results" ref={listRef}>
+        <SpotlightResults
+          results={results}
+          activeIndex={activeIndex}
+          onSelect={goTo}
+          onHover={setActiveIndex}
+        />
+      </div>
+      <SpotlightFooter />
     </div>
   );
 
@@ -211,13 +243,18 @@ const SpotlightSearch = ({ variant = "inline", open = false, onClose }) => {
     return (
       <div className="spotlight-overlay" onMouseDown={close}>
         <div className="spotlight-overlay-center" onMouseDown={(e) => e.stopPropagation()}>
-          {panel}
+          {inputPanel}
         </div>
       </div>
     );
   }
 
-  return panel;
+  return (
+    <div className={`spotlight-inline-root${showResults ? " spotlight-inline-root-open" : ""}`}>
+      {inputPanel}
+      {resultsDropdown}
+    </div>
+  );
 };
 
 export default SpotlightSearch;

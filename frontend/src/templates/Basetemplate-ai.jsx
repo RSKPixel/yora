@@ -1,12 +1,13 @@
 import React, { useContext, useMemo, useState } from "react";
-import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import AuthContext from "./AuthContext";
-import { appMenu, getSpotlightShortcutLabel } from "../config/appMenu";
+import { appMenu, topLevelMenu } from "../config/appMenu";
 import AppIcon from "../components/AppIcon";
 import SpotlightSearch from "../components/SpotlightSearch";
 import { SpotlightProvider, useSpotlight } from "./SpotlightContext";
 
 const menu = appMenu;
+const topLevel = topLevelMenu;
 
 const navLinkClass = ({ isActive }) =>
   `app-shell-nav-item${isActive ? " app-shell-nav-item-active" : ""}`;
@@ -51,11 +52,8 @@ const BasetemplateShell = ({
   setSidebarOpen,
   onLogout,
 }) => {
-  const { openSpotlight, overlayOpen, closeOverlay } = useSpotlight();
-  const location = useLocation();
-  const shortcutLabel = useMemo(() => getSpotlightShortcutLabel(), []);
+  const { overlayOpen, closeOverlay } = useSpotlight();
   const userInitials = useMemo(() => getUserInitials(user?.name), [user?.name]);
-  const isDashboard = location.pathname === "/dashboard";
 
   return (
     <div className="app-shell flex flex-col h-screen w-full overflow-hidden">
@@ -74,37 +72,12 @@ const BasetemplateShell = ({
               </span>
               <span className="app-shell-brand-copy">
                 <span className="app-shell-brand-name">YORA ERP</span>
-                <span className="app-shell-brand-tag">Enterprises Resource Planning</span>
+                <span className="app-shell-brand-tag">Resource Management System</span>
               </span>
             </Link>
           </div>
 
-          {isAuthenticated && !isDashboard ? (
-            <div className="app-shell-header-center">
-              <button
-                type="button"
-                className="app-shell-header-search"
-                onClick={openSpotlight}
-                title={`Search modules (${shortcutLabel})`}
-              >
-                <i className="bi bi-search app-shell-header-search-icon" aria-hidden="true"></i>
-                <span className="app-shell-header-search-text">Search modules…</span>
-                <kbd className="app-shell-header-search-kbd">{shortcutLabel}</kbd>
-              </button>
-
-              <button
-                type="button"
-                className="app-shell-header-icon-btn md:hidden"
-                onClick={openSpotlight}
-                title={`Search modules (${shortcutLabel})`}
-                aria-label="Search modules"
-              >
-                <i className="bi bi-search"></i>
-              </button>
-            </div>
-          ) : (
-            <div className="app-shell-header-center" aria-hidden="true" />
-          )}
+          <div className="app-shell-header-center" aria-hidden="true" />
 
           {isAuthenticated && user ? (
             <div className="app-shell-header-end">
@@ -146,6 +119,23 @@ const BasetemplateShell = ({
                 className="app-shell-sidebar h-full w-64 border-r border-sky-900/40"
               >
                 <nav className="h-full overflow-y-auto p-3 space-y-4">
+                  <ul className="app-shell-nav-top space-y-0.5">
+                    {Object.entries(topLevel).map(([name, { path, icon: itemIcon }]) => (
+                      <li key={name}>
+                        <NavLink
+                          to={path}
+                          className={navLinkClass}
+                          onClick={() => setSidebarOpen(false)}
+                        >
+                          <i className={`bi ${itemIcon} text-sm shrink-0`}></i>
+                          <span className="truncate normal-case tracking-normal font-medium">
+                            {name}
+                          </span>
+                        </NavLink>
+                      </li>
+                    ))}
+                  </ul>
+
                   {Object.entries(menu).map(([section, { icon, items }]) => (
                     <div
                       key={section}
