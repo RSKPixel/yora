@@ -101,7 +101,7 @@ def company():
             pincode,
             email,
             phone
-        FROM company
+        FROM yora_company
         LIMIT 1
         """
     )

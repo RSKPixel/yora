@@ -169,12 +169,84 @@ select {
   @apply bg-sky-950/80 text-sky-300 border border-sky-800/50 hover:bg-sky-950/80 hover:text-sky-200;
 }
 
-.app-shell-header-btn {
-  @apply flex h-9 w-9 items-center justify-center rounded-lg border border-slate-600/50 bg-slate-50/95 text-slate-500 transition-colors hover:border-sky-500/50 hover:text-sky-600 cursor-pointer;
+.app-shell-header {
+  @apply relative z-20 w-full shrink-0 border-b border-sky-900/50 bg-neutral-950/75 py-2 backdrop-blur-md;
 }
 
-.app-shell-header-btn-danger:hover {
-  @apply border-red-400/50 text-red-500;
+.app-shell-header-inner {
+  @apply grid h-12 w-full grid-cols-[1fr_auto_1fr] items-center gap-3 px-4 sm:px-6;
+}
+
+.app-shell-header-start {
+  @apply flex min-w-0 items-center justify-self-start gap-2 sm:gap-2.5;
+}
+
+.app-shell-brand {
+  @apply flex min-w-0 items-center gap-2.5 transition-opacity hover:opacity-90;
+}
+
+.app-shell-brand-mark {
+  @apply flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl;
+}
+
+.app-shell-brand-copy {
+  @apply hidden min-w-0 sm:block;
+}
+
+.app-shell-brand-name {
+  @apply block text-sm font-bold normal-case tracking-normal text-white/95 leading-none;
+}
+
+.app-shell-brand-tag {
+  @apply mt-0.5 block text-[10px] font-medium normal-case tracking-normal text-sky-400/55;
+}
+
+.app-shell-header-center {
+  @apply flex min-w-0 items-center justify-center justify-self-center gap-2;
+}
+
+.app-shell-header-search {
+  @apply hidden w-full min-w-0 max-w-md items-center gap-2.5 rounded-xl border border-sky-900/55 bg-neutral-900/55 px-3 py-2 text-left transition-colors hover:border-sky-700/55 hover:bg-neutral-900/80 md:flex;
+}
+
+.app-shell-header-search-icon {
+  @apply shrink-0 text-sm text-sky-400/75;
+}
+
+.app-shell-header-search-text {
+  @apply min-w-0 flex-1 truncate text-sm font-medium normal-case tracking-normal text-white/35;
+}
+
+.app-shell-header-search-kbd {
+  @apply shrink-0 rounded-md border border-sky-900/70 bg-sky-950/70 px-1.5 py-0.5 text-[10px] font-semibold normal-case tracking-normal text-sky-300/70;
+}
+
+.app-shell-header-end {
+  @apply flex min-w-0 items-center justify-self-end gap-2 sm:gap-3;
+}
+
+.app-shell-user {
+  @apply hidden min-w-0 items-center gap-2 rounded-xl border border-sky-900/45 bg-neutral-900/45 px-2 py-1 sm:flex;
+}
+
+.app-shell-user-avatar {
+  @apply flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-sky-800/50 bg-sky-950/80 text-[10px] font-bold normal-case tracking-normal text-sky-300;
+}
+
+.app-shell-user-name {
+  @apply max-w-[9rem] truncate text-sm font-medium normal-case tracking-normal text-white/80;
+}
+
+.app-shell-header-actions {
+  @apply flex items-center gap-1.5;
+}
+
+.app-shell-header-icon-btn {
+  @apply flex h-9 w-9 items-center justify-center rounded-xl border border-sky-900/55 bg-neutral-900/50 text-sky-300/70 transition-colors hover:border-sky-700/55 hover:bg-sky-950/60 hover:text-sky-200 cursor-pointer;
+}
+
+.app-shell-header-icon-btn-danger:hover {
+  @apply border-red-500/40 bg-red-950/30 text-red-300;
 }
 
 .app-shell-content {
@@ -206,60 +278,164 @@ select {
   @apply p-4 space-y-4;
 }
 
-.dashboard-welcome {
-  @apply flex flex-col gap-4 rounded-lg border border-sky-900/40 bg-neutral-800/50 p-4 sm:flex-row sm:items-center sm:justify-between;
+.dashboard {
+  @apply w-full space-y-8;
 }
 
-.dashboard-welcome-main {
-  @apply flex items-center gap-3 min-w-0;
+.dashboard-hero {
+  @apply flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between;
 }
 
-.dashboard-welcome-icon {
-  @apply flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-sky-900/60 border border-sky-700/50 text-xl text-sky-400;
+.dashboard-hero-main {
+  @apply min-w-0 flex-1;
 }
 
-.dashboard-welcome-label {
+.dashboard-hero-eyebrow {
+  @apply text-xs font-semibold uppercase tracking-widest text-sky-400/80 normal-case;
+}
+
+.dashboard-hero-title {
+  @apply mt-1 text-2xl font-bold text-white/95 normal-case tracking-normal sm:text-3xl;
+}
+
+.dashboard-hero-subtitle {
+  @apply mt-2 text-sm text-white/45 normal-case tracking-normal;
+}
+
+.dashboard-company {
+  @apply flex w-full gap-3 rounded-xl border border-sky-900/45 bg-neutral-900/50 p-4 backdrop-blur-sm sm:max-w-sm shrink-0;
+}
+
+.dashboard-company-icon {
+  @apply flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-sky-950/80 border border-sky-800/50 text-lg text-sky-400;
+}
+
+.dashboard-company-body {
+  @apply min-w-0 flex-1;
+}
+
+.dashboard-company-label {
   @apply text-[10px] font-bold uppercase tracking-wider text-slate-500;
 }
 
-.dashboard-welcome-value {
-  @apply text-base font-semibold text-white/90 normal-case tracking-normal;
+.dashboard-company-name {
+  @apply mt-0.5 text-sm font-semibold text-white/90 normal-case tracking-normal leading-snug;
 }
 
-.dashboard-welcome-meta {
-  @apply mt-0.5 text-xs text-white/40 normal-case tracking-normal;
+.dashboard-company-address {
+  @apply mt-1 text-xs leading-relaxed text-white/40 normal-case tracking-normal;
 }
 
-.dashboard-welcome-contact {
-  @apply flex flex-col gap-1.5 text-xs text-slate-400 normal-case tracking-normal;
+.dashboard-company-chips {
+  @apply mt-2.5 flex flex-col gap-1.5;
 }
 
-.dashboard-welcome-contact-item {
-  @apply flex items-center gap-2;
+.dashboard-company-chip {
+  @apply flex items-center gap-1.5 text-xs text-slate-400 normal-case tracking-normal;
 }
 
-.dashboard-quick-links {
-  @apply grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3;
+.dashboard-company-chip i {
+  @apply shrink-0 text-sky-500/70;
 }
 
-.dashboard-quick-link {
-  @apply flex items-center gap-3 rounded-lg border border-sky-900/50 bg-neutral-800/50 px-4 py-3 transition-colors hover:border-sky-600/60 hover:bg-sky-950/40;
+.dashboard-spotlight {
+  @apply flex flex-col items-center justify-center px-2 py-10 sm:py-14;
 }
 
-.dashboard-quick-link-icon {
-  @apply flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-sky-900/60 border border-sky-700/50 text-sky-400;
+.spotlight-panel {
+  @apply w-full overflow-hidden rounded-2xl border border-sky-900/50 bg-neutral-900/90 shadow-2xl shadow-black/40 backdrop-blur-md;
 }
 
-.dashboard-quick-link-section {
-  @apply block text-[10px] font-bold uppercase tracking-wider text-slate-500;
+.spotlight-panel-inline {
+  @apply max-w-xl;
 }
 
-.dashboard-quick-link-label {
-  @apply block text-sm font-medium text-white/85 normal-case tracking-normal;
+.spotlight-panel-overlay {
+  @apply max-w-lg;
 }
 
-.dashboard-quick-link-arrow {
-  @apply ml-auto shrink-0 text-xs text-slate-500;
+.spotlight-panel-compact .spotlight-input-wrap {
+  @apply border-b-0;
+}
+
+.spotlight-panel-compact {
+  @apply shadow-xl shadow-black/30;
+}
+
+.spotlight-overlay {
+  @apply fixed inset-0 z-50 flex items-start justify-center bg-black/55 px-4 pt-[12vh] backdrop-blur-sm;
+}
+
+.spotlight-overlay-center {
+  @apply w-full max-w-lg;
+}
+
+.spotlight-input-wrap {
+  @apply flex items-center gap-3 border-b border-sky-900/50 px-4 py-3.5;
+}
+
+.spotlight-input-icon {
+  @apply shrink-0 text-base text-sky-400/80;
+}
+
+.spotlight-input {
+  @apply min-w-0 flex-1 border-0 bg-transparent text-base font-medium normal-case tracking-normal text-white/90 shadow-none outline-none placeholder:font-normal placeholder:normal-case placeholder:tracking-normal placeholder:text-white/30;
+}
+
+.spotlight-kbd {
+  @apply hidden shrink-0 rounded-md border border-sky-800/60 bg-sky-950/80 px-2 py-0.5 text-[10px] font-semibold normal-case tracking-normal text-sky-300/80 sm:inline;
+}
+
+.spotlight-results {
+  @apply max-h-72 overflow-y-auto p-2;
+}
+
+.spotlight-empty {
+  @apply px-3 py-6 text-center text-sm normal-case tracking-normal text-white/35;
+}
+
+.spotlight-result-list {
+  @apply space-y-0.5;
+}
+
+.spotlight-result {
+  @apply flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors;
+}
+
+.spotlight-result-active {
+  @apply bg-sky-950/80 border border-sky-800/50;
+}
+
+.spotlight-result-icon {
+  @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-sky-800/40 bg-sky-950/60 text-sky-400;
+}
+
+.spotlight-result-text {
+  @apply min-w-0 flex-1;
+}
+
+.spotlight-result-label {
+  @apply block truncate text-sm font-medium normal-case tracking-normal text-white/90;
+}
+
+.spotlight-result-meta {
+  @apply block truncate text-xs normal-case tracking-normal text-white/35;
+}
+
+.spotlight-result-enter {
+  @apply shrink-0 text-xs text-slate-600;
+}
+
+.spotlight-result-active .spotlight-result-enter {
+  @apply text-sky-400;
+}
+
+.spotlight-footer {
+  @apply flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-sky-900/50 px-4 py-2.5 text-[10px] normal-case tracking-normal text-white/30;
+}
+
+.spotlight-kbd-sm {
+  @apply mr-1 inline-flex min-w-[1.25rem] items-center justify-center rounded border border-sky-900/60 bg-neutral-800/80 px-1 py-px text-[9px] font-semibold text-sky-300/70;
 }
 
 .page-toolbar {

@@ -1,116 +1,67 @@
-import React, { useContext } from "react";
-import { Link } from "react-router-dom";
+import React, { useContext, useMemo } from "react";
 import AuthContext from "../templates/AuthContext";
+import SpotlightSearch from "../components/SpotlightSearch";
+import { getSpotlightShortcutLabel } from "../config/appMenu";
 
-const quickLinks = [
-  { label: "Inventory", path: "/masters/inventory", icon: "bi-box", section: "Masters" },
-  { label: "Ledger", path: "/masters/ledger", icon: "bi-journal-text", section: "Masters" },
-  {
-    label: "Purchase Order",
-    path: "/transactions/purchase-order",
-    icon: "bi-clipboard-check",
-    section: "Transactions",
-  },
-  { label: "Purchase", path: "/transactions/purchase", icon: "bi-cart-plus", section: "Transactions" },
-  { label: "Sales", path: "/transactions/sales", icon: "bi-receipt", section: "Transactions" },
-  {
-    label: "Purchase Order Report",
-    path: "/reports/purchaseorder",
-    icon: "bi-file-earmark-bar-graph",
-    section: "Reports",
-  },
-];
+function getGreeting() {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 17) return "Good afternoon";
+  return "Good evening";
+}
 
 const Dashboard = () => {
   const { user, company } = useContext(AuthContext);
 
-  const companyLocation = [company?.city, company?.state].filter(Boolean).join(", ");
+  const greeting = useMemo(() => getGreeting(), []);
+  const shortcutLabel = useMemo(() => getSpotlightShortcutLabel(), []);
+
+  const companyAddress = [company?.address, company?.area, company?.city, company?.state, company?.pincode]
+    .filter(Boolean)
+    .join(", ");
 
   return (
-    <div className="w-full space-y-4">
-      <div className="page-card">
-        <div className="page-card-header">
-          <div>
-            <div className="page-card-title">
-              <span className="page-card-title-icon">
-                <i className="bi bi-speedometer2"></i>
-              </span>
-              Dashboard
-            </div>
-            <p className="page-card-subtitle mt-0.5 ps-10">
-              Welcome back, {user?.name || "User"}
-            </p>
-          </div>
+    <div className="dashboard">
+      <header className="dashboard-hero">
+        <div className="dashboard-hero-main">
+          <p className="dashboard-hero-eyebrow">{greeting}</p>
+          <h1 className="dashboard-hero-title">{user?.name || "User"}</h1>
+          <p className="dashboard-hero-subtitle">
+            Start typing to find a module, or press {shortcutLabel}.
+          </p>
         </div>
 
-        <div className="page-card-body">
-          <div className="dashboard-welcome">
-            <div className="dashboard-welcome-main">
-              <span className="dashboard-welcome-icon" aria-hidden="true">
-                <i className="bi bi-building"></i>
-              </span>
-              <div>
-                <p className="dashboard-welcome-label">Company</p>
-                <p className="dashboard-welcome-value">
-                  {company?.company_name || "Your business"}
-                </p>
-                {companyLocation && (
-                  <p className="dashboard-welcome-meta">{companyLocation}</p>
-                )}
-              </div>
-            </div>
+        <aside className="dashboard-company" aria-label="Company information">
+          <div className="dashboard-company-icon" aria-hidden="true">
+            <i className="bi bi-building"></i>
+          </div>
+          <div className="dashboard-company-body">
+            <p className="dashboard-company-label">Company</p>
+            <p className="dashboard-company-name">{company?.company_name || "Your business"}</p>
+            {companyAddress && <p className="dashboard-company-address">{companyAddress}</p>}
             {(company?.email || company?.phone) && (
-              <div className="dashboard-welcome-contact">
+              <div className="dashboard-company-chips">
                 {company?.email && (
-                  <span className="dashboard-welcome-contact-item">
-                    <i className="bi bi-envelope"></i>
+                  <span className="dashboard-company-chip">
+                    <i className="bi bi-envelope" aria-hidden="true"></i>
                     {company.email}
                   </span>
                 )}
                 {company?.phone && (
-                  <span className="dashboard-welcome-contact-item">
-                    <i className="bi bi-telephone"></i>
+                  <span className="dashboard-company-chip">
+                    <i className="bi bi-telephone" aria-hidden="true"></i>
                     {company.phone}
                   </span>
                 )}
               </div>
             )}
           </div>
-        </div>
-      </div>
+        </aside>
+      </header>
 
-      <div className="page-card">
-        <div className="page-card-header">
-          <div>
-            <div className="page-card-title">
-              <span className="page-card-title-icon">
-                <i className="bi bi-grid"></i>
-              </span>
-              Quick Access
-            </div>
-            <p className="page-card-subtitle mt-0.5 ps-10">
-              Jump to frequently used modules
-            </p>
-          </div>
-        </div>
-
-        <div className="page-card-body">
-          <div className="dashboard-quick-links">
-            {quickLinks.map((link) => (
-              <Link key={link.path} to={link.path} className="dashboard-quick-link">
-                <span className="dashboard-quick-link-icon" aria-hidden="true">
-                  <i className={`bi ${link.icon}`}></i>
-                </span>
-                <span className="min-w-0">
-                  <span className="dashboard-quick-link-section">{link.section}</span>
-                  <span className="dashboard-quick-link-label">{link.label}</span>
-                </span>
-                <i className="bi bi-chevron-right dashboard-quick-link-arrow" aria-hidden="true"></i>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </div>
+      <section className="dashboard-spotlight" aria-label="Module search">
+        <SpotlightSearch variant="inline" />
+      </section>
     </div>
   );
 };
