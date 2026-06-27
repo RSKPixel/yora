@@ -5,8 +5,14 @@ from sqlalchemy import text, bindparam
 import pandas as pd
 import hashlib
 import json
+import math
 
 router = APIRouter()
+
+
+def _thirty_day_avg_from_ninety_day_sales(total_qty: float) -> int:
+    """30-day average consumption from total sales over the last 90 days."""
+    return int(math.ceil(total_qty / 3)) if total_qty > 0 else 0
 
 
 @router.post("/sales-list")
@@ -233,4 +239,60 @@ def import_tally_sales(sales: pd.DataFrame):
     return {
         "status": "success",
         "message": "Tally Sales data imported successfully!",
+    }
+
+
+@router.post("/update-reorder-levels")
+def update_reorder_levels():
+    """
+    Recompute reorder levels from the last 90 days of sales.
+    Stores the 30-day average (total 90-day qty / 3) in yora_inventory.
+    """
+    sales_sql = text(
+        """
+        SELECT
+            si.stock_item,
+            COALESCE(SUM(s.qty), 0) AS sales_90d
+        FROM yora_stockitems si
+        LEFT JOIN yora_sales s
+            ON s.stock_item = si.stock_item
+            AND s.invoice_date >= DATE_SUB(CURDATE(), INTERVAL 90 DAY)
+        GROUP BY si.stock_item
+        ORDER BY si.stock_item
+        """
+    )
+
+    delete_sql = text("DELETE FROM yora_inventory")
+
+    insert_sql = text(
+        """
+        INSERT INTO yora_inventory (stock_item, reorder_level, monthly_qty)
+        VALUES (:stock_item, :reorder_level, :monthly_qty)
+        """
+    )
+
+    with engine_mysql.begin() as connection:
+        rows = connection.execute(sales_sql).fetchall()
+        connection.execute(delete_sql)
+
+        updated = 0
+        for row in rows:
+            monthly_qty = _thirty_day_avg_from_ninety_day_sales(float(row.sales_90d))
+            connection.execute(
+                insert_sql,
+                {
+                    "stock_item": row.stock_item,
+                    "reorder_level": monthly_qty,
+                    "monthly_qty": monthly_qty,
+                },
+            )
+            updated += 1
+
+    return {
+        "status": "success",
+        "message": (
+            f"Reorder levels updated for {updated} items "
+            "from the last 90 days of sales (30-day average)."
+        ),
+        "data": {"items_updated": updated},
     }

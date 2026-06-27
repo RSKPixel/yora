@@ -18,6 +18,10 @@ const formatCount = (value) => numeral(value || 0).format("0,0");
 
 const qtyValue = (value) => Number(value) || 0;
 
+const needsReorder = (row) =>
+  Boolean(row.needs_reorder) ||
+  (qtyValue(row.reorder_level) > 0 && qtyValue(row.closing_qty) < qtyValue(row.reorder_level));
+
 const aggregateToGroups = (items) => {
   const grouped = new Map();
 
@@ -73,6 +77,7 @@ const StockReport = () => {
   const [loadingReport, setLoadingReport] = useState(false);
   const [message, setMessage] = useState(null);
   const [sort, setSort] = useState({ key: "stock_item", direction: "asc" });
+  const [reorderOnly, setReorderOnly] = useState(false);
 
   const loadStockItems = useCallback(async () => {
     setLoadingItems(true);
@@ -100,7 +105,6 @@ const StockReport = () => {
     return [...groups].sort((a, b) => a.localeCompare(b));
   }, [stockItems]);
 
-  const isAllGroups = !appliedFilters.group;
   const isItemWise = filters.item_wise;
 
   const handleFilterChange = (event) => {
@@ -116,6 +120,9 @@ const StockReport = () => {
           key: checked ? "stock_item" : "group",
           direction: "asc",
         });
+        if (!checked) {
+          setReorderOnly(false);
+        }
       }
 
       return next;
@@ -189,6 +196,7 @@ const StockReport = () => {
     setReport(null);
     setMessage(null);
     setSort({ key: "stock_item", direction: "asc" });
+    setReorderOnly(false);
   };
 
   const handleSort = (key) => {
@@ -199,9 +207,14 @@ const StockReport = () => {
   };
 
   const itemRows = report?.rows || [];
+  const filteredItemRows = useMemo(() => {
+    if (!isItemWise || !reorderOnly) return itemRows;
+    return itemRows.filter(needsReorder);
+  }, [itemRows, isItemWise, reorderOnly]);
+
   const displayRows = useMemo(
-    () => (isItemWise ? itemRows : aggregateToGroups(itemRows)),
-    [itemRows, isItemWise]
+    () => (isItemWise ? filteredItemRows : aggregateToGroups(itemRows)),
+    [filteredItemRows, itemRows, isItemWise]
   );
 
   const sortedRows = useMemo(() => {
@@ -237,7 +250,7 @@ const StockReport = () => {
     });
   }, [displayRows, sort, isItemWise]);
 
-  const showTotals = isAllGroups && sortedRows.length > 0;
+  const showTotals = sortedRows.length > 0;
   const totals = useMemo(
     () => (showTotals ? sumRowTotals(sortedRows) : null),
     [showTotals, sortedRows]
@@ -294,7 +307,11 @@ const StockReport = () => {
     );
   };
 
-  const columnCount = isItemWise ? 7 : 6;
+  const columnCount = isItemWise ? 9 : 6;
+  const reorderCount = useMemo(
+    () => (isItemWise ? itemRows.filter(needsReorder).length : 0),
+    [itemRows, isItemWise]
+  );
 
   return (
     <div className="w-full">
@@ -307,9 +324,6 @@ const StockReport = () => {
               </span>
               Stock Report
             </div>
-            <p className="page-card-subtitle mt-0.5 ps-10">
-              Opening + purchase - sales = closing by item or group
-            </p>
           </div>
         </div>
 
@@ -424,8 +438,41 @@ const StockReport = () => {
                   Period: <span className="text-sky-300/90">{periodLabel}</span>
                 </span>
                 <span>
-                  Rows: <span className="text-slate-200">{sortedRows.length}</span>
+                  Rows:{" "}
+                  <span className="text-slate-200">
+                    {sortedRows.length}
+                    {reorderOnly && itemRows.length > 0 && (
+                      <span className="text-slate-500"> / {formatCount(itemRows.length)}</span>
+                    )}
+                  </span>
                 </span>
+                {isItemWise && reorderCount > 0 && (
+                  <span className="inline-flex items-center gap-1">
+                    Reorder:
+                    {reorderOnly ? (
+                      <>
+                        <span className="text-amber-300/90">{formatCount(reorderCount)}</span>
+                        <button
+                          type="button"
+                          className="page-report-reorder-clear"
+                          title="Clear reorder filter"
+                          onClick={() => setReorderOnly(false)}
+                        >
+                          <i className="bi bi-x-lg"></i>
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        type="button"
+                        className="page-report-reorder-link"
+                        title="Show reorder items only"
+                        onClick={() => setReorderOnly(true)}
+                      >
+                        {formatCount(reorderCount)}
+                      </button>
+                    )}
+                  </span>
+                )}
                 {appliedFilters.group && (
                   <span>
                     Group: <span className="text-sky-300/90">{appliedFilters.group}</span>
@@ -447,6 +494,8 @@ const StockReport = () => {
                     <SortableHeader label="Purchase" sortKey="purchase_qty" />
                     <SortableHeader label="Sales" sortKey="sales_qty" />
                     <SortableHeader label="Closing" sortKey="closing_qty" />
+                    <SortableHeader label="Reorder Level" sortKey="reorder_level" />
+                    <th className="text-center">Status</th>
                   </tr>
                 ) : (
                   <tr>
@@ -468,17 +517,33 @@ const StockReport = () => {
                   </tr>
                 ) : sortedRows.length > 0 ? (
                   isItemWise ? (
-                    sortedRows.map((row) => (
-                      <tr key={row.stock_item}>
-                        <td>{row.stock_item}</td>
-                        <td className="text-slate-400">{row.group}</td>
-                        <td>{row.unit}</td>
-                        <td className="text-end">{formatQty(row.opening_qty)}</td>
-                        <td className="text-end">{formatQty(row.purchase_qty)}</td>
-                        <td className="text-end">{formatQty(row.sales_qty)}</td>
-                        <td className="text-end text-sky-300">{formatQty(row.closing_qty)}</td>
-                      </tr>
-                    ))
+                    sortedRows.map((row) => {
+                      const reorder = needsReorder(row);
+                      return (
+                        <tr
+                          key={row.stock_item}
+                          className={reorder ? "page-table-row-reorder" : undefined}
+                        >
+                          <td>{row.stock_item}</td>
+                          <td className="text-slate-400">{row.group}</td>
+                          <td>{row.unit}</td>
+                          <td className="text-end">{formatQty(row.opening_qty)}</td>
+                          <td className="text-end">{formatQty(row.purchase_qty)}</td>
+                          <td className="text-end">{formatQty(row.sales_qty)}</td>
+                          <td className={`text-end ${reorder ? "text-amber-300" : "text-sky-300"}`}>
+                            {formatQty(row.closing_qty)}
+                          </td>
+                          <td className="text-end">{formatQty(row.reorder_level)}</td>
+                          <td className="text-center">
+                            {reorder ? (
+                              <span className="page-table-reorder-badge">Reorder</span>
+                            ) : (
+                              <span className="text-slate-500">—</span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })
                   ) : (
                     sortedRows.map((row) => (
                       <tr key={row.group}>
@@ -494,9 +559,11 @@ const StockReport = () => {
                 ) : (
                   <tr>
                     <td colSpan={columnCount} className="page-table-empty">
-                      {report || loadingReport
-                        ? "No stock movements match the selected filters."
-                        : "Run a search to view the stock report."}
+                      {reorderOnly
+                        ? "No reorder items match the selected filters."
+                        : report || loadingReport
+                          ? "No stock movements match the selected filters."
+                          : "Run a search to view the stock report."}
                     </td>
                   </tr>
                 )}
@@ -511,6 +578,12 @@ const StockReport = () => {
                     <td className="text-end">{formatQty(totals.purchase_qty)}</td>
                     <td className="text-end">{formatQty(totals.sales_qty)}</td>
                     <td className="text-end text-sky-300">{formatQty(totals.closing_qty)}</td>
+                    {isItemWise && (
+                      <>
+                        <td></td>
+                        <td></td>
+                      </>
+                    )}
                   </tr>
                 </tfoot>
               )}

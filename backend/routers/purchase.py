@@ -1,11 +1,27 @@
 from fastapi import APIRouter, Form
 from core.dependencies import engine_mysql
 from sqlalchemy import text, bindparam
-import pandas as pd
 import json
 from fastapi import HTTPException
+from datetime import date, datetime
+from decimal import Decimal
 
 router = APIRouter()
+
+
+def _serialize_value(value):
+    if isinstance(value, (datetime, date)):
+        return value.isoformat()
+    if isinstance(value, Decimal):
+        number = float(value)
+        if number == int(number):
+            return int(number)
+        return number
+    return value
+
+
+def _serialize_row(row: dict) -> dict:
+    return {key: _serialize_value(value) for key, value in row.items()}
 
 
 @router.post("/update")
@@ -168,71 +184,88 @@ def update_purchase(
 def tally_details(purchase_id: str = Form(...), purchase_date: str = Form(...)):
     sql = text(
         """
-            SELECT
-                p.*,
-                i.gst,
-                i.hsn_code
-            FROM purchases p
-            INNER JOIN items i
-                ON p.stock_item = i.stock_item
-            WHERE p.vno = :purchase_id
-            AND DATE(p.vdt) = :purchase_date
-            ORDER BY p.itemno
+        SELECT
+            p.stock_item,
+            p.qty,
+            p.carton_box,
+            p.carton_box_qty,
+            p.itemcount,
+            p.itemno,
+            p.rate,
+            p.value,
+            COALESCE(si.gst, 0) AS gst,
+            si.hsn_code AS hsn_code
+        FROM purchases p
+        LEFT JOIN yora_stockitems si
+            ON si.stock_item = p.stock_item
+        WHERE p.vno = :purchase_id
+          AND DATE(p.vdt) = :purchase_date
+        ORDER BY p.itemno
         """
     )
 
-    with engine_mysql.connect() as connection:
-        result = connection.execute(
-            sql, {"purchase_id": purchase_id, "purchase_date": purchase_date}
-        ).fetchall()
+    try:
+        with engine_mysql.connect() as connection:
+            rows = (
+                connection.execute(
+                    sql,
+                    {"purchase_id": purchase_id, "purchase_date": purchase_date},
+                )
+                .mappings()
+                .all()
+            )
 
-    purchase_details = pd.DataFrame(result)
-    purchase_details.rename(
-        columns={
-            "CARTON_BOX": "carton_box",
-            "CARTON_BOX_QTY": "qty_per_carton",
-            "ITEMCOUNT": "item_count",
-            "ITEMNO": "item_no",
-            "LEDGER_NAME": "vendor",
-            "QTY": "qty",
-            "VALUE": "value",
-            "GST": "gst",
-            "STOCK_ITEM": "stock_item",
-            "RATE": "list_price",
-            "COST_PRICE": "cost_price",
-            "LANDING_COST": "landing_cost",
-            "COST_WITH_GST": "cost_with_gst",
-            "VNO": "purchase_id",
-            "VDT": "purchase_date",
-        },
-        inplace=True,
-    )
-    purchase_details.drop(
-        columns=["ALT_QTY", "PACKING", "BRAND", "REPNAME"], inplace=True
-    )
+        if not rows:
+            return {
+                "status": "error",
+                "message": "Purchase bill not found in Tally data.",
+                "data": None,
+            }
 
-    purchase_details["carton"] = purchase_details.apply(
-        lambda x: x["carton_box"] if x["carton_box"] > 0 else x["qty"] / 72, axis=1
-    )
+        purchase_details = []
+        for row in rows:
+            qty = float(row["qty"] or 0)
+            if qty <= 0:
+                continue
 
-    purchase_details["cost_price"] = purchase_details["value"] / purchase_details["qty"]
-    purchase_details["expenses"] = 0
-    purchase_details["landing_cost"] = (
-        purchase_details["cost_price"] + purchase_details["expenses"]
-    )
-    purchase_details["gst"] = purchase_details["gst"]
-    purchase_details["cost_with_gst"] = purchase_details["landing_cost"] * (
-        1 + purchase_details["gst"] / 100
-    )
-    print(purchase_details.columns)
+            carton_box = float(row["carton_box"] or 0)
+            value = float(row["value"] or 0)
+            cost_price = value / qty if qty else 0.0
+            gst = float(row["gst"] or 0)
+            expenses = 0.0
+            landing_cost = cost_price + expenses
 
-    purchase_details = purchase_details.to_dict(orient="records")
+            purchase_details.append(
+                {
+                    "stock_item": row["stock_item"],
+                    "qty": qty,
+                    "carton": carton_box if carton_box > 0 else qty / 72,
+                    "qty_per_carton": float(row["carton_box_qty"] or 0),
+                    "item_count": row["itemcount"],
+                    "item_no": row["itemno"],
+                    "list_price": float(row["rate"] or 0),
+                    "cost_price": cost_price,
+                    "value": value,
+                    "expenses": expenses,
+                    "landing_cost": landing_cost,
+                    "gst": gst,
+                    "cost_with_gst": landing_cost * (1 + gst / 100),
+                    "hsn_code": row["hsn_code"],
+                }
+            )
 
-    return {
-        "status": "success",
-        "message": "Purchase details fetched successfully!",
-        "data": purchase_details,
-    }
+        return {
+            "status": "success",
+            "message": "Purchase details fetched successfully!",
+            "data": purchase_details,
+        }
+    except Exception as e:
+        print(e.args)
+        return {
+            "status": "error",
+            "message": f"Unable to load Tally purchase details: {e}",
+            "data": None,
+        }
 
 
 @router.post("/pending-purchase-bills")
@@ -240,30 +273,41 @@ def tally_details(purchase_id: str = Form(...), purchase_date: str = Form(...)):
 def pending_purchase_bills():
     sql = text(
         """
-        SELECT p.vno as purchase_id,
-            date(p.vdt) as purchase_date, p.ledger_name as vendor, sum(p.qty) as qty
-            FROM purchases p
+        SELECT
+            p.vno AS purchase_id,
+            DATE(p.vdt) AS purchase_date,
+            p.ledger_name AS vendor,
+            SUM(p.qty) AS qty
+        FROM purchases p
         WHERE NOT EXISTS (
             SELECT 1
-                FROM yora_purchase pc
+            FROM yora_purchase pc
             WHERE pc.purchase_id = p.vno
-                AND pc.purchase_date = p.vdt
+              AND pc.purchase_date = DATE(p.vdt)
         )
-        GROUP BY p.vno, p.vdt, ledger_name;
-    """
+        GROUP BY p.vno, DATE(p.vdt), p.ledger_name
+        ORDER BY purchase_date DESC, purchase_id DESC
+        """
     )
 
-    with engine_mysql.connect() as connection:
-        result = connection.execute(sql).fetchall()
+    try:
+        with engine_mysql.connect() as connection:
+            rows = connection.execute(sql).mappings().all()
 
-    pending_bills = pd.DataFrame(result)
-    pending_bills = pending_bills.to_dict(orient="records")
+        pending_bills = [_serialize_row(dict(row)) for row in rows]
 
-    return {
-        "status": "success",
-        "message": "Pending costing bills fetched successfully!",
-        "data": pending_bills,
-    }
+        return {
+            "status": "success",
+            "message": "Pending costing bills fetched successfully!",
+            "data": pending_bills,
+        }
+    except Exception as e:
+        print(e.args)
+        return {
+            "status": "error",
+            "message": f"Unable to fetch pending purchase bills: {e}",
+            "data": [],
+        }
 
 
 @router.post("/fetch")

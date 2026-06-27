@@ -11,6 +11,7 @@ const Purchase = () => {
   const [purchaseDetails, setPurchaseDetails] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [formMessage, setFormMessage] = useState(null);
+  const [importError, setImportError] = useState("");
   const [purchase, setPurchase] = useState({});
 
   useEffect(() => {
@@ -21,6 +22,7 @@ const Purchase = () => {
 
   useEffect(() => {
     setFormMessage(null);
+    setImportError("");
     setShowForm(false);
     if (!selectedPurchase) return;
 
@@ -41,9 +43,16 @@ const Purchase = () => {
           });
           setPurchaseDetails(data.data);
           setShowForm(true);
+        } else {
+          setImportError(data.message || "Unable to import purchase bill.");
+          setShowPendingBills(true);
         }
+      })
+      .catch(() => {
+        setImportError("Unable to import purchase bill.");
+        setShowPendingBills(true);
       });
-  }, [selectedPurchase, api]);
+  }, [selectedPurchase, api, authFetch]);
 
   const handleUpdateExpenses = (e) => {
     const transportCost = parseFloat(e.target.value) || 0;
@@ -102,6 +111,8 @@ const Purchase = () => {
           setSelectedPurchase={setSelectedPurchase}
           setShowPendingBills={setShowPendingBills}
           setShowForm={setShowForm}
+          importError={importError}
+          onClearImportError={() => setImportError("")}
         />
       )}
 

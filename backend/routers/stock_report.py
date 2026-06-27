@@ -109,7 +109,8 @@ def _fetch_item_rows(params: dict[str, str]) -> list[dict[str, Any]]:
             COALESCE(s.sales_qty, 0) AS sales_qty,
             COALESCE(o.opening_qty, 0)
                 + COALESCE(p.purchase_qty, 0)
-                - COALESCE(s.sales_qty, 0) AS closing_qty
+                - COALESCE(s.sales_qty, 0) AS closing_qty,
+            COALESCE(inv.reorder_level, 0) AS reorder_level
         FROM items i
         INNER JOIN yora_stockitems si
             ON si.stock_item = i.stock_item
@@ -119,6 +120,8 @@ def _fetch_item_rows(params: dict[str, str]) -> list[dict[str, Any]]:
             ON p.stock_item = i.stock_item
         LEFT JOIN sales_qty s
             ON s.stock_item = i.stock_item
+        LEFT JOIN yora_inventory inv
+            ON inv.stock_item = i.stock_item
         WHERE TRIM(COALESCE(si.parent, '')) != ''
             {group_filter}
         ORDER BY TRIM(si.parent), i.stock_item
@@ -143,9 +146,12 @@ def _build_item_report(rows: list[dict[str, Any]]) -> tuple[list[dict], dict]:
         purchase_qty = _qty_number(row["purchase_qty"])
         sales_qty = _qty_number(row["sales_qty"])
         closing_qty = _qty_number(row["closing_qty"])
+        reorder_level = _qty_number(row["reorder_level"])
         parent = _normalize_parent(row["parent"])
         if not parent:
             continue
+
+        needs_reorder = reorder_level > 0 and closing_qty < reorder_level
 
         report_rows.append(
             {
@@ -156,6 +162,8 @@ def _build_item_report(rows: list[dict[str, Any]]) -> tuple[list[dict], dict]:
                 "purchase_qty": _serialize_value(purchase_qty),
                 "sales_qty": _serialize_value(sales_qty),
                 "closing_qty": _serialize_value(closing_qty),
+                "reorder_level": _serialize_value(reorder_level),
+                "needs_reorder": needs_reorder,
             }
         )
 
@@ -214,6 +222,9 @@ def stock_report(
             "totals": {key: _serialize_value(value) for key, value in totals.items()},
             "summary": {
                 "row_count": len(report_rows),
+                "reorder_count": sum(
+                    1 for row in report_rows if row.get("needs_reorder")
+                ),
             },
         },
     }

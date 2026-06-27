@@ -6,22 +6,34 @@ const TallyPendingBills = ({
   setSelectedPurchase,
   setShowPendingBills,
   setShowForm,
+  importError,
+  onClearImportError,
 }) => {
   const { api, authFetch } = useContext(AuthContext);
   const [pendingCostingBills, setPendingCostingBills] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     setLoading(true);
+    setError("");
     authFetch(`${api}/purchases/pending-purchase-bills`, { method: "POST" })
       .then((response) => response.json())
       .then((data) => {
         if (data.status === "success") {
-          setPendingCostingBills(data.data);
+          setPendingCostingBills(data.data || []);
+        } else {
+          setPendingCostingBills([]);
+          setError(data.message || "Unable to load pending bills.");
         }
         setLoading(false);
+      })
+      .catch(() => {
+        setPendingCostingBills([]);
+        setError("Unable to load pending bills.");
+        setLoading(false);
       });
-  }, [api]);
+  }, [api, authFetch]);
 
   return (
     <div className="page-modal-overlay">
@@ -48,6 +60,12 @@ const TallyPendingBills = ({
             Select a purchase bill to import and update costing.
           </p>
 
+          {(error || importError) && (
+            <p className="px-4 py-3 text-xs text-red-300/90 normal-case tracking-normal border-b border-red-900/40 bg-red-950/20">
+              {importError || error}
+            </p>
+          )}
+
           <div className="page-table-wrap border-0 rounded-none max-h-[60vh]">
             <table className="page-table">
               <thead>
@@ -72,9 +90,9 @@ const TallyPendingBills = ({
                         key={key}
                         className="cursor-pointer"
                         onClick={() => {
+                          onClearImportError?.();
                           setSelectedPurchase(bill);
                           setShowPendingBills(false);
-                          setShowForm(true);
                         }}
                       >
                         <td>{moment(bill.purchase_date).format("DD-MM-YYYY")}</td>

@@ -262,6 +262,14 @@ select {
   @apply invisible absolute right-0 top-full z-50 mt-2 min-w-[10rem] translate-y-1 overflow-hidden rounded-xl border border-sky-900/55 bg-neutral-900/95 py-1 opacity-0 shadow-xl shadow-black/40 backdrop-blur-md transition-all duration-150;
 }
 
+.app-shell-user-dropdown-header {
+  @apply border-b border-sky-900/45 px-3 py-2.5;
+}
+
+.app-shell-user-dropdown-name {
+  @apply truncate text-sm font-semibold normal-case tracking-normal text-white;
+}
+
 .app-shell-user-dropdown-item {
   @apply flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm font-medium normal-case tracking-normal text-white/80 transition-colors hover:bg-white/5 hover:text-white;
 }
@@ -623,6 +631,14 @@ select {
   @apply flex flex-wrap items-center justify-between gap-2 text-xs normal-case tracking-normal text-slate-400;
 }
 
+.page-report-reorder-link {
+  @apply rounded px-1 font-semibold text-amber-300/90 underline decoration-amber-500/40 underline-offset-2 transition-colors hover:text-amber-200 hover:decoration-amber-400/70 cursor-pointer;
+}
+
+.page-report-reorder-clear {
+  @apply inline-flex h-4 w-4 items-center justify-center rounded text-[10px] text-amber-300/80 transition-colors hover:bg-amber-950/60 hover:text-amber-200 cursor-pointer;
+}
+
 .page-select {
   @apply rounded-lg border border-slate-600/80 bg-slate-50 px-3 py-1.5 text-sm normal-case tracking-normal font-medium text-slate-800 cursor-pointer focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/25;
 }
@@ -673,6 +689,14 @@ select {
 
 .page-table tbody tr {
   @apply border-b border-gray-700/40 transition-colors hover:bg-white/5;
+}
+
+.page-table-row-reorder {
+  @apply border-l-4 border-l-amber-400/90 bg-amber-950/20 hover:bg-amber-950/30;
+}
+
+.page-table-reorder-badge {
+  @apply inline-flex items-center rounded-md border border-amber-500/50 bg-amber-950/50 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-amber-300;
 }
 
 .page-table td {

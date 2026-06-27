@@ -112,6 +112,9 @@ const BasetemplateShell = ({
                 </button>
 
                 <div className="app-shell-user-dropdown" role="menu">
+                  <div className="app-shell-user-dropdown-header">
+                    <p className="app-shell-user-dropdown-name">{user.name}</p>
+                  </div>
                   <Link to="/clientprofile" className="app-shell-user-dropdown-item" role="menuitem">
                     <i className="bi bi-gear" aria-hidden="true"></i>
                     Settings

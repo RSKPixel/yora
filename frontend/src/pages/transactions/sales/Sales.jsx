@@ -15,6 +15,7 @@ const Sales = () => {
   const [loading, setLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState("");
   const [refresh, setRefresh] = useState(false);
+  const [message, setMessage] = useState(null);
   const [filter, setFilter] = useState("all");
   const filterOptions = [
     { label: "All", value: "all" },
@@ -50,6 +51,7 @@ const Sales = () => {
   const loadTallyData = () => {
     setLoading(true);
     setLoadingMessage("Fetching tally data...");
+    setMessage(null);
     authFetch(`${api}/sales/tally-sales-list`, {
       method: "POST",
     })
@@ -59,6 +61,30 @@ const Sales = () => {
           setLoading(false);
           setRefresh(!refresh);
         }
+      });
+  };
+
+  const updateReorderLevels = () => {
+    setLoading(true);
+    setLoadingMessage("Updating reorder levels...");
+    setMessage(null);
+    authFetch(`${api}/sales/update-reorder-levels`, {
+      method: "POST",
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        setLoading(false);
+        setMessage({
+          type: data.status === "success" ? "success" : "error",
+          text: data.message || "Unable to update reorder levels.",
+        });
+      })
+      .catch(() => {
+        setLoading(false);
+        setMessage({
+          type: "error",
+          text: "Unable to update reorder levels. Please try again.",
+        });
       });
   };
 
@@ -91,17 +117,41 @@ const Sales = () => {
               {moment(periodValue[period].date_to).format("DD-MM-YYYY")}
             </p>
           </div>
-          <button
-            type="button"
-            className="page-icon-btn page-icon-btn-sky"
-            title="Sync from Tally"
-            onClick={loadTallyData}
-          >
-            <i className="bi bi-arrow-clockwise text-base"></i>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              className="page-icon-btn page-icon-btn-cyan"
+              title="Update reorder levels (30-day avg from last 90 days sales)"
+              onClick={updateReorderLevels}
+            >
+              <i className="bi bi-sliders text-base"></i>
+            </button>
+            <button
+              type="button"
+              className="page-icon-btn page-icon-btn-sky"
+              title="Sync from Tally"
+              onClick={loadTallyData}
+            >
+              <i className="bi bi-arrow-clockwise text-base"></i>
+            </button>
+          </div>
         </div>
 
         <div className="page-card-body">
+          {message && (
+            <div
+              className={`flex items-start gap-2 text-xs normal-case tracking-normal mb-3 ${
+                message.type === "error" ? "text-red-400" : "text-emerald-400"
+              }`}
+            >
+              <i
+                className={`bi mt-0.5 shrink-0 ${
+                  message.type === "error" ? "bi-exclamation-circle" : "bi-check-circle"
+                }`}
+              ></i>
+              <span>{message.text}</span>
+            </div>
+          )}
           <div className="page-toolbar">
             <span className="page-toolbar-label">Filters</span>
             <div className="flex flex-wrap items-center gap-2">
