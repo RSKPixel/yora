@@ -17,6 +17,7 @@ const Basetemplate2 = ({ children }) => {
     },
     Reports: {
       "Stock Report": "/reports/stockposition",
+      "Stock Summary": "/reports/stocksummary",
       "Purchase Order Report": "/reports/purchaseorder",
     },
   };

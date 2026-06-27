@@ -23,6 +23,7 @@ export const appMenu = {
     icon: "bi-bar-chart",
     items: {
       "Stock Report": { path: "/reports/stockposition", icon: "bi-boxes" },
+      "Stock Summary": { path: "/reports/stocksummary", icon: "bi-clipboard-data" },
       "Purchase Order Report": { path: "/reports/purchaseorder", icon: "bi-file-earmark-bar-graph" },
     },
   },

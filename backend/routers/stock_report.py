@@ -2,10 +2,11 @@ from decimal import Decimal
 from typing import Any
 
 from fastapi import APIRouter, Form, HTTPException
-from sqlalchemy import text
+from sqlalchemy import bindparam, text
 from sqlalchemy.exc import SQLAlchemyError
 
 from core.dependencies import engine_mysql
+from services.stock_fifo import compute_fifo_avg_prices_by_item
 
 router = APIRouter()
 
@@ -29,8 +30,87 @@ def _normalize_parent(value: Any) -> str:
     return (value or "").strip()
 
 
+def _sales_filter(date_from: str, date_to: str) -> str:
+    if date_from and date_to:
+        return "invoice_date >= :date_from AND invoice_date <= :date_to"
+    if date_to:
+        return "invoice_date <= :date_to"
+    if date_from:
+        return "invoice_date >= :date_from"
+    return "1 = 1"
+
+
+def _fetch_avg_selling_prices(
+    connection,
+    *,
+    date_from: str,
+    date_to: str,
+    stock_items: list[str] | None = None,
+) -> dict[str, float]:
+    sales_filter = _sales_filter(date_from, date_to)
+    stock_clause = " AND stock_item IN :stock_items" if stock_items else ""
+
+    sql = text(
+        f"""
+        SELECT
+            stock_item,
+            CASE
+                WHEN COALESCE(SUM(qty), 0) > 0 THEN SUM(value) / SUM(qty)
+                ELSE NULL
+            END AS avg_selling_price
+        FROM yora_sales
+        WHERE {sales_filter}
+        {stock_clause}
+        GROUP BY stock_item
+        """
+    )
+
+    if stock_items:
+        sql = sql.bindparams(bindparam("stock_items", expanding=True))
+
+    query_params = {key: value for key, value in {"date_from": date_from, "date_to": date_to}.items() if value}
+    if stock_items:
+        query_params["stock_items"] = stock_items
+
+    rows = connection.execute(sql, query_params).mappings()
+    return {
+        row["stock_item"]: float(row["avg_selling_price"])
+        for row in rows
+        if row["stock_item"] and row["avg_selling_price"] is not None
+    }
+
+
 def _fetch_item_rows(params: dict[str, str]) -> list[dict[str, Any]]:
-    opening_sql = """
+    date_from = params.get("date_from", "")
+    date_to = params.get("date_to", "")
+
+    if date_from and date_to:
+        opening_stock_filter = "opening_date < :date_from"
+        opening_purchase_filter = "purchase_date < :date_from"
+        opening_sales_filter = "invoice_date < :date_from"
+        purchase_filter = "purchase_date >= :date_from AND purchase_date <= :date_to"
+        sales_filter = _sales_filter(date_from, date_to)
+    elif date_to:
+        # As-on snapshot: cumulative movements up to date_to only.
+        opening_stock_filter = "opening_date <= :date_to"
+        opening_purchase_filter = "1 = 0"
+        opening_sales_filter = "1 = 0"
+        purchase_filter = "purchase_date <= :date_to"
+        sales_filter = _sales_filter(date_from, date_to)
+    elif date_from:
+        opening_stock_filter = "opening_date < :date_from"
+        opening_purchase_filter = "purchase_date < :date_from"
+        opening_sales_filter = "invoice_date < :date_from"
+        purchase_filter = "purchase_date >= :date_from"
+        sales_filter = _sales_filter(date_from, date_to)
+    else:
+        opening_stock_filter = "1 = 1"
+        opening_purchase_filter = "1 = 0"
+        opening_sales_filter = "1 = 0"
+        purchase_filter = "1 = 1"
+        sales_filter = _sales_filter(date_from, date_to)
+
+    opening_sql = f"""
         SELECT
             stock_item,
             COALESCE(SUM(qty), 0) AS opening_qty
@@ -39,40 +119,38 @@ def _fetch_item_rows(params: dict[str, str]) -> list[dict[str, Any]]:
                 stock_item,
                 qty
             FROM yora_opening_stock
-            WHERE (:date_from = '' OR opening_date < :date_from)
+            WHERE {opening_stock_filter}
             UNION ALL
             SELECT
                 stock_item,
                 qty
             FROM yora_purchase_details
-            WHERE (:date_from != '' AND purchase_date < :date_from)
+            WHERE {opening_purchase_filter}
             UNION ALL
             SELECT
                 stock_item,
                 -qty AS qty
             FROM yora_sales
-            WHERE (:date_from != '' AND invoice_date < :date_from)
+            WHERE {opening_sales_filter}
         ) opening_movements
         GROUP BY stock_item
     """
 
-    purchase_sql = """
+    purchase_sql = f"""
         SELECT
             stock_item,
             COALESCE(SUM(qty), 0) AS purchase_qty
         FROM yora_purchase_details
-        WHERE (:date_from = '' OR purchase_date >= :date_from)
-          AND (:date_to = '' OR purchase_date <= :date_to)
+        WHERE {purchase_filter}
         GROUP BY stock_item
     """
 
-    sales_sql = """
+    sales_sql = f"""
         SELECT
             stock_item,
             COALESCE(SUM(qty), 0) AS sales_qty
         FROM yora_sales
-        WHERE (:date_from = '' OR invoice_date >= :date_from)
-          AND (:date_to = '' OR invoice_date <= :date_to)
+        WHERE {sales_filter}
         GROUP BY stock_item
     """
 
@@ -129,10 +207,15 @@ def _fetch_item_rows(params: dict[str, str]) -> list[dict[str, Any]]:
     )
 
     with engine_mysql.connect() as connection:
-        return connection.execute(report_sql, params).mappings().all()
+        query_params = {key: value for key, value in params.items() if value}
+        return connection.execute(report_sql, query_params).mappings().all()
 
 
-def _build_item_report(rows: list[dict[str, Any]]) -> tuple[list[dict], dict]:
+def _build_item_report(
+    rows: list[dict[str, Any]],
+    avg_prices: dict[str, float | None] | None = None,
+    avg_selling_prices: dict[str, float] | None = None,
+) -> tuple[list[dict], dict]:
     report_rows = []
     totals = {
         "opening_qty": 0.0,
@@ -152,10 +235,13 @@ def _build_item_report(rows: list[dict[str, Any]]) -> tuple[list[dict], dict]:
             continue
 
         needs_reorder = reorder_level > 0 and closing_qty < reorder_level
+        stock_item = row["stock_item"] or ""
+        avg_price = (avg_prices or {}).get(stock_item)
+        avg_selling_price = (avg_selling_prices or {}).get(stock_item)
 
         report_rows.append(
             {
-                "stock_item": row["stock_item"] or "",
+                "stock_item": stock_item,
                 "group": parent,
                 "unit": row["unit"] or "",
                 "opening_qty": _serialize_value(opening_qty),
@@ -164,6 +250,16 @@ def _build_item_report(rows: list[dict[str, Any]]) -> tuple[list[dict], dict]:
                 "closing_qty": _serialize_value(closing_qty),
                 "reorder_level": _serialize_value(reorder_level),
                 "needs_reorder": needs_reorder,
+                "avg_price": (
+                    _serialize_value(round(avg_price, 2))
+                    if avg_price is not None and closing_qty > 0
+                    else None
+                ),
+                "avg_selling_price": (
+                    _serialize_value(round(avg_selling_price, 2))
+                    if avg_selling_price is not None and sales_qty > 0
+                    else None
+                ),
             }
         )
 
@@ -199,8 +295,25 @@ def stock_report(
     }
 
     try:
-        raw_rows = _fetch_item_rows(params)
-        report_rows, totals = _build_item_report(raw_rows)
+        with engine_mysql.connect() as connection:
+            raw_rows = _fetch_item_rows(params)
+            stock_items = [row["stock_item"] for row in raw_rows]
+            avg_prices = compute_fifo_avg_prices_by_item(
+                connection,
+                date_to=date_to,
+                stock_items=stock_items,
+            )
+            avg_selling_prices = _fetch_avg_selling_prices(
+                connection,
+                date_from=date_from,
+                date_to=date_to,
+                stock_items=stock_items,
+            )
+        report_rows, totals = _build_item_report(
+            raw_rows,
+            avg_prices,
+            avg_selling_prices,
+        )
     except SQLAlchemyError as exc:
         raise HTTPException(
             status_code=500,

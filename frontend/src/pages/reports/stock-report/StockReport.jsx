@@ -1,9 +1,17 @@
 import React, { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import moment from "moment";
 import numeral from "numeral";
 import AuthContext from "../../../templates/AuthContext";
 import { getCurrentAccountingYear } from "../../../utils/DatePeriods";
 
-const defaultFilters = () => {
+const createDefaultFilters = (mode = "detail") => {
+  if (mode === "summary") {
+    return {
+      as_on: moment().format("YYYY-MM-DD"),
+      group: "",
+    };
+  }
+
   const { date_from, date_to } = getCurrentAccountingYear();
   return {
     date_from,
@@ -13,8 +21,22 @@ const defaultFilters = () => {
   };
 };
 
+const buildRequestFilters = (activeFilters, isSummary) => {
+  if (isSummary) {
+    return {
+      date_from: "",
+      date_to: activeFilters.as_on || "",
+      group: activeFilters.group || "",
+    };
+  }
+
+  return activeFilters;
+};
+
 const formatQty = (value) => numeral(value || 0).format("0,0.##");
 const formatCount = (value) => numeral(value || 0).format("0,0");
+const formatPrice = (value) =>
+  value == null || value === "" ? "—" : numeral(value).format("0,0.00");
 
 const qtyValue = (value) => Number(value) || 0;
 
@@ -67,10 +89,11 @@ const FilterField = ({ label, title, children, className = "" }) => (
   </label>
 );
 
-const StockReport = () => {
+const StockReport = ({ mode = "detail" }) => {
   const { api, authFetch } = useContext(AuthContext);
-  const [filters, setFilters] = useState(defaultFilters);
-  const [appliedFilters, setAppliedFilters] = useState(defaultFilters);
+  const isSummary = mode === "summary";
+  const [filters, setFilters] = useState(() => createDefaultFilters(mode));
+  const [appliedFilters, setAppliedFilters] = useState(() => createDefaultFilters(mode));
   const [stockItems, setStockItems] = useState([]);
   const [report, setReport] = useState(null);
   const [loadingItems, setLoadingItems] = useState(true);
@@ -105,7 +128,7 @@ const StockReport = () => {
     return [...groups].sort((a, b) => a.localeCompare(b));
   }, [stockItems]);
 
-  const isItemWise = filters.item_wise;
+  const isItemWise = isSummary || filters.item_wise;
 
   const handleFilterChange = (event) => {
     const { name, value, type, checked } = event.target;
@@ -130,7 +153,12 @@ const StockReport = () => {
   };
 
   const fetchReport = useCallback(async (activeFilters) => {
-    if (
+    if (isSummary) {
+      if (!activeFilters.as_on) {
+        setMessage({ type: "error", text: "As on date is required." });
+        return;
+      }
+    } else if (
       activeFilters.date_from &&
       activeFilters.date_to &&
       activeFilters.date_from > activeFilters.date_to
@@ -139,12 +167,14 @@ const StockReport = () => {
       return;
     }
 
+    const requestFilters = buildRequestFilters(activeFilters, isSummary);
+
     setLoadingReport(true);
     setMessage(null);
 
     try {
       const fd = new FormData();
-      Object.entries(activeFilters).forEach(([key, value]) => {
+      Object.entries(requestFilters).forEach(([key, value]) => {
         if (key === "item_wise") return;
         if (value) fd.append(key, value);
       });
@@ -179,18 +209,18 @@ const StockReport = () => {
     } finally {
       setLoadingReport(false);
     }
-  }, [api, authFetch]);
+  }, [api, authFetch, isSummary]);
 
   const runReport = useCallback(() => {
     fetchReport(filters);
   }, [fetchReport, filters]);
 
   useEffect(() => {
-    fetchReport(defaultFilters());
-  }, [fetchReport]);
+    fetchReport(createDefaultFilters(mode));
+  }, [fetchReport, mode]);
 
   const clearFilters = () => {
-    const cleared = defaultFilters();
+    const cleared = createDefaultFilters(mode);
     setFilters(cleared);
     setAppliedFilters(cleared);
     setReport(null);
@@ -256,12 +286,16 @@ const StockReport = () => {
     [showTotals, sortedRows]
   );
   const periodLabel = useMemo(() => {
+    if (isSummary) {
+      return appliedFilters.as_on || "—";
+    }
+
     const { date_from: from, date_to: to } = appliedFilters;
     if (from && to) return `${from} to ${to}`;
     if (from) return `from ${from}`;
     if (to) return `up to ${to}`;
     return "all dates";
-  }, [appliedFilters]);
+  }, [appliedFilters, isSummary]);
 
   const SortableHeader = ({ label, sortKey, align = "text-end" }) => {
     const isActive = sort.key === sortKey;
@@ -307,7 +341,7 @@ const StockReport = () => {
     );
   };
 
-  const columnCount = isItemWise ? 9 : 6;
+  const columnCount = isSummary ? 7 : isItemWise ? 9 : 6;
   const reorderCount = useMemo(
     () => (isItemWise ? itemRows.filter(needsReorder).length : 0),
     [itemRows, isItemWise]
@@ -320,9 +354,9 @@ const StockReport = () => {
           <div>
             <div className="page-card-title">
               <span className="page-card-title-icon">
-                <i className="bi bi-boxes"></i>
+                <i className={`bi ${isSummary ? "bi-clipboard-data" : "bi-boxes"}`}></i>
               </span>
-              Stock Report
+              {isSummary ? "Stock Summary" : "Stock Report"}
             </div>
           </div>
         </div>
@@ -330,25 +364,39 @@ const StockReport = () => {
         <div className="page-card-body">
           <div className="page-report-filters">
             <div className="page-report-filters-grid">
-              <FilterField label="From" className="w-[8.75rem]">
-                <input
-                  className="page-select page-select-compact w-full"
-                  type="date"
-                  name="date_from"
-                  value={filters.date_from}
-                  onChange={handleFilterChange}
-                />
-              </FilterField>
+              {isSummary ? (
+                <FilterField label="As on" className="w-[8.75rem]">
+                  <input
+                    className="page-select page-select-compact w-full"
+                    type="date"
+                    name="as_on"
+                    value={filters.as_on}
+                    onChange={handleFilterChange}
+                  />
+                </FilterField>
+              ) : (
+                <>
+                  <FilterField label="From" className="w-[8.75rem]">
+                    <input
+                      className="page-select page-select-compact w-full"
+                      type="date"
+                      name="date_from"
+                      value={filters.date_from}
+                      onChange={handleFilterChange}
+                    />
+                  </FilterField>
 
-              <FilterField label="To" className="w-[8.75rem]">
-                <input
-                  className="page-select page-select-compact w-full"
-                  type="date"
-                  name="date_to"
-                  value={filters.date_to}
-                  onChange={handleFilterChange}
-                />
-              </FilterField>
+                  <FilterField label="To" className="w-[8.75rem]">
+                    <input
+                      className="page-select page-select-compact w-full"
+                      type="date"
+                      name="date_to"
+                      value={filters.date_to}
+                      onChange={handleFilterChange}
+                    />
+                  </FilterField>
+                </>
+              )}
 
               <FilterField label="Group" className="w-full sm:w-48">
                 <select
@@ -367,19 +415,21 @@ const StockReport = () => {
                 </select>
               </FilterField>
 
-              <label
-                className="inline-flex items-center gap-1.5 pb-1 text-[11px] normal-case tracking-normal text-slate-300 cursor-pointer shrink-0"
-                title="Show one row per stock item; uncheck for group totals"
-              >
-                <input
-                  type="checkbox"
-                  className="h-3.5 w-3.5 rounded border-gray-600/60 bg-neutral-800/90 text-sky-500 focus:ring-sky-500/40"
-                  name="item_wise"
-                  checked={filters.item_wise}
-                  onChange={handleFilterChange}
-                />
-                Item wise
-              </label>
+              {!isSummary && (
+                <label
+                  className="inline-flex items-center gap-1.5 pb-1 text-[11px] normal-case tracking-normal text-slate-300 cursor-pointer shrink-0"
+                  title="Show one row per stock item; uncheck for group totals"
+                >
+                  <input
+                    type="checkbox"
+                    className="h-3.5 w-3.5 rounded border-gray-600/60 bg-neutral-800/90 text-sky-500 focus:ring-sky-500/40"
+                    name="item_wise"
+                    checked={filters.item_wise}
+                    onChange={handleFilterChange}
+                  />
+                  Item wise
+                </label>
+              )}
 
               <div className="page-report-filter-actions sm:ml-auto">
                 <button
@@ -430,12 +480,17 @@ const StockReport = () => {
           {report?.summary && (
             <div className="page-report-summary">
               <div className="flex flex-wrap gap-x-4 gap-y-1">
+                {!isSummary && (
+                  <span>
+                    View:{" "}
+                    <span className="text-sky-300/90">
+                      {isItemWise ? "Item wise" : "Group wise"}
+                    </span>
+                  </span>
+                )}
                 <span>
-                  View:{" "}
-                  <span className="text-sky-300/90">{isItemWise ? "Item wise" : "Group wise"}</span>
-                </span>
-                <span>
-                  Period: <span className="text-sky-300/90">{periodLabel}</span>
+                  {isSummary ? "As on" : "Period"}:{" "}
+                  <span className="text-sky-300/90">{periodLabel}</span>
                 </span>
                 <span>
                   Rows:{" "}
@@ -485,7 +540,17 @@ const StockReport = () => {
           <div className="page-table-wrap">
             <table className="page-table">
               <thead>
-                {isItemWise ? (
+                {isSummary ? (
+                  <tr>
+                    <TextSortHeader label="Item" sortKey="stock_item" />
+                    <TextSortHeader label="Group" sortKey="group" />
+                    <th>Unit</th>
+                    <SortableHeader label="Closing" sortKey="closing_qty" />
+                    <th className="text-center">Status</th>
+                    <SortableHeader label="Avg Cost Price" sortKey="avg_price" />
+                    <SortableHeader label="Avg Selling Price" sortKey="avg_selling_price" />
+                  </tr>
+                ) : isItemWise ? (
                   <tr>
                     <TextSortHeader label="Item" sortKey="stock_item" />
                     <TextSortHeader label="Group" sortKey="group" />
@@ -519,6 +584,32 @@ const StockReport = () => {
                   isItemWise ? (
                     sortedRows.map((row) => {
                       const reorder = needsReorder(row);
+
+                      if (isSummary) {
+                        return (
+                          <tr
+                            key={row.stock_item}
+                            className={reorder ? "page-table-row-reorder" : undefined}
+                          >
+                            <td>{row.stock_item}</td>
+                            <td className="text-slate-400">{row.group}</td>
+                            <td>{row.unit}</td>
+                            <td className={`text-end ${reorder ? "text-amber-300" : "text-sky-300"}`}>
+                              {formatQty(row.closing_qty)}
+                            </td>
+                            <td className="text-center">
+                              {reorder ? (
+                                <span className="page-table-reorder-badge">Reorder</span>
+                              ) : (
+                                <span className="text-slate-500">—</span>
+                              )}
+                            </td>
+                            <td className="text-end text-slate-500">{formatPrice(row.avg_price)}</td>
+                            <td className="text-end text-slate-500">{formatPrice(row.avg_selling_price)}</td>
+                          </tr>
+                        );
+                      }
+
                       return (
                         <tr
                           key={row.stock_item}
@@ -563,7 +654,7 @@ const StockReport = () => {
                         ? "No reorder items match the selected filters."
                         : report || loadingReport
                           ? "No stock movements match the selected filters."
-                          : "Run a search to view the stock report."}
+                          : `Run a search to view the stock ${isSummary ? "summary" : "report"}.`}
                     </td>
                   </tr>
                 )}
@@ -571,17 +662,37 @@ const StockReport = () => {
               {showTotals && (
                 <tfoot>
                   <tr className="font-medium">
-                    <td colSpan={isItemWise ? 3 : 2} className="text-end">
-                      Totals
-                    </td>
-                    <td className="text-end">{formatQty(totals.opening_qty)}</td>
-                    <td className="text-end">{formatQty(totals.purchase_qty)}</td>
-                    <td className="text-end">{formatQty(totals.sales_qty)}</td>
-                    <td className="text-end text-sky-300">{formatQty(totals.closing_qty)}</td>
-                    {isItemWise && (
+                    {isSummary ? (
                       <>
+                        <td colSpan={3} className="text-end">
+                          Totals
+                        </td>
+                        <td className="text-end text-sky-300">{formatQty(totals.closing_qty)}</td>
                         <td></td>
                         <td></td>
+                        <td></td>
+                      </>
+                    ) : isItemWise ? (
+                      <>
+                        <td colSpan={3} className="text-end">
+                          Totals
+                        </td>
+                        <td className="text-end">{formatQty(totals.opening_qty)}</td>
+                        <td className="text-end">{formatQty(totals.purchase_qty)}</td>
+                        <td className="text-end">{formatQty(totals.sales_qty)}</td>
+                        <td className="text-end text-sky-300">{formatQty(totals.closing_qty)}</td>
+                        <td></td>
+                        <td></td>
+                      </>
+                    ) : (
+                      <>
+                        <td colSpan={2} className="text-end">
+                          Totals
+                        </td>
+                        <td className="text-end">{formatQty(totals.opening_qty)}</td>
+                        <td className="text-end">{formatQty(totals.purchase_qty)}</td>
+                        <td className="text-end">{formatQty(totals.sales_qty)}</td>
+                        <td className="text-end text-sky-300">{formatQty(totals.closing_qty)}</td>
                       </>
                     )}
                   </tr>

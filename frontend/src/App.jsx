@@ -10,6 +10,7 @@ import Purchase from "./pages/transactions/purchase/Purchase";
 import PurchaseOrder from "./pages/transactions/purchase-order/PurchaseOrder";
 import PurchaseOrderReport from "./pages/reports/purchase-order/PurchaseOrderReport";
 import StockReport from "./pages/reports/stock-report/StockReport";
+import StockSummary from "./pages/reports/stock-report/StockSummary";
 import Sales from "./pages/transactions/sales/Sales";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
@@ -44,6 +45,7 @@ function App() {
                     </Route>
                     <Route path="/reports">
                       <Route path="stockposition" element={<StockReport />} />
+                      <Route path="stocksummary" element={<StockSummary />} />
                       <Route path="purchaseorder" element={<PurchaseOrderReport />} />
                     </Route>
                   </Routes>
