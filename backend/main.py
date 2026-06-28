@@ -11,7 +11,7 @@ from core.auth import AUTH_BYPASS, AUTH_BYPASS_TOKEN, get_current_user
 from core.config import validate_security_config
 from core.limiter import limiter
 from routers import inventory, ledger, purchase, purchase_orders, sales, stock_report
-from routers import delivery, auth, masters, dashboard
+from routers import delivery, auth, masters, dashboard, settings
 import uvicorn
 
 validate_security_config()
@@ -93,6 +93,12 @@ app.include_router(
     dashboard.router,
     prefix="/dashboard",
     tags=["dashboard"],
+    dependencies=require_auth,
+)
+app.include_router(
+    settings.router,
+    prefix="/settings",
+    tags=["settings"],
     dependencies=require_auth,
 )
 

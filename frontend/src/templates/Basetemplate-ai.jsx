@@ -107,7 +107,15 @@ const BasetemplateShell = ({
                   aria-haspopup="menu"
                 >
                   <span className="app-shell-user-avatar" aria-hidden="true">
-                    {userInitials}
+                    {user.profilePic ? (
+                      <img
+                        src={user.profilePic}
+                        alt=""
+                        className="app-shell-user-avatar-image"
+                      />
+                    ) : (
+                      userInitials
+                    )}
                   </span>
                 </button>
 

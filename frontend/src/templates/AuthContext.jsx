@@ -60,6 +60,20 @@ export const AuthProvider = ({ children }) => {
     [user?.token, logout]
   );
 
+  const updateUser = useCallback((patch) => {
+    setUser((current) => {
+      if (!current) return current;
+      const nextUser = { ...current, ...patch };
+      const unchanged =
+        nextUser.name === current.name &&
+        nextUser.email === current.email &&
+        nextUser.profilePic === current.profilePic;
+      if (unchanged) return current;
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(nextUser));
+      return nextUser;
+    });
+  }, []);
+
   useEffect(() => {
     if (!user?.token) {
       setCompany(null);
@@ -74,7 +88,19 @@ export const AuthProvider = ({ children }) => {
         }
       })
       .catch(() => setCompany(null));
-  }, [api, authFetch, user?.token]);
+
+    authFetch(`${api}/auth/me`)
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.status !== 'success' || !data.data) return;
+        updateUser({
+          name: data.data.name || data.data.user_id,
+          email: data.data.email || '',
+          profilePic: data.data.profile_pic || '',
+        });
+      })
+      .catch(() => {});
+  }, [api, authFetch, user?.token, updateUser]);
 
   const login = useCallback(
     async (userId, password) => {
@@ -96,6 +122,8 @@ export const AuthProvider = ({ children }) => {
       const nextUser = {
         userId: data.data.user_id,
         name: data.data.name || data.data.user_id,
+        email: data.data.email || "",
+        profilePic: data.data.profile_pic || "",
         token: data.data.access_token,
       };
 
@@ -115,8 +143,9 @@ export const AuthProvider = ({ children }) => {
       login,
       logout,
       authFetch,
+      updateUser,
     }),
-    [api, user, company, login, logout, authFetch]
+    [api, user, company, login, logout, authFetch, updateUser]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

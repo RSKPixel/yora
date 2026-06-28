@@ -29,6 +29,9 @@ def _login_success(row) -> dict:
         "data": {
             "user_id": row["user_id"],
             "name": row["name"],
+            "email": row["email"],
+            "phone": row["phone"],
+            "profile_pic": row["profile_pic"],
             "access_token": access_token,
             "token_type": "bearer",
         },
@@ -63,7 +66,7 @@ def _authenticate(user_id: str, password: str):
 
     sql = text(
         """
-        SELECT user_id, password_hash, name, is_active
+        SELECT user_id, password_hash, name, email, phone, profile_pic, is_active
         FROM yora_users
         WHERE user_id = :user_id
         LIMIT 1

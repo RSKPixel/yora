@@ -5,6 +5,7 @@ import Loader from "../../../components/Loader";
 import DatePeriods from "../../../utils/DatePeriods";
 import PackingList from "./PackingList";
 import DeliveryChallan from "./DeliveryChallan";
+import DashboardBackLink from "../../../components/DashboardBackLink";
 
 const Sales = () => {
   const { api, authFetch } = useContext(AuthContext);
@@ -118,6 +119,7 @@ const Sales = () => {
             </p>
           </div>
           <div className="flex items-center gap-2">
+            <DashboardBackLink />
             <button
               type="button"
               className="page-icon-btn page-icon-btn-cyan"

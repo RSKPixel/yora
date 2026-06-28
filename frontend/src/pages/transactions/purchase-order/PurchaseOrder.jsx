@@ -1,6 +1,7 @@
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import AuthContext from "../../../templates/AuthContext";
 import ConfirmModal from "../../../components/ConfirmModal";
+import DashboardBackLink from "../../../components/DashboardBackLink";
 import PurchaseOrderList from "./PurchaseOrderList";
 import PurchaseOrderForm from "./PurchaseOrderForm";
 import {
@@ -267,6 +268,7 @@ const PurchaseOrder = () => {
                 : "Manage purchase orders"}
             </p>
           </div>
+          <DashboardBackLink />
         </div>
 
         <div className="page-card-body">

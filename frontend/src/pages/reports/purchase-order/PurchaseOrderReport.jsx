@@ -4,6 +4,7 @@ import AuthContext from "../../../templates/AuthContext";
 import {
   generatePurchaseOrderReportPdf,
 } from "./purchaseOrderReportPdf";
+import DashboardBackLink from "../../../components/DashboardBackLink";
 
 const emptyFilters = () => ({
   po_no: "",
@@ -273,6 +274,7 @@ const PurchaseOrderReport = () => {
                 : "Compare ordered quantities with purchases received from a vendor"}
             </p>
           </div>
+          <DashboardBackLink />
         </div>
 
         <div className="page-card-body">

@@ -14,6 +14,7 @@ import StockSummary from "./pages/reports/stock-report/StockSummary";
 import Sales from "./pages/transactions/sales/Sales";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
+import Settings from "./pages/Settings";
 
 function App() {
   document.title = "YORA ERP";
@@ -30,6 +31,7 @@ function App() {
                 <BasetemplateAi>
                   <Routes>
                     <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/clientprofile" element={<Settings />} />
                     <Route path="/" element={<Navigate to="/dashboard" replace />} />
                     <Route path="/masters">
                       <Route

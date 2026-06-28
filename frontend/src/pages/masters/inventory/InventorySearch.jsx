@@ -1,5 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import AuthContext from "../../../templates/AuthContext";
+import DashboardBackLink from "../../../components/DashboardBackLink";
 import Inventory from "./Inventory";
 
 const InventorySearch = () => {
@@ -34,7 +35,10 @@ const InventorySearch = () => {
   }
 
   return (
-    <div className="flex flex-col  items-center justify-center w-full">
+    <div className="flex flex-col items-center justify-center w-full">
+      <div className="mb-2 flex w-4/5 justify-end">
+        <DashboardBackLink />
+      </div>
       <div className="flex flex-col w-4/5 items-center shadow-xl">
         <div className="w-full px-2 text-sm text-white/50 font-bold z-10 border border-sky-900 py-1 rounded-t-sm bg-sky-950">
           Inventory Search

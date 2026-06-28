@@ -3,6 +3,7 @@ import SpotlightSearch from "../components/SpotlightSearch";
 import MarketTickerWidget from "../components/MarketTickerWidget";
 import SalesGroupWidget from "../components/SalesGroupWidget";
 import PlaceholderWidget from "../components/PlaceholderWidget";
+import QuickAccessDock from "../components/QuickAccessDock";
 import { getSpotlightShortcutLabel } from "../config/appMenu";
 
 const Dashboard = () => {
@@ -10,6 +11,12 @@ const Dashboard = () => {
 
   return (
     <div className="dashboard">
+      <section className="dashboard-widgets" aria-label="Dashboard widgets">
+        <SalesGroupWidget />
+        <MarketTickerWidget />
+        <PlaceholderWidget />
+      </section>
+
       <section className="dashboard-main" aria-label="Module search">
         <p className="dashboard-search-hint">Search for a module or press {shortcutLabel}</p>
         <div className="dashboard-spotlight">
@@ -17,11 +24,7 @@ const Dashboard = () => {
         </div>
       </section>
 
-      <section className="dashboard-widgets" aria-label="Dashboard widgets">
-        <SalesGroupWidget />
-        <MarketTickerWidget />
-        <PlaceholderWidget />
-      </section>
+      <QuickAccessDock />
     </div>
   );
 };

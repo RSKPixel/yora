@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState } from "react";
 import AuthContext from "../../../templates/AuthContext";
 import PurchasesList from "./PurchasesList";
 import TallyPendingBills from "./TallyPendingBills";
+import DashboardBackLink from "../../../components/DashboardBackLink";
 import PurchaseForm from "./PurchaseForm";
 
 const Purchase = () => {
@@ -129,6 +130,7 @@ const Purchase = () => {
               {showForm ? "Update costing & expenses" : "Manage purchase bills"}
             </p>
           </div>
+          <DashboardBackLink />
         </div>
 
         <div className="page-card-body">

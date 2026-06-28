@@ -3,6 +3,7 @@ import moment from "moment";
 import numeral from "numeral";
 import AuthContext from "../../../templates/AuthContext";
 import { getCurrentAccountingYear } from "../../../utils/DatePeriods";
+import DashboardBackLink from "../../../components/DashboardBackLink";
 
 const createDefaultFilters = (mode = "detail") => {
   if (mode === "summary") {
@@ -354,11 +355,12 @@ const StockReport = ({ mode = "detail" }) => {
           <div>
             <div className="page-card-title">
               <span className="page-card-title-icon">
-                <i className={`bi ${isSummary ? "bi-clipboard-data" : "bi-boxes"}`}></i>
+                <i className={`bi ${isSummary ? "bi-pie-chart" : "bi-boxes"}`}></i>
               </span>
               {isSummary ? "Stock Summary" : "Stock Report"}
             </div>
           </div>
+          <DashboardBackLink />
         </div>
 
         <div className="page-card-body">

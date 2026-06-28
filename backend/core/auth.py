@@ -46,7 +46,7 @@ def _is_bypass_token(token: str) -> bool:
 def fetch_active_user(user_id: str) -> Optional[dict]:
     sql = text(
         """
-        SELECT user_id, name, is_active
+        SELECT user_id, name, email, phone, profile_pic, is_active
         FROM yora_users
         WHERE user_id = :user_id
         LIMIT 1
@@ -64,6 +64,9 @@ def fetch_active_user(user_id: str) -> Optional[dict]:
     return {
         "user_id": row["user_id"],
         "name": row["name"],
+        "email": row["email"],
+        "phone": row["phone"],
+        "profile_pic": row["profile_pic"],
     }
 
 

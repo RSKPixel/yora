@@ -255,7 +255,11 @@ select {
 }
 
 .app-shell-user-avatar {
-  @apply flex h-9 w-9 items-center justify-center rounded-lg border border-sky-800/50 bg-sky-950/80 text-xs font-bold normal-case tracking-normal text-sky-300;
+  @apply flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg border border-sky-800/50 bg-sky-950/80 text-xs font-bold normal-case tracking-normal text-sky-300;
+}
+
+.app-shell-user-avatar-image {
+  @apply h-full w-full object-cover;
 }
 
 .app-shell-user-dropdown {
@@ -323,12 +327,181 @@ select {
   @apply p-4 space-y-4;
 }
 
+.page-card-back-link {
+  @apply inline-flex items-center gap-1.5 rounded-lg border border-sky-900/55 bg-neutral-900/50 px-3 py-1.5 text-xs font-medium normal-case tracking-normal text-sky-300/80 transition-colors hover:border-sky-700/55 hover:bg-sky-950/60 hover:text-sky-200;
+}
+
+.settings-body {
+  @apply space-y-6;
+}
+
+.settings-tabs {
+  @apply flex flex-wrap gap-1 border-b border-sky-900/50 px-4;
+}
+
+.settings-tab {
+  @apply inline-flex items-center gap-2 border-b-2 border-transparent px-3 py-2.5 text-sm font-medium normal-case tracking-normal text-white/45 transition-colors hover:text-white/70;
+}
+
+.settings-tab i {
+  @apply text-sm text-sky-400/70;
+}
+
+.settings-tab-active {
+  @apply border-sky-400/80 text-white/90;
+}
+
+.settings-tab-active i {
+  @apply text-sky-300;
+}
+
+.settings-section {
+  @apply space-y-4;
+}
+
+.settings-section-header {
+  @apply flex flex-wrap items-start justify-between gap-3;
+}
+
+.settings-section-title {
+  @apply text-sm font-bold normal-case tracking-normal text-white/90;
+}
+
+.settings-section-desc {
+  @apply mt-1 max-w-2xl text-xs normal-case tracking-normal text-white/40;
+}
+
+.settings-reset-btn {
+  @apply rounded-lg border border-sky-900/55 bg-neutral-900/50 px-3 py-1.5 text-xs font-medium normal-case tracking-normal text-sky-300/80 transition-colors hover:border-sky-700/55 hover:bg-sky-950/60 hover:text-sky-200;
+}
+
+.settings-empty,
+.settings-note {
+  @apply text-sm normal-case tracking-normal text-white/40;
+}
+
+.settings-error {
+  @apply text-sm normal-case tracking-normal text-red-300/85;
+}
+
+.settings-quick-list {
+  @apply space-y-2;
+}
+
+.settings-quick-item {
+  @apply flex items-center gap-3 rounded-xl border border-sky-900/45 bg-neutral-950/40 px-3 py-2.5;
+}
+
+.settings-quick-icon {
+  @apply flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-sky-900/50 bg-sky-950/50 text-lg text-sky-300/85;
+}
+
+.settings-quick-copy {
+  @apply min-w-0 flex-1;
+}
+
+.settings-quick-label {
+  @apply block truncate text-sm font-medium normal-case tracking-normal text-white/90;
+}
+
+.settings-quick-section {
+  @apply block text-xs normal-case tracking-normal text-white/40;
+}
+
+.settings-quick-actions {
+  @apply flex shrink-0 items-center gap-1;
+}
+
+.settings-icon-btn {
+  @apply flex h-8 w-8 items-center justify-center rounded-lg border border-sky-900/55 bg-neutral-900/50 text-sky-300/75 transition-colors hover:border-sky-700/55 hover:bg-sky-950/60 hover:text-sky-200 disabled:cursor-not-allowed disabled:opacity-35;
+}
+
+.settings-icon-btn-danger {
+  @apply text-red-300/85 hover:border-red-500/35 hover:bg-red-950/30 hover:text-red-200;
+}
+
+.settings-add-row {
+  @apply flex flex-wrap items-center gap-2;
+}
+
+.settings-select {
+  @apply min-w-[14rem] flex-1 rounded-lg border border-sky-900/55 bg-neutral-950/70 px-3 py-2 text-sm normal-case tracking-normal text-white/85 outline-none focus:border-sky-600/60;
+}
+
+.settings-add-btn {
+  @apply rounded-lg border border-sky-700/55 bg-sky-900/60 px-4 py-2 text-sm font-medium normal-case tracking-normal text-sky-100 transition-colors hover:bg-sky-800/70 disabled:cursor-not-allowed disabled:opacity-40;
+}
+
+.settings-success {
+  @apply text-sm normal-case tracking-normal text-emerald-300/90;
+}
+
+.settings-profile-form {
+  @apply space-y-4 rounded-xl border border-sky-900/45 bg-neutral-950/40 p-4;
+}
+
+.settings-profile-password {
+  @apply mt-6;
+}
+
+.settings-profile-subtitle {
+  @apply text-sm font-bold normal-case tracking-normal text-white/85;
+}
+
+.settings-profile-avatar-row {
+  @apply flex flex-wrap items-center gap-4;
+}
+
+.settings-profile-avatar-wrap {
+  @apply flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full border border-sky-900/55 bg-sky-950/50;
+}
+
+.settings-profile-avatar-image {
+  @apply h-full w-full object-cover;
+}
+
+.settings-profile-avatar-fallback {
+  @apply text-2xl font-semibold text-sky-200/90;
+}
+
+.settings-profile-avatar-actions {
+  @apply flex flex-wrap items-center gap-2;
+}
+
+.settings-profile-upload-btn {
+  @apply inline-flex cursor-pointer items-center rounded-lg border border-sky-700/55 bg-sky-900/60 px-3 py-1.5 text-xs font-medium normal-case tracking-normal text-sky-100 transition-colors hover:bg-sky-800/70;
+}
+
+.settings-profile-file-input {
+  @apply hidden;
+}
+
+.settings-profile-grid {
+  @apply grid grid-cols-1 gap-3 md:grid-cols-2;
+}
+
+.settings-profile-field {
+  @apply block space-y-1;
+}
+
+.settings-profile-label {
+  @apply block text-xs font-medium normal-case tracking-normal text-white/50;
+}
+
+.settings-profile-input {
+  @apply w-full rounded-lg border border-sky-900/55 bg-neutral-950/70 px-3 py-2 text-sm normal-case tracking-normal text-white/85 outline-none focus:border-sky-600/60 disabled:cursor-not-allowed disabled:opacity-60;
+}
+
 .dashboard {
   @apply mx-auto flex min-h-[calc(100dvh-10rem)] w-full flex-col gap-6;
 }
 
+.dashboard-widgets {
+  @apply grid shrink-0 grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 xl:items-stretch;
+}
+
 .dashboard-main {
-  @apply flex flex-1 flex-col items-center justify-center gap-3 px-2 py-4 sm:py-8;
+  @apply flex flex-1 flex-col items-center justify-center gap-3 px-2 py-2 sm:py-6;
 }
 
 .dashboard-search-hint {
@@ -339,8 +512,96 @@ select {
   @apply relative z-20 w-full max-w-xl overflow-visible;
 }
 
-.dashboard-widgets {
-  @apply grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 xl:items-stretch;
+.dashboard-dock-section {
+  @apply flex shrink-0 flex-col items-center gap-2 overflow-visible pb-2 pt-1;
+}
+
+.dashboard-dock {
+  @apply flex w-full justify-center overflow-visible px-2 pt-6;
+}
+
+.dashboard-dock-glass {
+  @apply relative inline-flex max-w-full overflow-visible px-3 pb-2.5 pt-1;
+}
+
+.dashboard-dock-glass-bg {
+  @apply pointer-events-none absolute inset-0 overflow-hidden rounded-[2rem] border border-white/15 shadow-2xl backdrop-blur-2xl;
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.14) 0%,
+    rgba(255, 255, 255, 0.05) 42%,
+    rgba(14, 165, 233, 0.1) 100%
+  );
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.25);
+}
+
+.dashboard-dock-shine {
+  @apply absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-white/35 to-transparent;
+}
+
+.dashboard-dock-reflection {
+  @apply absolute inset-x-8 bottom-0 h-8 rounded-full bg-sky-400/10 blur-xl;
+}
+
+.dashboard-dock-items {
+  @apply relative z-10 flex items-end gap-0.5 overflow-visible sm:gap-1;
+}
+
+.dashboard-dock-item {
+  @apply relative z-10 flex w-[8.25rem] min-w-[8.25rem] origin-bottom flex-col items-center gap-1 overflow-visible px-0.5 py-0.5 transition-[transform] duration-100 ease-out will-change-transform sm:w-[9rem] sm:min-w-[9rem];
+}
+
+.dashboard-dock-icon {
+  @apply flex h-[3.25rem] w-[3.25rem] items-center justify-center rounded-[1.1rem] border border-white/15 text-xl text-sky-100 shadow-lg sm:h-[3.25rem] sm:w-[3.25rem];
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.18) 0%,
+    rgba(255, 255, 255, 0.04) 100%
+  );
+  box-shadow:
+    0 4px 14px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+
+.dashboard-dock-item:hover .dashboard-dock-icon,
+.dashboard-dock-item:focus-visible .dashboard-dock-icon {
+  @apply border-sky-300/35 text-white;
+  background: linear-gradient(
+    180deg,
+    rgba(56, 189, 248, 0.35) 0%,
+    rgba(12, 74, 110, 0.45) 100%
+  );
+}
+
+.dashboard-dock-label {
+  @apply w-full text-center text-[10px] font-medium leading-tight normal-case tracking-normal text-white/55 whitespace-normal;
+}
+
+.dashboard-dock-hint {
+  @apply text-center text-xs normal-case tracking-normal text-white/30;
+}
+
+.dashboard-dock-error {
+  @apply text-center text-xs normal-case tracking-normal text-red-300/85;
+}
+
+.dashboard-dock-hint-link {
+  @apply font-medium text-sky-400/80 transition-colors hover:text-sky-300;
+}
+
+.dashboard-dock-empty {
+  @apply rounded-2xl border border-dashed border-sky-900/45 bg-neutral-950/30 px-6 py-5 text-center;
+}
+
+.dashboard-dock-empty-text {
+  @apply text-sm normal-case tracking-normal text-white/40;
+}
+
+.dashboard-dock-empty-link {
+  @apply mt-2 inline-block text-sm font-medium normal-case tracking-normal text-sky-400/85 hover:text-sky-300;
 }
 
 .dashboard-panel {
