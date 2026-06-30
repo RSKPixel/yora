@@ -14,6 +14,8 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Settings from "./pages/Settings";
 import CostCenter from "./pages/masters/cost-center/CostCenter";
+import StockJournal from "./pages/stock-movement/stock-journal/StockJournal";
+import Blowing from "./pages/stock-movement/blowing/Blowing";
 
 function App() {
   document.title = "YORA ERP";
@@ -39,6 +41,10 @@ function App() {
                       <Route path="purchase-order" element={<PurchaseOrder />} />
                       <Route path="purchase" element={<Purchase />} />
                       <Route path="sales" element={<Sales />} />
+                    </Route>
+                    <Route path="/stock-movement">
+                      <Route path="stock-journal" element={<StockJournal />} />
+                      <Route path="blowing" element={<Blowing />} />
                     </Route>
                     <Route path="/reports">
                       <Route path="stockposition" element={<StockReport />} />

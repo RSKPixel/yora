@@ -21,6 +21,14 @@ export const DEFAULT_APP_MENU = {
       ],
     },
     {
+      label: "Stock Movement",
+      icon: "bi-arrow-repeat",
+      items: [
+        { label: "Stock Journal", path: "/stock-movement/stock-journal", icon: "bi-journal-text" },
+        { label: "Blowing", path: "/stock-movement/blowing", icon: "bi-wind" },
+      ],
+    },
+    {
       label: "Reports",
       icon: "bi-bar-chart",
       items: [
@@ -89,6 +97,23 @@ export function flattenMenuItems(menu = DEFAULT_APP_MENU) {
   );
 
   return [...topItems, ...sectionItems];
+}
+
+export function flattenSubMenuItems(menu = DEFAULT_APP_MENU) {
+  return (menu.sections ?? []).flatMap(({ label: section, icon: sectionIcon, items }) =>
+    (items ?? []).map(({ label, path, icon }) => {
+      const abbreviation = buildAbbreviation(label);
+      return {
+        label,
+        path,
+        icon,
+        section,
+        sectionIcon,
+        abbreviation,
+        searchWords: getSearchWords(label, section, path),
+      };
+    })
+  );
 }
 
 export function searchMenuItems(items, query) {

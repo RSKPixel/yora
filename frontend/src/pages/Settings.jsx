@@ -1,8 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import DashboardBackLink from "../components/DashboardBackLink";
+import { MENU_STYLE_OPTIONS } from "../config/menuStyle";
 import { useQuickAccess } from "../hooks/useQuickAccess";
 import { useUserProfile } from "../hooks/useUserProfile";
+import { useMenuStyle } from "../templates/MenuStyleContext";
 
 const SETTINGS_TABS = [
   { id: "general", label: "General", icon: "bi-sliders" },
@@ -404,13 +406,58 @@ function ProfileTab() {
 }
 
 function GeneralTab() {
+  const { menuStyle, setMenuStyle } = useMenuStyle();
+
   return (
     <section className="settings-section" aria-labelledby="general-heading">
-      <h2 id="general-heading" className="settings-section-title">
-        General
-      </h2>
-      <p className="settings-section-desc">Account and application preferences will appear here.</p>
-      <p className="settings-empty">No general settings available yet.</p>
+      <div className="settings-section-header">
+        <div>
+          <h2 id="general-heading" className="settings-section-title">
+            General
+          </h2>
+          <p className="settings-section-desc">
+            Application preferences for this browser. Changes apply immediately.
+          </p>
+        </div>
+      </div>
+
+      <div className="settings-preference-block">
+        <h3 className="settings-preference-title">Navigation menu style</h3>
+        <p className="settings-preference-desc">
+          Choose how the sidebar navigation is displayed.
+        </p>
+
+        <div className="settings-style-options" role="radiogroup" aria-label="Navigation menu style">
+          {MENU_STYLE_OPTIONS.map((option) => {
+            const selected = menuStyle === option.id;
+
+            return (
+              <label
+                key={option.id}
+                className={`settings-style-option${selected ? " settings-style-option-active" : ""}`}
+              >
+                <input
+                  type="radio"
+                  name="menuStyle"
+                  value={option.id}
+                  checked={selected}
+                  onChange={() => setMenuStyle(option.id)}
+                  className="settings-style-option-input"
+                />
+                <span className="settings-style-option-copy">
+                  <span className="settings-style-option-label">{option.label}</span>
+                  <span className="settings-style-option-desc">{option.description}</span>
+                </span>
+                {selected && (
+                  <span className="settings-style-option-check" aria-hidden="true">
+                    <i className="bi bi-check-lg" />
+                  </span>
+                )}
+              </label>
+            );
+          })}
+        </div>
+      </div>
     </section>
   );
 }

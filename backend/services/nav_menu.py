@@ -30,9 +30,18 @@ DEFAULT_NAV_MENU = {
             ],
         },
         {
+            "label": "Stock Movement",
+            "icon": "bi-arrow-repeat",
+            "sort_order": 4,
+            "items": [
+                {"label": "Stock Journal", "path": "/stock-movement/stock-journal", "icon": "bi-journal-text", "sort_order": 1},
+                {"label": "Blowing", "path": "/stock-movement/blowing", "icon": "bi-wind", "sort_order": 2},
+            ],
+        },
+        {
             "label": "Reports",
             "icon": "bi-bar-chart",
-            "sort_order": 4,
+            "sort_order": 5,
             "items": [
                 {"label": "Stock Report", "path": "/reports/stockposition", "icon": "bi-boxes", "sort_order": 1},
                 {"label": "Stock Summary", "path": "/reports/stocksummary", "icon": "bi-pie-chart", "sort_order": 2},

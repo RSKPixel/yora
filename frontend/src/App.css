@@ -16,6 +16,8 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  --app-shell-sidebar-width: 16.5rem; /* w-64 (16rem) + 2 spacing units */
 }
 
 .form-basic {
@@ -133,8 +135,37 @@ select {
   @apply shrink-0 overflow-hidden transition-[width] duration-300 ease-in-out;
 }
 
+.app-shell-sidebar-zone {
+  @apply overflow-visible;
+}
+
+.app-shell-sidebar-zone-pinned {
+  @apply relative flex shrink-0 self-stretch;
+}
+
+.app-shell-sidebar-zone-unpinned {
+  @apply absolute bottom-0 left-0 top-0 z-40 flex;
+}
+
+.app-shell-sidebar-zone-unpinned.app-shell-sidebar-zone-open {
+  @apply pr-4;
+}
+
+.app-shell-sidebar-zone-unpinned .app-shell-sidebar {
+  @apply border-r border-sky-900/60 bg-neutral-950/95 backdrop-blur-md;
+  box-shadow:
+    1px 0 0 rgba(56, 189, 248, 0.08),
+    4px 0 12px rgba(0, 0, 0, 0.28),
+    12px 0 28px rgba(0, 0, 0, 0.38),
+    24px 0 48px rgba(0, 0, 0, 0.22);
+}
+
+.app-shell-sidebar-zone-unpinned:not(.app-shell-sidebar-zone-open) {
+  @apply w-4;
+}
+
 .app-shell-sidebar-wrap-open {
-  @apply w-64;
+  width: var(--app-shell-sidebar-width);
 }
 
 .app-shell-sidebar-wrap-closed {
@@ -149,16 +180,76 @@ select {
     hover:border-sky-700/60 hover:bg-sky-900/90 hover:text-sky-300;
 }
 
-.app-shell-sidebar-toggle-open {
-  left: 16rem;
+.app-shell-sidebar-zone .app-shell-sidebar-toggle-open {
+  left: var(--app-shell-sidebar-width);
 }
 
-.app-shell-sidebar-toggle-closed {
+.app-shell-sidebar-zone .app-shell-sidebar-toggle-closed {
   left: 0;
 }
 
 .app-shell-sidebar {
-  @apply bg-neutral-950/40 backdrop-blur-sm;
+  @apply w-[var(--app-shell-sidebar-width)] bg-neutral-950/40 backdrop-blur-sm;
+}
+
+.app-shell-sidebar-toolbar {
+  @apply flex shrink-0 items-center gap-2 border-b border-sky-900/45 px-2 py-2;
+}
+
+.app-shell-sidebar-search-wrap {
+  @apply relative min-w-0 flex-1;
+}
+
+.app-shell-sidebar-search-icon {
+  @apply pointer-events-none absolute left-2 top-1/2 z-[1] -translate-y-1/2 text-xs text-slate-500;
+}
+
+.app-shell-sidebar-search-input {
+  @apply w-full rounded-lg border border-sky-900/55 bg-neutral-950/60 py-1.5 pl-7 pr-7 text-xs font-medium normal-case tracking-normal text-slate-200 outline-none transition-colors placeholder:text-slate-500 focus:border-sky-700/60 focus:bg-neutral-950/80 focus:ring-1 focus:ring-sky-800/40;
+}
+
+.app-shell-sidebar-search-clear {
+  @apply absolute right-1.5 top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded text-[10px] text-slate-500 transition-colors hover:bg-white/5 hover:text-slate-300;
+}
+
+.app-shell-sidebar-search-results {
+  @apply absolute left-0 right-0 top-[calc(100%+0.35rem)] z-50 max-h-56 overflow-y-auto rounded-lg border border-sky-900/55 bg-neutral-950/95 p-1 shadow-xl backdrop-blur-md;
+}
+
+.app-shell-sidebar-search-result {
+  @apply flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left transition-colors hover:bg-white/5;
+}
+
+.app-shell-sidebar-search-result-active {
+  @apply bg-sky-950/55;
+}
+
+.app-shell-sidebar-search-result-icon {
+  @apply flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-sky-900/50 bg-sky-950/45 text-xs text-sky-400/85;
+}
+
+.app-shell-sidebar-search-result-copy {
+  @apply min-w-0 flex-1;
+}
+
+.app-shell-sidebar-search-result-label {
+  @apply block truncate text-xs font-medium normal-case tracking-normal text-slate-200;
+}
+
+.app-shell-sidebar-search-result-section {
+  @apply block truncate text-[10px] normal-case tracking-normal text-slate-500;
+}
+
+.app-shell-sidebar-search-empty {
+  @apply px-2 py-2 text-xs normal-case tracking-normal text-slate-500;
+}
+
+.app-shell-sidebar-pin {
+  @apply flex h-7 w-7 items-center justify-center rounded-lg border border-transparent text-sm text-slate-500 transition-colors hover:border-sky-900/55 hover:bg-white/5 hover:text-slate-300;
+}
+
+.app-shell-sidebar-pin-active {
+  @apply border-sky-800/55 bg-sky-950/55 text-sky-300 hover:text-sky-200;
 }
 
 .app-shell-nav-top {
@@ -171,6 +262,82 @@ select {
 
 .app-shell-nav-item-active {
   @apply bg-sky-950/80 text-sky-300 border border-sky-800/50 hover:bg-sky-950/80 hover:text-sky-200;
+}
+
+.app-shell-sidebar-tree {
+  @apply bg-neutral-950/40;
+}
+
+.app-shell-tree-root {
+  @apply space-y-3 rounded-xl border border-sky-900/50 bg-neutral-900/80 p-2 normal-case backdrop-blur-sm;
+}
+
+.app-shell-tree-root .app-shell-nav-item {
+  @apply text-sm;
+}
+
+.app-shell-tree-nav-item {
+  @apply text-slate-400 transition-colors hover:bg-white/5 hover:text-slate-200;
+}
+
+.app-shell-tree-nav-item-active {
+  @apply border-0 bg-transparent text-sky-300 hover:bg-white/5 hover:text-sky-200;
+}
+
+.app-shell-tree-nav-item-active .truncate {
+  @apply underline decoration-sky-400 decoration-2 underline-offset-[6px];
+}
+
+.app-shell-tree-top {
+  @apply space-y-0.5 border-b border-sky-900/45 pb-2;
+}
+
+.app-shell-tree-groups {
+  @apply space-y-1;
+}
+
+.app-shell-tree-group {
+  @apply space-y-0.5;
+}
+
+.app-shell-tree-group-header {
+  @apply flex w-full min-w-0 items-center gap-2 rounded-lg px-2 py-2 text-left text-xs font-semibold normal-case tracking-normal text-slate-400 transition-colors hover:bg-white/5 hover:text-slate-200;
+}
+
+.app-shell-tree-group-header-open {
+  @apply text-slate-200;
+}
+
+.app-shell-tree-group-header-active {
+  @apply bg-sky-950/45 text-sky-300;
+}
+
+.app-shell-tree-chevron {
+  @apply shrink-0 text-[10px] text-sky-500/75;
+}
+
+.app-shell-tree-group-badge {
+  @apply flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-sky-900/55 bg-sky-950/55 text-xs text-sky-400/90;
+}
+
+.app-shell-tree-group-children {
+  @apply ml-3 space-y-0.5 border-l border-sky-800/35 py-0.5 pl-2;
+}
+
+.app-shell-tree-link-icon {
+  @apply flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-sky-900/45 bg-neutral-950/50 text-sm text-sky-400/85;
+}
+
+.app-shell-tree-child-link {
+  @apply gap-2.5 px-2.5 py-2;
+}
+
+.app-shell-tree-child-icon {
+  @apply shrink-0 text-sm text-sky-400/75;
+}
+
+.app-shell-tree-link {
+  @apply min-w-0 flex-1;
 }
 
 .app-shell-header {
@@ -379,6 +546,50 @@ select {
 
 .settings-section-desc {
   @apply mt-1 max-w-2xl text-xs normal-case tracking-normal text-white/40;
+}
+
+.settings-preference-block {
+  @apply space-y-3 rounded-xl border border-sky-900/45 bg-neutral-950/40 p-4;
+}
+
+.settings-preference-title {
+  @apply text-sm font-semibold normal-case tracking-normal text-white/90;
+}
+
+.settings-preference-desc {
+  @apply text-xs normal-case tracking-normal text-white/40;
+}
+
+.settings-style-options {
+  @apply grid gap-2 sm:grid-cols-2;
+}
+
+.settings-style-option {
+  @apply relative flex cursor-pointer items-start gap-3 rounded-xl border border-sky-900/45 bg-neutral-900/45 p-3 transition-colors hover:border-sky-800/55 hover:bg-neutral-900/70;
+}
+
+.settings-style-option-active {
+  @apply border-sky-500/45 bg-sky-950/35 ring-1 ring-sky-500/20;
+}
+
+.settings-style-option-input {
+  @apply mt-0.5 h-3.5 w-3.5 shrink-0 accent-sky-400;
+}
+
+.settings-style-option-copy {
+  @apply min-w-0 flex-1 space-y-1;
+}
+
+.settings-style-option-label {
+  @apply block text-sm font-medium normal-case tracking-normal text-white/90;
+}
+
+.settings-style-option-desc {
+  @apply block text-xs normal-case tracking-normal text-white/40;
+}
+
+.settings-style-option-check {
+  @apply flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-sky-500/15 text-sky-300;
 }
 
 .settings-reset-btn {

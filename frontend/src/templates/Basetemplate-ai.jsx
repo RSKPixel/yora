@@ -1,13 +1,17 @@
-import React, { useContext, useMemo, useState } from "react";
-import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
+import React, { useContext, useMemo, useState, useEffect, useCallback, useRef } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import AuthContext from "./AuthContext";
 import { AppMenuProvider, useAppMenu } from "./AppMenuContext";
+import { MenuStyleProvider, useMenuStyle } from "./MenuStyleContext";
+import AppShellNavModern from "../components/sidebar/AppShellNavModern";
+import AppShellNavTree from "../components/sidebar/AppShellNavTree";
+import SidebarMenuSearch from "../components/sidebar/SidebarMenuSearch";
+import { findSectionLabelForPath, isPathActive } from "../components/sidebar/sidebarNav";
+import { MENU_STYLE_LINUX_TREE } from "../config/menuStyle";
+import { readSidebarPinned, writeSidebarPinned } from "../config/sidebarPin";
 import AppIcon from "../components/AppIcon";
 import SpotlightSearch from "../components/SpotlightSearch";
 import { SpotlightProvider, useSpotlight } from "./SpotlightContext";
-
-const navLinkClass = ({ isActive }) =>
-  `app-shell-nav-item${isActive ? " app-shell-nav-item-active" : ""}`;
 
 function getUserInitials(name) {
   if (!name) return "?";
@@ -19,26 +23,42 @@ function getUserInitials(name) {
 const BasetemplateAi = ({ children }) => {
   const { user, isAuthenticated, logout, company } = useContext(AuthContext);
   const navigate = useNavigate();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarPinned, setSidebarPinned] = useState(readSidebarPinned);
+  const [sidebarOpen, setSidebarOpen] = useState(readSidebarPinned);
 
   const handleLogout = () => {
     logout();
     navigate("/login", { replace: true });
   };
 
+  const toggleSidebarPin = () => {
+    setSidebarPinned((pinned) => {
+      const next = !pinned;
+      writeSidebarPinned(next);
+      if (next) {
+        setSidebarOpen(true);
+      }
+      return next;
+    });
+  };
+
   return (
     <SpotlightProvider>
       <AppMenuProvider>
-        <BasetemplateShell
-          user={user}
-          company={company}
-          isAuthenticated={isAuthenticated}
-          sidebarOpen={sidebarOpen}
-          setSidebarOpen={setSidebarOpen}
-          onLogout={handleLogout}
-        >
-          {children}
-        </BasetemplateShell>
+        <MenuStyleProvider>
+          <BasetemplateShell
+            user={user}
+            company={company}
+            isAuthenticated={isAuthenticated}
+            sidebarOpen={sidebarOpen}
+            sidebarPinned={sidebarPinned}
+            setSidebarOpen={setSidebarOpen}
+            onToggleSidebarPin={toggleSidebarPin}
+            onLogout={handleLogout}
+          >
+            {children}
+          </BasetemplateShell>
+        </MenuStyleProvider>
       </AppMenuProvider>
     </SpotlightProvider>
   );
@@ -50,14 +70,82 @@ const BasetemplateShell = ({
   company,
   isAuthenticated,
   sidebarOpen,
+  sidebarPinned,
   setSidebarOpen,
+  onToggleSidebarPin,
   onLogout,
 }) => {
   const { overlayOpen, closeOverlay } = useSpotlight();
   const { menu, loading: menuLoading } = useAppMenu();
+  const { menuStyle } = useMenuStyle();
   const location = useLocation();
   const userInitials = useMemo(() => getUserInitials(user?.name), [user?.name]);
   const isDashboard = location.pathname === "/dashboard";
+  const isTreeMenu = menuStyle === MENU_STYLE_LINUX_TREE;
+  const isSidebarVisible = sidebarPinned || sidebarOpen;
+  const [expandedSection, setExpandedSection] = useState(null);
+
+  useEffect(() => {
+    if (!isTreeMenu) return;
+
+    const activeSection = menu.sections.find((section) =>
+      section.items.some((item) => isPathActive(location.pathname, item.path))
+    );
+
+    setExpandedSection(activeSection?.label ?? null);
+  }, [location.pathname, menu.sections, isTreeMenu]);
+
+  const expandSectionForPath = useCallback(
+    (path) => {
+      const sectionLabel = findSectionLabelForPath(menu, path);
+      if (sectionLabel) {
+        setExpandedSection(sectionLabel);
+      }
+    },
+    [menu]
+  );
+
+  const openSidebar = () => {
+    if (!sidebarPinned) {
+      setSidebarOpen(true);
+    }
+  };
+
+  const closeSidebar = () => {
+    if (!sidebarPinned) {
+      setSidebarOpen(false);
+    }
+  };
+
+  const sidebarZoneRef = useRef(null);
+  const sidebarSearchRef = useRef(null);
+  const prevSidebarVisibleRef = useRef(null);
+
+  useEffect(() => {
+    if (prevSidebarVisibleRef.current === null) {
+      prevSidebarVisibleRef.current = isSidebarVisible;
+      return;
+    }
+
+    if (isSidebarVisible && !prevSidebarVisibleRef.current) {
+      requestAnimationFrame(() => {
+        sidebarSearchRef.current?.focus();
+      });
+    }
+
+    prevSidebarVisibleRef.current = isSidebarVisible;
+  }, [isSidebarVisible]);
+
+  const handleSidebarZoneLeave = (event) => {
+    if (sidebarPinned || !sidebarOpen) return;
+
+    const nextTarget = event.relatedTarget;
+    if (nextTarget instanceof Node && sidebarZoneRef.current?.contains(nextTarget)) {
+      return;
+    }
+
+    setSidebarOpen(false);
+  };
 
   return (
     <div className="app-shell flex flex-col h-screen w-full overflow-hidden">
@@ -149,76 +237,84 @@ const BasetemplateShell = ({
         {isAuthenticated && (
           <>
             <div
-              className={`app-shell-sidebar-wrap${sidebarOpen ? " app-shell-sidebar-wrap-open" : " app-shell-sidebar-wrap-closed"}`}
+              ref={sidebarZoneRef}
+              className={`app-shell-sidebar-zone${
+                sidebarPinned ? " app-shell-sidebar-zone-pinned" : " app-shell-sidebar-zone-unpinned"
+              }${isSidebarVisible ? " app-shell-sidebar-zone-open" : ""}`}
+              onMouseLeave={handleSidebarZoneLeave}
             >
-              <aside
-                id="app-shell-sidebar"
-                className="app-shell-sidebar h-full w-64 border-r border-sky-900/40"
+              <div
+                className={`app-shell-sidebar-wrap${
+                  isSidebarVisible ? " app-shell-sidebar-wrap-open" : " app-shell-sidebar-wrap-closed"
+                }`}
               >
-                <nav className="h-full overflow-y-auto p-3 space-y-4">
-                  <ul className="app-shell-nav-top space-y-0.5">
-                    {menu.topLevel.map(({ label, path, icon: itemIcon }) => (
-                      <li key={path}>
-                        <NavLink
-                          to={path}
-                          className={navLinkClass}
-                          onClick={() => setSidebarOpen(false)}
-                        >
-                          <i className={`bi ${itemIcon} text-sm shrink-0`}></i>
-                          <span className="truncate normal-case tracking-normal font-medium">
-                            {label}
-                          </span>
-                        </NavLink>
-                      </li>
-                    ))}
-                  </ul>
-
-                  {menuLoading ? (
-                    <p className="px-2 text-xs text-slate-400">Loading navigation…</p>
-                  ) : (
-                    menu.sections.map(({ label: section, icon, items }) => (
-                      <div
-                        key={section}
-                        className="rounded-xl border border-sky-900/50 bg-neutral-900/80 overflow-hidden backdrop-blur-sm"
-                      >
-                        <div className="flex items-center gap-2 border-b border-sky-900/50 bg-sky-950/80 px-3 py-2">
-                          <i className={`bi ${icon} text-sky-400 text-xs`}></i>
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-300">
-                            {section}
-                          </span>
-                        </div>
-                        <ul className="p-1.5 space-y-0.5">
-                          {items.map(({ label, path, icon: itemIcon }) => (
-                            <li key={path}>
-                              <NavLink
-                                to={path}
-                                className={navLinkClass}
-                                onClick={() => setSidebarOpen(false)}
-                              >
-                                <i className={`bi ${itemIcon} text-sm shrink-0`}></i>
-                                <span className="truncate normal-case tracking-normal font-medium">
-                                  {label}
-                                </span>
-                              </NavLink>
-                            </li>
-                          ))}
-                        </ul>
+                <aside
+                  id="app-shell-sidebar"
+                  className={`app-shell-sidebar flex h-full flex-col border-r border-sky-900/40${
+                    isTreeMenu ? " app-shell-sidebar-tree" : ""
+                  }`}
+                >
+                  <div className="app-shell-sidebar-toolbar">
+                    <SidebarMenuSearch
+                      ref={sidebarSearchRef}
+                      menu={menu}
+                      onNavigate={closeSidebar}
+                      onSelectPath={isTreeMenu ? expandSectionForPath : undefined}
+                    />
+                    <button
+                      type="button"
+                      className={`app-shell-sidebar-pin${
+                        sidebarPinned ? " app-shell-sidebar-pin-active" : ""
+                      }`}
+                      onClick={onToggleSidebarPin}
+                      title={sidebarPinned ? "Unpin menu" : "Pin menu open"}
+                      aria-label={sidebarPinned ? "Unpin menu" : "Pin menu open"}
+                      aria-pressed={sidebarPinned}
+                    >
+                      <i className={`bi ${sidebarPinned ? "bi-pin-fill" : "bi-pin"}`} aria-hidden="true"></i>
+                    </button>
+                  </div>
+                  <nav className="min-h-0 flex-1 overflow-y-auto p-3">
+                    {isTreeMenu ? (
+                      <AppShellNavTree
+                        menu={menu}
+                        menuLoading={menuLoading}
+                        onNavigate={closeSidebar}
+                        expandedSection={expandedSection}
+                        onExpandedSectionChange={setExpandedSection}
+                      />
+                    ) : (
+                      <div className="space-y-4">
+                        <AppShellNavModern
+                          menu={menu}
+                          menuLoading={menuLoading}
+                          onNavigate={closeSidebar}
+                        />
                       </div>
-                    ))
-                  )}
-                </nav>
-              </aside>
+                    )}
+                  </nav>
+                </aside>
+              </div>
+              {!sidebarPinned && (
+                <button
+                  type="button"
+                  onClick={() => setSidebarOpen((open) => !open)}
+                  onMouseEnter={() => {
+                    if (!isSidebarVisible) {
+                      openSidebar();
+                    }
+                  }}
+                  className={`app-shell-sidebar-toggle${
+                    isSidebarVisible ? " app-shell-sidebar-toggle-open" : " app-shell-sidebar-toggle-closed"
+                  }`}
+                  title={isSidebarVisible ? "Hide navigation" : "Show navigation"}
+                  aria-expanded={isSidebarVisible}
+                  aria-controls="app-shell-sidebar"
+                >
+                  {isSidebarVisible ? "<<" : ">>"}
+                </button>
+              )}
             </div>
-            <button
-              type="button"
-              onClick={() => setSidebarOpen((open) => !open)}
-              className={`app-shell-sidebar-toggle${sidebarOpen ? " app-shell-sidebar-toggle-open" : " app-shell-sidebar-toggle-closed"}`}
-              title={sidebarOpen ? "Hide navigation" : "Show navigation"}
-              aria-expanded={sidebarOpen}
-              aria-controls="app-shell-sidebar"
-            >
-              {sidebarOpen ? "<<" : ">>"}
-            </button>
           </>
         )}
 
