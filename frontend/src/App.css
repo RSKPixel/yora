@@ -327,8 +327,18 @@ select {
   @apply p-4 space-y-4;
 }
 
+.page-control,
+.page-card-back-link,
+.page-card .btn {
+  @apply min-h-8 px-3 py-1.5 text-xs font-medium normal-case tracking-normal rounded-lg;
+}
+
 .page-card-back-link {
-  @apply inline-flex items-center gap-1.5 rounded-lg border border-sky-900/55 bg-neutral-900/50 px-3 py-1.5 text-xs font-medium normal-case tracking-normal text-sky-300/80 transition-colors hover:border-sky-700/55 hover:bg-sky-950/60 hover:text-sky-200;
+  @apply inline-flex items-center gap-1.5 border border-sky-900/55 bg-neutral-900/50 text-sky-300/80 transition-colors hover:border-sky-700/55 hover:bg-sky-950/60 hover:text-sky-200;
+}
+
+.page-card .btn {
+  @apply inline-flex items-center justify-center gap-1.5;
 }
 
 .settings-body {
@@ -1021,7 +1031,7 @@ select {
 }
 
 .page-field-icon {
-  @apply flex items-center justify-center w-11 shrink-0 bg-slate-100 text-slate-400 border-r border-slate-200 text-base;
+  @apply flex items-center justify-center w-9 shrink-0 bg-slate-100 text-slate-400 border-r border-slate-200 text-sm;
 }
 
 .page-field-wrap:focus-within .page-field-icon {
@@ -1031,19 +1041,19 @@ select {
 .page-modal input.page-field-input,
 .page-modal-overlay input.page-field-input,
 .page-card input.page-field-input {
-  @apply flex-1 min-w-0 min-h-[42px] border-0 rounded-none bg-transparent py-2.5 px-3 text-sm normal-case tracking-normal font-medium text-slate-800 shadow-none outline-none;
+  @apply flex-1 min-w-0 min-h-8 border-0 rounded-none bg-transparent py-1.5 px-3 text-xs normal-case tracking-normal font-medium text-slate-800 shadow-none outline-none;
 }
 
 .page-modal select.page-field-input,
 .page-modal-overlay select.page-field-input,
 .page-card select.page-field-input {
-  @apply flex-1 min-w-0 min-h-[42px] border-0 rounded-none bg-transparent py-2.5 pl-3 pr-9 text-sm normal-case tracking-normal font-medium text-slate-800 shadow-none outline-none cursor-pointer;
+  @apply flex-1 min-w-0 min-h-8 border-0 rounded-none bg-transparent py-1.5 pl-3 pr-8 text-xs normal-case tracking-normal font-medium text-slate-800 shadow-none outline-none cursor-pointer;
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='M4 6l4 4 4-4' stroke='%23475569' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: right 0.75rem center;
+  background-position: right 0.625rem center;
   background-size: 0.75rem;
 }
 
@@ -1153,11 +1163,39 @@ input.page-field-input-number {
 }
 
 .page-form-input {
-  @apply w-full rounded-lg border border-slate-600/80 bg-slate-50 px-3 py-2 text-sm normal-case tracking-normal font-medium text-slate-800 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/25;
+  @apply w-full min-h-8 rounded-lg border border-slate-600/80 bg-slate-50 px-3 py-1.5 text-xs normal-case tracking-normal font-medium text-slate-800 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/25;
 }
 
 .page-form-input:disabled {
   @apply cursor-not-allowed opacity-60 bg-slate-100 text-slate-500;
+}
+
+.page-master-form {
+  @apply max-w-2xl;
+}
+
+.page-master-form-fields {
+  @apply space-y-4;
+}
+
+.page-master-form-grid {
+  @apply grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5;
+}
+
+.page-master-form-grid .page-master-form-field-full {
+  @apply sm:col-span-2;
+}
+
+.page-master-form-field {
+  @apply space-y-2;
+}
+
+.page-master-form-actions {
+  @apply flex flex-wrap items-center gap-3 pt-1;
+}
+
+.page-master-search {
+  @apply max-w-md mb-4;
 }
 
 .button-icon {

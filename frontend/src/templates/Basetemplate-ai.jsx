@@ -1,13 +1,10 @@
 import React, { useContext, useMemo, useState } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import AuthContext from "./AuthContext";
-import { appMenu, topLevelMenu } from "../config/appMenu";
+import { AppMenuProvider, useAppMenu } from "./AppMenuContext";
 import AppIcon from "../components/AppIcon";
 import SpotlightSearch from "../components/SpotlightSearch";
 import { SpotlightProvider, useSpotlight } from "./SpotlightContext";
-
-const menu = appMenu;
-const topLevel = topLevelMenu;
 
 const navLinkClass = ({ isActive }) =>
   `app-shell-nav-item${isActive ? " app-shell-nav-item-active" : ""}`;
@@ -31,16 +28,18 @@ const BasetemplateAi = ({ children }) => {
 
   return (
     <SpotlightProvider>
-      <BasetemplateShell
-        user={user}
-        company={company}
-        isAuthenticated={isAuthenticated}
-        sidebarOpen={sidebarOpen}
-        setSidebarOpen={setSidebarOpen}
-        onLogout={handleLogout}
-      >
-        {children}
-      </BasetemplateShell>
+      <AppMenuProvider>
+        <BasetemplateShell
+          user={user}
+          company={company}
+          isAuthenticated={isAuthenticated}
+          sidebarOpen={sidebarOpen}
+          setSidebarOpen={setSidebarOpen}
+          onLogout={handleLogout}
+        >
+          {children}
+        </BasetemplateShell>
+      </AppMenuProvider>
     </SpotlightProvider>
   );
 };
@@ -55,6 +54,7 @@ const BasetemplateShell = ({
   onLogout,
 }) => {
   const { overlayOpen, closeOverlay } = useSpotlight();
+  const { menu, loading: menuLoading } = useAppMenu();
   const location = useLocation();
   const userInitials = useMemo(() => getUserInitials(user?.name), [user?.name]);
   const isDashboard = location.pathname === "/dashboard";
@@ -157,8 +157,8 @@ const BasetemplateShell = ({
               >
                 <nav className="h-full overflow-y-auto p-3 space-y-4">
                   <ul className="app-shell-nav-top space-y-0.5">
-                    {Object.entries(topLevel).map(([name, { path, icon: itemIcon }]) => (
-                      <li key={name}>
+                    {menu.topLevel.map(({ label, path, icon: itemIcon }) => (
+                      <li key={path}>
                         <NavLink
                           to={path}
                           className={navLinkClass}
@@ -166,42 +166,46 @@ const BasetemplateShell = ({
                         >
                           <i className={`bi ${itemIcon} text-sm shrink-0`}></i>
                           <span className="truncate normal-case tracking-normal font-medium">
-                            {name}
+                            {label}
                           </span>
                         </NavLink>
                       </li>
                     ))}
                   </ul>
 
-                  {Object.entries(menu).map(([section, { icon, items }]) => (
-                    <div
-                      key={section}
-                      className="rounded-xl border border-sky-900/50 bg-neutral-900/80 overflow-hidden backdrop-blur-sm"
-                    >
-                      <div className="flex items-center gap-2 border-b border-sky-900/50 bg-sky-950/80 px-3 py-2">
-                        <i className={`bi ${icon} text-sky-400 text-xs`}></i>
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-300">
-                          {section}
-                        </span>
+                  {menuLoading ? (
+                    <p className="px-2 text-xs text-slate-400">Loading navigation…</p>
+                  ) : (
+                    menu.sections.map(({ label: section, icon, items }) => (
+                      <div
+                        key={section}
+                        className="rounded-xl border border-sky-900/50 bg-neutral-900/80 overflow-hidden backdrop-blur-sm"
+                      >
+                        <div className="flex items-center gap-2 border-b border-sky-900/50 bg-sky-950/80 px-3 py-2">
+                          <i className={`bi ${icon} text-sky-400 text-xs`}></i>
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-300">
+                            {section}
+                          </span>
+                        </div>
+                        <ul className="p-1.5 space-y-0.5">
+                          {items.map(({ label, path, icon: itemIcon }) => (
+                            <li key={path}>
+                              <NavLink
+                                to={path}
+                                className={navLinkClass}
+                                onClick={() => setSidebarOpen(false)}
+                              >
+                                <i className={`bi ${itemIcon} text-sm shrink-0`}></i>
+                                <span className="truncate normal-case tracking-normal font-medium">
+                                  {label}
+                                </span>
+                              </NavLink>
+                            </li>
+                          ))}
+                        </ul>
                       </div>
-                      <ul className="p-1.5 space-y-0.5">
-                        {Object.entries(items).map(([name, { path, icon: itemIcon }]) => (
-                          <li key={name}>
-                            <NavLink
-                              to={path}
-                              className={navLinkClass}
-                              onClick={() => setSidebarOpen(false)}
-                            >
-                              <i className={`bi ${itemIcon} text-sm shrink-0`}></i>
-                              <span className="truncate normal-case tracking-normal font-medium">
-                                {name}
-                              </span>
-                            </NavLink>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
+                    ))
+                  )}
                 </nav>
               </aside>
             </div>

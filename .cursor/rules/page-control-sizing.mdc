@@ -1,0 +1,56 @@
+---
+description: Standard compact control sizing for page-card UI (buttons, inputs, selects)
+globs: frontend/**/*.{jsx,css}
+alwaysApply: true
+---
+
+# Page control sizing
+
+Match the **← Dashboard** back link (`page-card-back-link`). All buttons and text fields inside page cards must use this compact size.
+
+## Size token (`.page-control`)
+
+- `min-h-8` (32px)
+- `px-3 py-1.5`
+- `text-xs font-medium`
+- `rounded-lg`
+- `normal-case tracking-normal`
+
+## CSS classes to use
+
+| Element | Class |
+|---------|--------|
+| Buttons in page cards | `btn btn-*` inside `.page-card` (auto-sized via `.page-card .btn`) |
+| Back / nav pill | `page-card-back-link` |
+| Icon + input wrapper | `page-field-wrap` + `page-field-icon` (`w-9`, `text-sm`) |
+| Inputs / selects | `page-field-input` inside `.page-card` |
+| Standalone inputs | `page-form-input` |
+| Master forms | `page-master-form`, `page-master-form-field`, `page-master-form-actions` |
+
+## Do
+
+- Put module UI inside `.page-card` / `.page-card-body` so shared sizing applies.
+- Use `page-field-wrap` + `page-field-input` for labeled fields (same height as buttons).
+- Use `btn btn-primary` / `btn-success` / `btn-secondary` without extra `text-sm`, `text-xs`, or custom `min-h-*` overrides.
+- Keep toolbar actions in `page-toolbar`; list search in `page-field-wrap page-master-search`.
+
+## Don't
+
+- Don't use `min-h-[42px]`, `py-2.5`, or `text-sm` on page-card controls unless explicitly redesigning the system.
+- Don't add bordered panels around forms unless requested.
+- Don't mix Bootstrap `btn-sm` / inline size overrides that fight `.page-card .btn`.
+
+## Reference
+
+Defined in `frontend/src/App.css`:
+
+```css
+.page-control,
+.page-card-back-link,
+.page-card .btn { min-h-8; px-3 py-1.5; text-xs; ... }
+
+.page-card input.page-field-input,
+.page-card select.page-field-input { min-h-8; py-1.5; px-3; text-xs; ... }
+```
+
+When adding new pages or forms, follow Cost Center master (`frontend/src/pages/masters/cost-center/`) as the layout reference.

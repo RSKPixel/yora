@@ -8,6 +8,7 @@ from sqlalchemy import text
 from core.auth import get_current_user
 from core.dependencies import engine_mysql
 from core.passwords import hash_password, verify_password
+from services.nav_menu import ensure_nav_menu_defaults
 
 router = APIRouter()
 
@@ -20,7 +21,6 @@ DEFAULT_QUICK_ACCESS_PATHS = [
     "/transactions/purchase-order",
     "/transactions/purchase",
     "/transactions/sales",
-    "/masters/inventory",
     "/reports/stockposition",
 ]
 
@@ -65,9 +65,15 @@ def _fetch_quick_access_paths(connection) -> list[str]:
     return paths
 
 
+RETIRED_QUICK_ACCESS_PATHS = {"/masters/inventory", "/masters/ledger"}
+
+
 def _ensure_quick_access_defaults(connection) -> list[str]:
     paths = _fetch_quick_access_paths(connection)
     if paths:
+        cleaned = [path for path in paths if path not in RETIRED_QUICK_ACCESS_PATHS]
+        if cleaned != paths:
+            return _save_quick_access_paths(connection, cleaned)
         return paths
 
     connection.execute(
@@ -358,6 +364,26 @@ def update_password(
         return {
             "status": "error",
             "message": f"Unable to update password: {e}",
+            "data": None,
+        }
+
+
+@router.post("/nav-menu")
+def get_nav_menu():
+    try:
+        with engine_mysql.begin() as connection:
+            menu = ensure_nav_menu_defaults(connection)
+
+        return {
+            "status": "success",
+            "message": "Navigation menu fetched successfully!",
+            "data": menu,
+        }
+    except Exception as e:
+        print(e.args)
+        return {
+            "status": "error",
+            "message": f"Unable to load navigation menu: {e}",
             "data": None,
         }
 

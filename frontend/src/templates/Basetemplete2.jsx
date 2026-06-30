@@ -7,8 +7,7 @@ const Basetemplate2 = ({ children }) => {
   const navigate = useNavigate();
   const menu = {
     Masters: {
-      Inventory: "/masters/inventory",
-      Ledger: "/masters/ledger",
+      "Cost Center": "/masters/cost-center",
     },
     Transactions: {
       Purchase: "/transactions/purchase",

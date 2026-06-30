@@ -2,10 +2,8 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import "./App.css";
 import "./Buttons.css";
 import BasetemplateAi from "./templates/Basetemplate-ai";
-import Inventory from "./pages/masters/inventory/Inventory";
 import { AuthProvider } from "./templates/AuthContext";
 import ProtectedRoute from "./templates/ProtectedRoute";
-import Ledger from "./pages/masters/ledger/Ledger";
 import Purchase from "./pages/transactions/purchase/Purchase";
 import PurchaseOrder from "./pages/transactions/purchase-order/PurchaseOrder";
 import PurchaseOrderReport from "./pages/reports/purchase-order/PurchaseOrderReport";
@@ -15,6 +13,7 @@ import Sales from "./pages/transactions/sales/Sales";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Settings from "./pages/Settings";
+import CostCenter from "./pages/masters/cost-center/CostCenter";
 
 function App() {
   document.title = "YORA ERP";
@@ -34,11 +33,7 @@ function App() {
                     <Route path="/clientprofile" element={<Settings />} />
                     <Route path="/" element={<Navigate to="/dashboard" replace />} />
                     <Route path="/masters">
-                      <Route
-                        path="inventory"
-                        element={<Inventory action="NEW" inventoryId={null} />}
-                      />
-                      <Route path="ledger" element={<Ledger action="NEW" />} />
+                      <Route path="cost-center" element={<CostCenter />} />
                     </Route>
                     <Route path="/transactions">
                       <Route path="purchase-order" element={<PurchaseOrder />} />

@@ -1,6 +1,6 @@
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import AuthContext from "../templates/AuthContext";
-import { flattenMenuItems } from "../config/appMenu";
+import { useAppMenu } from "../templates/AppMenuContext";
 import {
   DEFAULT_QUICK_ACCESS_PATHS,
   getAvailableQuickAccessItems,
@@ -9,7 +9,7 @@ import {
 
 export function useQuickAccess() {
   const { api, authFetch } = useContext(AuthContext);
-  const menuItems = useMemo(() => flattenMenuItems(), []);
+  const { menuItems } = useAppMenu();
   const [paths, setPathsState] = useState(DEFAULT_QUICK_ACCESS_PATHS);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);

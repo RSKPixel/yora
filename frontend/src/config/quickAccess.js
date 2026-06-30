@@ -4,7 +4,6 @@ export const DEFAULT_QUICK_ACCESS_PATHS = [
   "/transactions/purchase-order",
   "/transactions/purchase",
   "/transactions/sales",
-  "/masters/inventory",
   "/reports/stockposition",
 ];
 

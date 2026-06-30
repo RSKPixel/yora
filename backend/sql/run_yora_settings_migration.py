@@ -26,7 +26,6 @@ VALUES (
         '/transactions/purchase-order',
         '/transactions/purchase',
         '/transactions/sales',
-        '/masters/inventory',
         '/reports/stockposition'
     )
 )

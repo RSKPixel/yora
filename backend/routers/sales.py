@@ -10,9 +10,38 @@ import math
 router = APIRouter()
 
 
+def _representative_filter_clause(representative: str) -> tuple[str, dict]:
+    if not representative:
+        return "", {}
+    return (
+        " AND COALESCE(NULLIF(TRIM(representative), ''), 'NA') = :representative",
+        {"representative": representative},
+    )
+
+
 def _thirty_day_avg_from_ninety_day_sales(total_qty: float) -> int:
     """30-day average consumption from total sales over the last 90 days."""
     return int(math.ceil(total_qty / 3)) if total_qty > 0 else 0
+
+
+@router.post("/representatives")
+def sales_representatives():
+    sql = text(
+        """
+        SELECT DISTINCT COALESCE(NULLIF(TRIM(representative), ''), 'NA') AS representative
+        FROM yora_sales
+        ORDER BY representative
+        """
+    )
+
+    with engine_mysql.connect() as connection:
+        result = connection.execute(sql).fetchall()
+
+    return {
+        "status": "success",
+        "message": "Sales representatives fetched successfully!",
+        "data": [row.representative for row in result],
+    }
 
 
 @router.post("/sales-list")
@@ -20,21 +49,24 @@ def sales_list(
     filter: str = Form(...),
     date_from: str = Form(...),
     date_to: str = Form(...),
+    representative: str = Form(""),
 ):
+    rep_clause, rep_params = _representative_filter_clause(representative)
+    params = {"date_from": date_from, "date_to": date_to, **rep_params}
 
     if filter == "all":
         sql = text(
-            """
+            f"""
         SELECT *
         FROM yora_sales
-        WHERE invoice_date BETWEEN :date_from AND :date_to
+        WHERE invoice_date BETWEEN :date_from AND :date_to{rep_clause}
         """
         )
     elif filter == "delivered":
         sql = text(
-            """
+            f"""
             SELECT * FROM yora_sales
-            WHERE invoice_date BETWEEN :date_from AND :date_to
+            WHERE invoice_date BETWEEN :date_from AND :date_to{rep_clause}
                 AND EXISTS (
                     SELECT 1 FROM yora_delivery_challan
                         WHERE
@@ -45,9 +77,9 @@ def sales_list(
         )
     elif filter == "pending_delivery":
         sql = text(
-            """
+            f"""
             SELECT * FROM yora_sales
-            WHERE invoice_date BETWEEN :date_from AND :date_to
+            WHERE invoice_date BETWEEN :date_from AND :date_to{rep_clause}
                 AND NOT EXISTS (
                     SELECT 1 FROM yora_delivery_challan
                         WHERE yora_delivery_challan.invoice_no = yora_sales.invoice_no AND
@@ -56,13 +88,7 @@ def sales_list(
         )
 
     with engine_mysql.connect() as connection:
-        result = connection.execute(
-            sql,
-            {
-                "date_from": date_from,
-                "date_to": date_to,
-            },
-        ).fetchall()
+        result = connection.execute(sql, params).fetchall()
 
     df = pd.DataFrame(result)
 

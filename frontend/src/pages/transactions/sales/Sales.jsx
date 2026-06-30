@@ -18,6 +18,8 @@ const Sales = () => {
   const [refresh, setRefresh] = useState(false);
   const [message, setMessage] = useState(null);
   const [filter, setFilter] = useState("all");
+  const [representative, setRepresentative] = useState("");
+  const [representatives, setRepresentatives] = useState([]);
   const filterOptions = [
     { label: "All", value: "all" },
     { label: "Delivered", value: "delivered" },
@@ -29,12 +31,27 @@ const Sales = () => {
   const [period, setPeriod] = useState("This Week");
 
   useEffect(() => {
+    authFetch(`${api}/sales/representatives`, {
+      method: "POST",
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.status === "success") {
+          setRepresentatives(data.data || []);
+        }
+      });
+  }, [api, authFetch, refresh]);
+
+  useEffect(() => {
     setLoading(true);
     setLoadingMessage("Fetching sales data...");
     const fd = new FormData();
     fd.append("filter", filter);
     fd.append("date_from", periodValue[period].date_from);
     fd.append("date_to", periodValue[period].date_to);
+    if (representative) {
+      fd.append("representative", representative);
+    }
 
     authFetch(`${api}/sales/sales-list`, {
       method: "POST",
@@ -47,7 +64,7 @@ const Sales = () => {
           setLoading(false);
         }
       });
-  }, [refresh, filter, period]);
+  }, [refresh, filter, period, representative]);
 
   const loadTallyData = () => {
     setLoading(true);
@@ -176,6 +193,18 @@ const Sales = () => {
                 {filterOptions.map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
+                  </option>
+                ))}
+              </select>
+              <select
+                className="page-select"
+                value={representative}
+                onChange={(e) => setRepresentative(e.target.value)}
+              >
+                <option value="">All Representatives</option>
+                {representatives.map((rep) => (
+                  <option key={rep} value={rep}>
+                    {rep}
                   </option>
                 ))}
               </select>

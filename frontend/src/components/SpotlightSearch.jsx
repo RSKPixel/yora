@@ -1,13 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  flattenMenuItems,
   getSpotlightShortcutLabel,
   searchMenuItems,
 } from "../config/appMenu";
+import { useAppMenu } from "../templates/AppMenuContext";
 import { useSpotlight } from "../templates/SpotlightContext";
-
-const ALL_ITEMS = flattenMenuItems();
 
 function SpotlightResults({ results, activeIndex, onSelect, onHover }) {
   if (results.length === 0) {
@@ -68,6 +66,7 @@ function SpotlightFooter({ showCloseHint = false }) {
 
 const SpotlightSearch = ({ variant = "inline", open = false, onClose }) => {
   const navigate = useNavigate();
+  const { menuItems } = useAppMenu();
   const { registerInlineFocus } = useSpotlight();
   const inputRef = useRef(null);
   const listRef = useRef(null);
@@ -79,8 +78,8 @@ const SpotlightSearch = ({ variant = "inline", open = false, onClose }) => {
   const trimmedQuery = query.trim();
   const showResults = trimmedQuery.length > 0;
   const results = useMemo(
-    () => (showResults ? searchMenuItems(ALL_ITEMS, query) : []),
-    [query, showResults]
+    () => (showResults ? searchMenuItems(menuItems, query) : []),
+    [query, showResults, menuItems]
   );
   const isOverlay = variant === "overlay";
 

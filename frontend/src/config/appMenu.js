@@ -1,32 +1,35 @@
-export const topLevelMenu = {
-  Dashboard: { path: "/dashboard", icon: "bi-speedometer2" },
-};
-
-export const appMenu = {
-  Masters: {
-    icon: "bi-database",
-    items: {
-      Inventory: { path: "/masters/inventory", icon: "bi-box" },
-      Ledger: { path: "/masters/ledger", icon: "bi-journal-text" },
+export const DEFAULT_APP_MENU = {
+  topLevel: [
+    { label: "Dashboard", path: "/dashboard", icon: "bi-speedometer2" },
+  ],
+  sections: [
+    {
+      label: "Masters",
+      icon: "bi-database",
+      items: [
+        { label: "Cost Center", path: "/masters/cost-center", icon: "bi-building" },
+      ],
     },
-  },
-  Transactions: {
-    icon: "bi-arrow-left-right",
-    items: {
-      "Purchase Order": { path: "/transactions/purchase-order", icon: "bi-clipboard-check" },
-      Purchase: { path: "/transactions/purchase", icon: "bi-cart-plus" },
-      Sales: { path: "/transactions/sales", icon: "bi-receipt" },
-      "Credit Note": { path: "/transactions/creditnote", icon: "bi-file-earmark-minus" },
+    {
+      label: "Transactions",
+      icon: "bi-arrow-left-right",
+      items: [
+        { label: "Purchase Order", path: "/transactions/purchase-order", icon: "bi-clipboard-check" },
+        { label: "Purchase", path: "/transactions/purchase", icon: "bi-cart-plus" },
+        { label: "Sales", path: "/transactions/sales", icon: "bi-receipt" },
+        { label: "Credit Note", path: "/transactions/creditnote", icon: "bi-file-earmark-minus" },
+      ],
     },
-  },
-  Reports: {
-    icon: "bi-bar-chart",
-    items: {
-      "Stock Report": { path: "/reports/stockposition", icon: "bi-boxes" },
-      "Stock Summary": { path: "/reports/stocksummary", icon: "bi-pie-chart" },
-      "Purchase Order Report": { path: "/reports/purchaseorder", icon: "bi-file-earmark-bar-graph" },
+    {
+      label: "Reports",
+      icon: "bi-bar-chart",
+      items: [
+        { label: "Stock Report", path: "/reports/stockposition", icon: "bi-boxes" },
+        { label: "Stock Summary", path: "/reports/stocksummary", icon: "bi-pie-chart" },
+        { label: "Purchase Order Report", path: "/reports/purchaseorder", icon: "bi-file-earmark-bar-graph" },
+      ],
     },
-  },
+  ],
 };
 
 function buildAbbreviation(label) {
@@ -56,8 +59,8 @@ function tokenMatchesItem(token, item) {
   return item.searchWords.some((word) => word === token);
 }
 
-export function flattenMenuItems(menu = appMenu, topLevel = topLevelMenu) {
-  const topItems = Object.entries(topLevel).map(([label, { path, icon }]) => {
+export function flattenMenuItems(menu = DEFAULT_APP_MENU) {
+  const topItems = (menu.topLevel ?? []).map(({ label, path, icon }) => {
     const abbreviation = buildAbbreviation(label);
     return {
       label,
@@ -70,8 +73,8 @@ export function flattenMenuItems(menu = appMenu, topLevel = topLevelMenu) {
     };
   });
 
-  const sectionItems = Object.entries(menu).flatMap(([section, { icon: sectionIcon, items }]) =>
-    Object.entries(items).map(([label, { path, icon }]) => {
+  const sectionItems = (menu.sections ?? []).flatMap(({ label: section, icon: sectionIcon, items }) =>
+    (items ?? []).map(({ label, path, icon }) => {
       const abbreviation = buildAbbreviation(label);
       return {
         label,
