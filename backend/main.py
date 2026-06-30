@@ -11,7 +11,7 @@ from core.auth import AUTH_BYPASS, AUTH_BYPASS_TOKEN, get_current_user
 from core.config import validate_security_config
 from core.limiter import limiter
 from routers import purchase, purchase_orders, sales, stock_report
-from routers import delivery, auth, masters, dashboard, settings, cost_centers, mould_inventory
+from routers import delivery, auth, masters, dashboard, settings, cost_centers, mould_inventory, machinery_master, machinery_service_records
 import uvicorn
 
 validate_security_config()
@@ -98,6 +98,18 @@ app.include_router(
     mould_inventory.router,
     prefix="/mould-inventory",
     tags=["mould-inventory"],
+    dependencies=require_auth,
+)
+app.include_router(
+    machinery_master.router,
+    prefix="/machinery-master",
+    tags=["machinery-master"],
+    dependencies=require_auth,
+)
+app.include_router(
+    machinery_service_records.router,
+    prefix="/machinery-service-records",
+    tags=["machinery-service-records"],
     dependencies=require_auth,
 )
 

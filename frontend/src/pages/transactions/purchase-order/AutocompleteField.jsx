@@ -10,6 +10,7 @@ const AutocompleteField = ({
   getMeta,
   placeholder,
   className = "w-full min-w-40",
+  disabled = false,
 }) => {
   const [query, setQuery] = useState(value || "");
   const [open, setOpen] = useState(false);
@@ -122,6 +123,7 @@ const AutocompleteField = ({
         onBlur={handleBlur}
         placeholder={placeholder}
         autoComplete="off"
+        disabled={disabled}
       />
       {dropdown}
     </div>

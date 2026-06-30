@@ -17,6 +17,7 @@ DEFAULT_NAV_MENU = {
             "items": [
                 {"label": "Cost Center", "path": "/masters/cost-center", "icon": "bi-building", "sort_order": 1},
                 {"label": "Mould Master", "path": "/masters/mould-master", "icon": "bi-box-seam", "sort_order": 2},
+                {"label": "Machinery Master", "path": "/masters/machinery-master", "icon": "bi-gear-wide-connected", "sort_order": 3},
             ],
         },
         {
@@ -27,7 +28,8 @@ DEFAULT_NAV_MENU = {
                 {"label": "Purchase Order", "path": "/transactions/purchase-order", "icon": "bi-clipboard-check", "sort_order": 1},
                 {"label": "Purchase", "path": "/transactions/purchase", "icon": "bi-cart-plus", "sort_order": 2},
                 {"label": "Sales", "path": "/transactions/sales", "icon": "bi-receipt", "sort_order": 3},
-                {"label": "Credit Note", "path": "/transactions/creditnote", "icon": "bi-file-earmark-minus", "sort_order": 4},
+                {"label": "Service Record", "path": "/transactions/service-record", "icon": "bi-wrench-adjustable", "sort_order": 4},
+                {"label": "Credit Note", "path": "/transactions/creditnote", "icon": "bi-file-earmark-minus", "sort_order": 5},
             ],
         },
         {
@@ -159,16 +161,24 @@ def build_nav_menu_response(rows) -> dict:
         elif row["node_type"] == "section_link":
             pending_links.append(row)
 
+    section_items: dict[int, list] = {}
+
     for row in pending_links:
-        parent = sections_by_id.get(row["parent_id"])
-        if parent is not None:
-            parent["items"].append(
-                {
-                    "label": row["label"],
-                    "path": row["path"],
-                    "icon": row["icon"],
-                }
-            )
+        parent_id = row["parent_id"]
+        if parent_id in sections_by_id:
+            section_items.setdefault(parent_id, []).append(row)
+
+    for section_id, section in sections_by_id.items():
+        rows_for_section = section_items.get(section_id, [])
+        rows_for_section.sort(key=lambda item: (item["sort_order"], item["id"]))
+        section["items"] = [
+            {
+                "label": row["label"],
+                "path": row["path"],
+                "icon": row["icon"],
+            }
+            for row in rows_for_section
+        ]
 
     sections = [sections_by_id[section_id] for section_id in sections_order]
     return {"topLevel": top_level, "sections": sections}
@@ -201,7 +211,8 @@ def remove_retired_nav_items(connection) -> None:
                 '/masters/ledger',
                 '/masters/machinery',
                 '/masters/locations',
-                '/transactions/mould-inventory'
+                '/transactions/mould-inventory',
+                '/transactions/machinery-service-recorder'
             )
             """
         )

@@ -26,8 +26,8 @@ CREATE TABLE IF NOT EXISTS yora_mould_inventory (
     KEY idx_yora_mould_inventory_purchase_date (purchase_date),
     KEY idx_yora_mould_inventory_machine (compatible_machine_id),
     KEY idx_yora_mould_inventory_location (inventory_location_id),
-    CONSTRAINT fk_yora_mould_inventory_machine
-        FOREIGN KEY (compatible_machine_id) REFERENCES yora_cost_centers (id),
+    CONSTRAINT fk_yora_mould_inventory_machinery
+        FOREIGN KEY (compatible_machine_id) REFERENCES yora_machinery_master (id),
     CONSTRAINT fk_yora_mould_inventory_location
         FOREIGN KEY (inventory_location_id) REFERENCES yora_cost_centers (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

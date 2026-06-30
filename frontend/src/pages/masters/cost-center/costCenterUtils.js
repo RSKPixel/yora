@@ -13,6 +13,14 @@ export function formatUnderId(value) {
   return String(value);
 }
 
+export function mapCostCenterFromApi(data) {
+  return {
+    id: String(data.id),
+    cost_center_name: data.cost_center_name,
+    under_id: formatUnderId(data.under_id),
+  };
+}
+
 export function validateCostCenter(costCenter) {
   const errors = [];
   if (!costCenter.cost_center_name?.trim()) {

@@ -1,49 +1,41 @@
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import AuthContext from "../../../templates/AuthContext";
 import DashboardBackLink from "../../../components/DashboardBackLink";
-import MouldMasterForm from "./MouldMasterForm";
-import MouldMasterList from "./MouldMasterList";
-import {
-  emptyMould,
-  mapMouldFromApi,
-  MOULD_TYPES,
-  TOOL_QUALITY_STATUSES,
-} from "./mouldMasterUtils";
+import MachineryMasterForm from "./MachineryMasterForm";
+import MachineryMasterList from "./MachineryMasterList";
+import { emptyMachine, mapMachineFromApi, MACHINE_TYPES } from "./machineryMasterUtils";
 
 const emptyLookups = () => ({
-  mould_types: MOULD_TYPES,
-  tool_quality_statuses: TOOL_QUALITY_STATUSES,
-  machines: [],
-  locations: [],
+  machine_types: MACHINE_TYPES,
 });
 
-const MouldMaster = () => {
+const MachineryMaster = () => {
   const { api, authFetch } = useContext(AuthContext);
-  const [moulds, setMoulds] = useState([]);
+  const [machines, setMachines] = useState([]);
   const [lookups, setLookups] = useState(emptyLookups);
   const [loading, setLoading] = useState(true);
   const [lookupsLoading, setLookupsLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [showForm, setShowForm] = useState(false);
-  const [mould, setMould] = useState(emptyMould());
+  const [machine, setMachine] = useState(emptyMachine());
   const [isEditing, setIsEditing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [formMessage, setFormMessage] = useState(null);
   const [listMessage, setListMessage] = useState(null);
 
-  const loadMoulds = useCallback(async () => {
+  const loadMachines = useCallback(async () => {
     setLoading(true);
     try {
       const fd = new FormData();
-      fd.append("mould_name", searchQuery.trim());
-      const response = await authFetch(`${api}/mould-inventory/search`, {
+      fd.append("search", searchQuery.trim());
+      const response = await authFetch(`${api}/machinery-master/search`, {
         method: "POST",
         body: fd,
       });
       const data = await response.json();
-      setMoulds(data.status === "success" ? data.data || [] : []);
+      setMachines(data.status === "success" ? data.data || [] : []);
     } catch {
-      setMoulds([]);
+      setMachines([]);
     } finally {
       setLoading(false);
     }
@@ -52,16 +44,13 @@ const MouldMaster = () => {
   const loadLookups = useCallback(async () => {
     setLookupsLoading(true);
     try {
-      const response = await authFetch(`${api}/mould-inventory/lookups`, {
+      const response = await authFetch(`${api}/machinery-master/lookups`, {
         method: "POST",
       });
       const data = await response.json();
       if (data.status === "success" && data.data) {
         setLookups({
-          mould_types: data.data.mould_types || MOULD_TYPES,
-          tool_quality_statuses: data.data.tool_quality_statuses || TOOL_QUALITY_STATUSES,
-          machines: data.data.machines || [],
-          locations: data.data.locations || [],
+          machine_types: data.data.machine_types || MACHINE_TYPES,
         });
       } else {
         setLookups(emptyLookups());
@@ -75,14 +64,14 @@ const MouldMaster = () => {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      loadMoulds();
+      loadMachines();
     }, 200);
     return () => clearTimeout(timer);
-  }, [loadMoulds]);
+  }, [loadMachines]);
 
   const handleNew = async () => {
     setListMessage(null);
-    setMould(emptyMould());
+    setMachine(emptyMachine());
     setIsEditing(false);
     setFormMessage(null);
     setShowForm(true);
@@ -99,7 +88,7 @@ const MouldMaster = () => {
 
       const fd = new FormData();
       fd.append("id", String(existing.id));
-      const response = await authFetch(`${api}/mould-inventory/retrieve`, {
+      const response = await authFetch(`${api}/machinery-master/retrieve`, {
         method: "POST",
         body: fd,
       });
@@ -108,18 +97,18 @@ const MouldMaster = () => {
       if (data.status !== "success" || !data.data) {
         setFormMessage({
           type: "error",
-          message: data.message || "Unable to load mould.",
+          message: data.message || "Unable to load machine.",
         });
         setShowForm(false);
         setIsEditing(false);
         return;
       }
 
-      setMould(mapMouldFromApi(data.data));
+      setMachine(mapMachineFromApi(data.data));
     } catch {
       setFormMessage({
         type: "error",
-        message: "Unable to load mould. Please try again.",
+        message: "Unable to load machine. Please try again.",
       });
       setShowForm(false);
       setIsEditing(false);
@@ -129,11 +118,11 @@ const MouldMaster = () => {
   const handleCancel = () => {
     setShowForm(false);
     setIsEditing(false);
-    setMould(emptyMould());
+    setMachine(emptyMachine());
     setFormMessage(null);
   };
 
-  const handleSave = async (nextMould, validationErrors = null) => {
+  const handleSave = async (nextMachine, validationErrors = null) => {
     if (validationErrors) {
       setFormMessage({ type: "error", message: validationErrors });
       return;
@@ -145,20 +134,17 @@ const MouldMaster = () => {
     try {
       const fd = new FormData();
       fd.append("action", isEditing ? "modify" : "new");
-      fd.append("mould_name", nextMould.mould_name);
-      fd.append("mould_type", nextMould.mould_type);
-      fd.append("purchase_date", nextMould.purchase_date);
-      fd.append("manufactured_by", nextMould.manufactured_by ?? "");
-      fd.append("tool_quality_status", nextMould.tool_quality_status);
-      fd.append("neck_size_mm", nextMould.neck_size_mm ?? "");
-      fd.append("capacity_ml", nextMould.capacity_ml ?? "");
-      fd.append("compatible_machine_id", nextMould.compatible_machine_id ?? "");
-      fd.append("inventory_location_id", nextMould.inventory_location_id ?? "");
-      if (isEditing && nextMould.id) {
-        fd.append("id", nextMould.id);
+      fd.append("machine_name", nextMachine.machine_name);
+      fd.append("machine_type", nextMachine.machine_type);
+      fd.append("machine_description", nextMachine.machine_description ?? "");
+      fd.append("purchase_date", nextMachine.purchase_date);
+      fd.append("supplier_name", nextMachine.supplier_name ?? "");
+      fd.append("amc_warranty_validity", nextMachine.amc_warranty_validity ?? "");
+      if (isEditing && nextMachine.id) {
+        fd.append("id", nextMachine.id);
       }
 
-      const response = await authFetch(`${api}/mould-inventory/save`, {
+      const response = await authFetch(`${api}/machinery-master/save`, {
         method: "POST",
         body: fd,
       });
@@ -167,22 +153,22 @@ const MouldMaster = () => {
       if (!response.ok || data.status !== "success" || !data.data) {
         setFormMessage({
           type: "error",
-          message: data.message || data.detail || "Unable to save mould.",
+          message: data.message || data.detail || "Unable to save machine.",
         });
         return;
       }
 
-      setMould(mapMouldFromApi(data.data));
+      setMachine(mapMachineFromApi(data.data));
       setIsEditing(true);
       setFormMessage({
         type: "success",
-        message: data.message || "Mould saved.",
+        message: data.message || "Machine saved.",
       });
-      await loadMoulds();
+      await loadMachines();
     } catch {
       setFormMessage({
         type: "error",
-        message: "Unable to save mould. Please try again.",
+        message: "Unable to save machine. Please try again.",
       });
     } finally {
       setSaving(false);
@@ -195,13 +181,13 @@ const MouldMaster = () => {
         <div>
           <div className="page-card-title">
             <span className="page-card-title-icon">
-              <i className="bi bi-box-seam" aria-hidden="true"></i>
+              <i className="bi bi-gear-wide-connected" aria-hidden="true"></i>
             </span>
-            Mould Master
+            Machinery Master
           </div>
           {showForm && (
             <p className="page-card-subtitle mt-0.5 ps-10">
-              {isEditing ? "Update mould master record" : "Create a new mould master record"}
+              {isEditing ? "Update machinery master record" : "Create a new machinery master record"}
             </p>
           )}
         </div>
@@ -210,20 +196,20 @@ const MouldMaster = () => {
 
       <div className="page-card-body">
         {showForm ? (
-          <MouldMasterForm
-            mould={mould}
+          <MachineryMasterForm
+            machine={machine}
             isEditing={isEditing}
             saving={saving}
             formMessage={formMessage}
             lookups={lookups}
             lookupsLoading={lookupsLoading}
-            onMouldChange={setMould}
+            onMachineChange={setMachine}
             onSave={handleSave}
             onCancel={handleCancel}
           />
         ) : (
-          <MouldMasterList
-            moulds={moulds}
+          <MachineryMasterList
+            machines={machines}
             loading={loading}
             searchQuery={searchQuery}
             listMessage={listMessage}
@@ -237,4 +223,4 @@ const MouldMaster = () => {
   );
 };
 
-export default MouldMaster;
+export default MachineryMaster;

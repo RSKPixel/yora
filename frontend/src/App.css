@@ -1425,6 +1425,10 @@ input.page-field-input-number {
   @apply w-[17.5rem] max-w-full space-y-2;
 }
 
+.page-master-form-field.page-master-form-field-full {
+  @apply w-full max-w-full;
+}
+
 .page-master-form-actions {
   @apply mt-8 flex flex-wrap items-center justify-center gap-4 border-t border-sky-700/50 bg-sky-950/45 pt-5 pb-4 -mx-4;
 }

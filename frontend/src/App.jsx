@@ -15,6 +15,8 @@ import Dashboard from "./pages/Dashboard";
 import Settings from "./pages/Settings";
 import CostCenter from "./pages/masters/cost-center/CostCenter";
 import MouldMaster from "./pages/masters/mould-master/MouldMaster";
+import MachineryMaster from "./pages/masters/machinery-master/MachineryMaster";
+import MachineryServiceRecorder from "./pages/transactions/machinery-service-recorder/MachineryServiceRecorder";
 import StockJournal from "./pages/stock-movement/stock-journal/StockJournal";
 import Blowing from "./pages/stock-movement/blowing/Blowing";
 
@@ -38,11 +40,13 @@ function App() {
                     <Route path="/masters">
                       <Route path="cost-center" element={<CostCenter />} />
                       <Route path="mould-master" element={<MouldMaster />} />
+                      <Route path="machinery-master" element={<MachineryMaster />} />
                     </Route>
                     <Route path="/transactions">
                       <Route path="purchase-order" element={<PurchaseOrder />} />
                       <Route path="purchase" element={<Purchase />} />
                       <Route path="sales" element={<Sales />} />
+                      <Route path="service-record" element={<MachineryServiceRecorder />} />
                     </Route>
                     <Route path="/stock-movement">
                       <Route path="stock-journal" element={<StockJournal />} />

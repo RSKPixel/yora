@@ -29,6 +29,28 @@ export function formatOptionalId(value) {
   return String(value);
 }
 
+export function mapMouldFromApi(data) {
+  return {
+    id: String(data.id),
+    tool_id: data.tool_id || "",
+    mould_name: data.mould_name,
+    mould_type: data.mould_type,
+    purchase_date: data.purchase_date || "",
+    manufactured_by: data.manufactured_by || "",
+    tool_quality_status: data.tool_quality_status || TOOL_QUALITY_STATUSES[0],
+    neck_size_mm:
+      data.neck_size_mm === null || data.neck_size_mm === undefined
+        ? ""
+        : String(data.neck_size_mm),
+    capacity_ml:
+      data.capacity_ml === null || data.capacity_ml === undefined
+        ? ""
+        : String(data.capacity_ml),
+    compatible_machine_id: formatOptionalId(data.compatible_machine_id),
+    inventory_location_id: formatOptionalId(data.inventory_location_id),
+  };
+}
+
 export function validateMould(mould) {
   const errors = [];
 

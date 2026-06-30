@@ -9,6 +9,7 @@ export const DEFAULT_APP_MENU = {
       items: [
         { label: "Cost Center", path: "/masters/cost-center", icon: "bi-building" },
         { label: "Mould Master", path: "/masters/mould-master", icon: "bi-box-seam" },
+        { label: "Machinery Master", path: "/masters/machinery-master", icon: "bi-gear-wide-connected" },
       ],
     },
     {
@@ -18,6 +19,7 @@ export const DEFAULT_APP_MENU = {
         { label: "Purchase Order", path: "/transactions/purchase-order", icon: "bi-clipboard-check" },
         { label: "Purchase", path: "/transactions/purchase", icon: "bi-cart-plus" },
         { label: "Sales", path: "/transactions/sales", icon: "bi-receipt" },
+        { label: "Service Record", path: "/transactions/service-record", icon: "bi-wrench-adjustable" },
         { label: "Credit Note", path: "/transactions/creditnote", icon: "bi-file-earmark-minus" },
       ],
     },

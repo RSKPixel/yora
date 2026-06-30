@@ -3,7 +3,7 @@ import AuthContext from "../../../templates/AuthContext";
 import DashboardBackLink from "../../../components/DashboardBackLink";
 import CostCenterForm from "./CostCenterForm";
 import CostCenterList from "./CostCenterList";
-import { emptyCostCenter, formatUnderId } from "./costCenterUtils";
+import { emptyCostCenter, mapCostCenterFromApi } from "./costCenterUtils";
 
 const CostCenter = () => {
   const { api, authFetch } = useContext(AuthContext);
@@ -102,11 +102,7 @@ const CostCenter = () => {
         return;
       }
 
-      setCostCenter({
-        id: String(data.data.id),
-        cost_center_name: data.data.cost_center_name,
-        under_id: formatUnderId(data.data.under_id),
-      });
+      setCostCenter(mapCostCenterFromApi(data.data));
     } catch {
       setFormMessage({
         type: "error",
@@ -156,13 +152,13 @@ const CostCenter = () => {
         return;
       }
 
-      setListMessage({
+      setCostCenter(mapCostCenterFromApi(data.data));
+      setIsEditing(true);
+      setFormMessage({
         type: "success",
         message: data.message || "Cost center saved.",
       });
-      setShowForm(false);
-      setIsEditing(false);
-      setCostCenter(emptyCostCenter());
+      await loadUnderOptions(String(data.data.id));
       await loadCostCenters();
     } catch {
       setFormMessage({

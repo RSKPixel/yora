@@ -64,6 +64,46 @@ UPGRADE_STATEMENTS = [
     """,
 ]
 
+MACHINERY_FK_STATEMENTS = [
+    """
+    UPDATE yora_mould_inventory m
+    LEFT JOIN yora_machinery_master mm ON mm.id = m.compatible_machine_id
+    SET m.compatible_machine_id = NULL
+    WHERE m.compatible_machine_id IS NOT NULL
+      AND mm.id IS NULL
+    """,
+    """
+    ALTER TABLE yora_mould_inventory
+    DROP FOREIGN KEY fk_yora_mould_inventory_machine
+    """,
+    """
+    ALTER TABLE yora_mould_inventory
+    ADD CONSTRAINT fk_yora_mould_inventory_machinery
+        FOREIGN KEY (compatible_machine_id) REFERENCES yora_machinery_master (id)
+    """,
+]
+
+
+def _foreign_key_exists(connection, constraint_name: str) -> bool:
+    row = connection.execute(
+        text(
+            """
+            SELECT COUNT(*) AS total
+            FROM information_schema.TABLE_CONSTRAINTS
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME = 'yora_mould_inventory'
+              AND CONSTRAINT_NAME = :constraint_name
+              AND CONSTRAINT_TYPE = 'FOREIGN KEY'
+            """
+        ),
+        {"constraint_name": constraint_name},
+    ).first()
+    return bool(row and row.total)
+
+
+def _machinery_fk_migrated(connection) -> bool:
+    return _foreign_key_exists(connection, "fk_yora_mould_inventory_machinery")
+
 
 def _column_exists(connection, column_name: str) -> bool:
     row = connection.execute(
@@ -93,6 +133,20 @@ def run_migration():
                 except Exception as exc:
                     if "Duplicate" not in str(exc):
                         raise
+
+        if not _machinery_fk_migrated(conn):
+            for statement in MACHINERY_FK_STATEMENTS:
+                try:
+                    conn.execute(text(statement))
+                except Exception as exc:
+                    message = str(exc)
+                    if "Duplicate" in message or "check that column/key exists" in message:
+                        continue
+                    if statement.strip().startswith("ALTER TABLE") and "DROP FOREIGN KEY" in statement:
+                        if "fk_yora_mould_inventory_machine" not in message:
+                            raise
+                        continue
+                    raise
 
     with engine_mysql.connect() as conn:
         rows = conn.execute(

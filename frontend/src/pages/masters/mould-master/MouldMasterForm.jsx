@@ -1,4 +1,6 @@
 import React, { useEffect, useRef } from "react";
+import MachineAutocomplete from "../../../components/MachineAutocomplete";
+import { machineOptionLabel } from "../../../utils/machineryUtils";
 import { validateMould } from "./mouldMasterUtils";
 
 const Field = ({ label, icon, children, className = "" }) => (
@@ -41,6 +43,11 @@ const MouldMasterForm = ({
     }
     onSave(mould);
   };
+
+  const selectedMachine = lookups.machines.find(
+    (machine) => String(machine.id) === String(mould.compatible_machine_id)
+  );
+  const machineDisplayValue = selectedMachine ? machineOptionLabel(selectedMachine) : "";
 
   return (
     <form className="page-master-form mx-auto" onSubmit={handleSubmit}>
@@ -89,6 +96,17 @@ const MouldMasterForm = ({
                 maxLength={150}
                 autoComplete="off"
                 placeholder="Enter mould name"
+              />
+            </Field>
+
+            <Field label="Compatible Machine *" icon="bi-gear-wide-connected" className="page-master-form-field-full">
+              <MachineAutocomplete
+                value={machineDisplayValue}
+                machines={lookups.machines}
+                disabled={lookupsLoading}
+                onSelect={(machineryId) =>
+                  onMouldChange({ ...mould, compatible_machine_id: machineryId })
+                }
               />
             </Field>
 
@@ -164,25 +182,6 @@ const MouldMasterForm = ({
                 }
                 placeholder="Capacity in ml"
               />
-            </Field>
-
-            <Field label="Compatible Machine *" icon="bi-gear-wide-connected">
-              <select
-                name="compatible_machine_id"
-                className="page-field-input w-full min-w-0"
-                value={mould.compatible_machine_id}
-                disabled={lookupsLoading}
-                onChange={(event) =>
-                  onMouldChange({ ...mould, compatible_machine_id: event.target.value })
-                }
-              >
-                <option value="">Select machine…</option>
-                {lookups.machines.map((machine) => (
-                  <option key={machine.id} value={machine.id}>
-                    {machine.cost_center_name}
-                  </option>
-                ))}
-              </select>
             </Field>
 
             <Field label="Current Inventory Location *" icon="bi-geo-alt">

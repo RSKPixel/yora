@@ -1,0 +1,35 @@
+---
+description: Master and transaction form save behavior — stay on form with inline message
+globs: frontend/src/pages/**/*.{jsx,tsx}
+alwaysApply: false
+---
+
+# Master form save behavior
+
+After a successful save or update, **stay on the form**. Only **Cancel** returns to the list.
+
+## On success (`handleSave`)
+
+1. **Do not** call `setShowForm(false)` or reset entity state to empty.
+2. Set `formMessage` with `{ type: "success", message: data.message || "…" }`.
+3. Refresh form state from `data.data` via a `map*FromApi` helper in the module utils.
+4. For new/modify masters: call `setIsEditing(true)` so auto-generated IDs appear and the button reads "Update …".
+5. Reload the list in the background (`await load*()`) so the list is fresh when the user cancels back.
+6. **Do not** set `listMessage` on save — success feedback belongs in `formMessage` on the form.
+
+## On validation or API error
+
+- Set `formMessage` with `{ type: "error", message: … }`.
+- Keep the form open; do not navigate away.
+
+## Form component
+
+- Render `formMessage` **above** `.page-master-form-actions` (inside `.page-master-form-body`, before the action bar).
+- Support both string and array messages.
+
+## Reference implementations
+
+- `frontend/src/pages/masters/mould-master/MouldMaster.jsx`
+- `frontend/src/pages/masters/machinery-master/MachineryMaster.jsx`
+- `frontend/src/pages/masters/cost-center/CostCenter.jsx`
+- `frontend/src/pages/transactions/machinery-service-recorder/MachineryServiceRecorder.jsx`

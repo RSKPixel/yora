@@ -32,10 +32,10 @@ SELECT
     m.capacity_ml,
     m.compatible_machine_id,
     m.inventory_location_id,
-    machine.cost_center_name AS compatible_machine_name,
+    CONCAT(machine.machine_id, ' — ', machine.machine_name) AS compatible_machine_name,
     location.cost_center_name AS inventory_location_name
 FROM yora_mould_inventory m
-LEFT JOIN yora_cost_centers machine ON machine.id = m.compatible_machine_id
+LEFT JOIN yora_machinery_master machine ON machine.id = m.compatible_machine_id
 LEFT JOIN yora_cost_centers location ON location.id = m.inventory_location_id
 """
 
@@ -130,6 +130,15 @@ def _fetch_rows(connection, *, search: str = "") -> list:
     return connection.execute(sql, params).fetchall()
 
 
+def _validate_machinery_master(connection, machinery_id: int) -> None:
+    row = connection.execute(
+        text("SELECT id FROM yora_machinery_master WHERE id = :id LIMIT 1"),
+        {"id": machinery_id},
+    ).first()
+    if not row:
+        raise HTTPException(status_code=400, detail="Selected machine is not valid.")
+
+
 def _validate_cost_center_child(connection, cost_center_id: int, parent_name: str) -> None:
     sql = text(
         """
@@ -175,7 +184,7 @@ def _next_tool_id(connection, purchase_date: date) -> str:
 
 @router.post("/lookups")
 def mould_inventory_lookups():
-    machines_sql = text(
+    locations_sql = text(
         """
         SELECT child.id, child.cost_center_name
         FROM yora_cost_centers parent
@@ -184,10 +193,17 @@ def mould_inventory_lookups():
         ORDER BY child.cost_center_name
         """
     )
+    machines_sql = text(
+        """
+        SELECT id, machine_id, machine_name, machine_type
+        FROM yora_machinery_master
+        ORDER BY machine_id, machine_name
+        """
+    )
 
     with engine_mysql.connect() as conn:
-        machines = conn.execute(machines_sql, {"parent_name": "Machines"}).fetchall()
-        locations = conn.execute(machines_sql, {"parent_name": "Locations"}).fetchall()
+        machines = conn.execute(machines_sql).fetchall()
+        locations = conn.execute(locations_sql, {"parent_name": "Locations"}).fetchall()
 
     return {
         "status": "success",
@@ -196,7 +212,13 @@ def mould_inventory_lookups():
             "mould_types": list(MOULD_TYPES),
             "tool_quality_statuses": list(TOOL_QUALITY_STATUSES),
             "machines": [
-                {"id": row.id, "cost_center_name": row.cost_center_name} for row in machines
+                {
+                    "id": row.id,
+                    "machine_id": row.machine_id,
+                    "machine_name": row.machine_name,
+                    "machine_type": row.machine_type,
+                }
+                for row in machines
             ],
             "locations": [
                 {"id": row.id, "cost_center_name": row.cost_center_name} for row in locations
@@ -318,7 +340,7 @@ def save_mould_inventory(
                     "data": None,
                 }
 
-            _validate_cost_center_child(conn, machine_id, "Machines")
+            _validate_machinery_master(conn, machine_id)
             _validate_cost_center_child(conn, location_id, "Locations")
 
             payload = {
