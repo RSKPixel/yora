@@ -3,7 +3,7 @@
 :root {
   /* font-family: system-ui, Avenir, Helvetica, Arial, sans-serif; */
   font-family: quick-sand, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  font-size: 16px;
+  font-size: 17px;
   line-height: 1.5;
   font-weight: 400;
 
@@ -357,7 +357,7 @@ select {
 }
 
 .app-shell-brand-mark {
-  @apply flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl;
+  @apply flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl;
 }
 
 .app-shell-brand-copy {
@@ -365,11 +365,11 @@ select {
 }
 
 .app-shell-brand-name {
-  @apply block text-base font-bold normal-case tracking-normal text-white/95 leading-none;
+  @apply block text-xl font-bold normal-case tracking-normal text-white/95 leading-none;
 }
 
 .app-shell-brand-tag {
-  @apply mt-0.5 block text-[10px] font-medium normal-case tracking-normal text-sky-400/55;
+  @apply mt-0.5 block text-xs font-medium normal-case tracking-normal text-sky-400/55;
 }
 
 .app-shell-header-center {
@@ -474,6 +474,10 @@ select {
   @apply rounded-xl border border-sky-900/50 bg-neutral-900/85 shadow-2xl backdrop-blur-sm overflow-hidden;
 }
 
+.page-card-fit {
+  @apply mx-auto w-fit max-w-full;
+}
+
 .page-card-header {
   @apply flex flex-row items-center justify-between gap-3 border-b border-sky-900/50 bg-sky-950/80 px-4 py-3;
 }
@@ -558,6 +562,18 @@ select {
 
 .settings-preference-desc {
   @apply text-xs normal-case tracking-normal text-white/40;
+}
+
+.settings-font-size-control {
+  @apply flex items-center gap-3;
+}
+
+.settings-font-size-btn {
+  @apply flex h-8 w-8 items-center justify-center rounded-lg border border-sky-900/55 bg-neutral-900/50 text-sm text-sky-300/85 transition-colors hover:border-sky-700/55 hover:bg-sky-950/60 hover:text-sky-200 disabled:cursor-not-allowed disabled:opacity-40;
+}
+
+.settings-font-size-value {
+  @apply min-w-[4.5rem] text-center text-sm font-semibold tabular-nums normal-case tracking-normal text-white/90;
 }
 
 .settings-style-options {
@@ -1381,8 +1397,16 @@ input.page-field-input-number {
   @apply cursor-not-allowed opacity-60 bg-slate-100 text-slate-500;
 }
 
+.page-card-fit .page-card-body {
+  @apply pb-0;
+}
+
 .page-master-form {
-  @apply max-w-2xl;
+  @apply mx-auto w-full max-w-full;
+}
+
+.page-master-form-body {
+  @apply mx-auto w-fit max-w-full;
 }
 
 .page-master-form-fields {
@@ -1390,19 +1414,31 @@ input.page-field-input-number {
 }
 
 .page-master-form-grid {
-  @apply grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5;
+  @apply grid grid-cols-1 gap-x-1 gap-y-1 sm:grid-cols-2;
 }
 
 .page-master-form-grid .page-master-form-field-full {
-  @apply sm:col-span-2;
+  @apply w-full sm:col-span-2;
 }
 
 .page-master-form-field {
-  @apply space-y-2;
+  @apply w-[17.5rem] max-w-full space-y-2;
 }
 
 .page-master-form-actions {
-  @apply flex flex-wrap items-center gap-3 pt-1;
+  @apply mt-8 flex flex-wrap items-center justify-center gap-4 border-t border-sky-700/50 bg-sky-950/45 pt-5 pb-4 -mx-4;
+}
+
+.page-master-form-actions .btn {
+  @apply min-w-[9.5rem] shadow-lg;
+}
+
+.page-master-form-actions .btn-success {
+  @apply ring-1 ring-emerald-400/35 shadow-emerald-950/45;
+}
+
+.page-master-form-actions .btn-secondary {
+  @apply ring-1 ring-slate-500/30 shadow-black/35;
 }
 
 .page-master-search {

@@ -175,7 +175,7 @@ const CostCenter = () => {
   };
 
   return (
-    <div className="page-card">
+    <div className={`page-card${showForm ? " page-card-fit" : ""}`}>
       <div className="page-card-header">
         <div>
           <div className="page-card-title">

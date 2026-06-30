@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import AuthContext from "./AuthContext";
 import { AppMenuProvider, useAppMenu } from "./AppMenuContext";
 import { MenuStyleProvider, useMenuStyle } from "./MenuStyleContext";
+import { RootFontSizeProvider } from "./RootFontSizeContext";
 import AppShellNavModern from "../components/sidebar/AppShellNavModern";
 import AppShellNavTree from "../components/sidebar/AppShellNavTree";
 import SidebarMenuSearch from "../components/sidebar/SidebarMenuSearch";
@@ -46,6 +47,7 @@ const BasetemplateAi = ({ children }) => {
     <SpotlightProvider>
       <AppMenuProvider>
         <MenuStyleProvider>
+          <RootFontSizeProvider>
           <BasetemplateShell
             user={user}
             company={company}
@@ -58,6 +60,7 @@ const BasetemplateAi = ({ children }) => {
           >
             {children}
           </BasetemplateShell>
+          </RootFontSizeProvider>
         </MenuStyleProvider>
       </AppMenuProvider>
     </SpotlightProvider>
@@ -160,7 +163,7 @@ const BasetemplateShell = ({
           <div className="app-shell-header-start">
             <Link to="/dashboard" className="app-shell-brand">
               <span className="app-shell-brand-mark">
-                <AppIcon size={36} className="h-9 w-9" />
+                <AppIcon size={44} className="h-11 w-11" />
               </span>
               <span className="app-shell-brand-copy">
                 <span className="app-shell-brand-name">YORA ERP</span>

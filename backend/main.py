@@ -11,7 +11,7 @@ from core.auth import AUTH_BYPASS, AUTH_BYPASS_TOKEN, get_current_user
 from core.config import validate_security_config
 from core.limiter import limiter
 from routers import purchase, purchase_orders, sales, stock_report
-from routers import delivery, auth, masters, dashboard, settings, cost_centers
+from routers import delivery, auth, masters, dashboard, settings, cost_centers, mould_inventory
 import uvicorn
 
 validate_security_config()
@@ -92,6 +92,12 @@ app.include_router(
     cost_centers.router,
     prefix="/cost-centers",
     tags=["cost-centers"],
+    dependencies=require_auth,
+)
+app.include_router(
+    mould_inventory.router,
+    prefix="/mould-inventory",
+    tags=["mould-inventory"],
     dependencies=require_auth,
 )
 

@@ -16,6 +16,7 @@ DEFAULT_NAV_MENU = {
             "sort_order": 2,
             "items": [
                 {"label": "Cost Center", "path": "/masters/cost-center", "icon": "bi-building", "sort_order": 1},
+                {"label": "Mould Master", "path": "/masters/mould-master", "icon": "bi-box-seam", "sort_order": 2},
             ],
         },
         {
@@ -173,6 +174,23 @@ def build_nav_menu_response(rows) -> dict:
     return {"topLevel": top_level, "sections": sections}
 
 
+def dedupe_nav_menu_paths(connection) -> None:
+    connection.execute(
+        text(
+            """
+            DELETE n1
+            FROM yora_nav_menu n1
+            INNER JOIN yora_nav_menu n2
+                ON n1.path = n2.path
+                AND n1.path IS NOT NULL
+                AND n1.node_type = 'section_link'
+                AND n2.node_type = 'section_link'
+                AND n1.id > n2.id
+            """
+        )
+    )
+
+
 def remove_retired_nav_items(connection) -> None:
     connection.execute(
         text(
@@ -182,7 +200,8 @@ def remove_retired_nav_items(connection) -> None:
                 '/masters/inventory',
                 '/masters/ledger',
                 '/masters/machinery',
-                '/masters/locations'
+                '/masters/locations',
+                '/transactions/mould-inventory'
             )
             """
         )
@@ -295,5 +314,6 @@ def ensure_nav_menu_defaults(connection) -> dict:
     seed_nav_menu(connection)
     remove_retired_nav_items(connection)
     sync_nav_menu_items(connection)
+    dedupe_nav_menu_paths(connection)
     rows = fetch_nav_menu_rows(connection)
     return build_nav_menu_response(rows)

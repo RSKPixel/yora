@@ -8,6 +8,7 @@ export const DEFAULT_APP_MENU = {
       icon: "bi-database",
       items: [
         { label: "Cost Center", path: "/masters/cost-center", icon: "bi-building" },
+        { label: "Mould Master", path: "/masters/mould-master", icon: "bi-box-seam" },
       ],
     },
     {

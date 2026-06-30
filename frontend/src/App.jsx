@@ -14,6 +14,7 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Settings from "./pages/Settings";
 import CostCenter from "./pages/masters/cost-center/CostCenter";
+import MouldMaster from "./pages/masters/mould-master/MouldMaster";
 import StockJournal from "./pages/stock-movement/stock-journal/StockJournal";
 import Blowing from "./pages/stock-movement/blowing/Blowing";
 
@@ -36,6 +37,7 @@ function App() {
                     <Route path="/" element={<Navigate to="/dashboard" replace />} />
                     <Route path="/masters">
                       <Route path="cost-center" element={<CostCenter />} />
+                      <Route path="mould-master" element={<MouldMaster />} />
                     </Route>
                     <Route path="/transactions">
                       <Route path="purchase-order" element={<PurchaseOrder />} />

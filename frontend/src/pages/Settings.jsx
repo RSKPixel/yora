@@ -5,6 +5,12 @@ import { MENU_STYLE_OPTIONS } from "../config/menuStyle";
 import { useQuickAccess } from "../hooks/useQuickAccess";
 import { useUserProfile } from "../hooks/useUserProfile";
 import { useMenuStyle } from "../templates/MenuStyleContext";
+import { useRootFontSize } from "../templates/RootFontSizeContext";
+import {
+  ROOT_FONT_SIZE_MAX,
+  ROOT_FONT_SIZE_MIN,
+  ROOT_FONT_SIZE_STEP,
+} from "../config/rootFontSize";
 
 const SETTINGS_TABS = [
   { id: "general", label: "General", icon: "bi-sliders" },
@@ -407,6 +413,13 @@ function ProfileTab() {
 
 function GeneralTab() {
   const { menuStyle, setMenuStyle } = useMenuStyle();
+  const {
+    rootFontSize,
+    increaseRootFontSize,
+    decreaseRootFontSize,
+    canIncreaseRootFontSize,
+    canDecreaseRootFontSize,
+  } = useRootFontSize();
 
   return (
     <section className="settings-section" aria-labelledby="general-heading">
@@ -418,6 +431,38 @@ function GeneralTab() {
           <p className="settings-section-desc">
             Application preferences for this browser. Changes apply immediately.
           </p>
+        </div>
+      </div>
+
+      <div className="settings-preference-block">
+        <h3 className="settings-preference-title">Interface font size</h3>
+        <p className="settings-preference-desc">
+          Adjust the base text size across the app in {ROOT_FONT_SIZE_STEP}px steps (
+          {ROOT_FONT_SIZE_MIN}px–{ROOT_FONT_SIZE_MAX}px).
+        </p>
+
+        <div className="settings-font-size-control">
+          <button
+            type="button"
+            className="settings-font-size-btn"
+            aria-label="Decrease font size"
+            disabled={!canDecreaseRootFontSize}
+            onClick={decreaseRootFontSize}
+          >
+            <i className="bi bi-dash-lg" aria-hidden="true" />
+          </button>
+          <span className="settings-font-size-value" aria-live="polite">
+            {rootFontSize % 1 === 0 ? `${rootFontSize}px` : `${rootFontSize.toFixed(1)}px`}
+          </span>
+          <button
+            type="button"
+            className="settings-font-size-btn"
+            aria-label="Increase font size"
+            disabled={!canIncreaseRootFontSize}
+            onClick={increaseRootFontSize}
+          >
+            <i className="bi bi-plus-lg" aria-hidden="true" />
+          </button>
         </div>
       </div>
 

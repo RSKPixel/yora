@@ -43,69 +43,71 @@ const CostCenterForm = ({
   };
 
   return (
-    <form className="page-master-form space-y-5" onSubmit={handleSubmit}>
-      <div className="page-master-form-fields">
-        <div className="page-master-form-grid">
-          <Field label="Cost Center Name *" icon="bi-tag">
-            <input
-              ref={nameRef}
-              type="text"
-              name="cost_center_name"
-              className="page-field-input w-full min-w-0"
-              value={costCenter.cost_center_name}
-              onChange={(event) =>
-                onCostCenterChange({ ...costCenter, cost_center_name: event.target.value })
-              }
-              maxLength={100}
-              autoComplete="off"
-              placeholder="Enter cost center name"
-            />
-          </Field>
+    <form className="page-master-form mx-auto" onSubmit={handleSubmit}>
+      <div className="page-master-form-body">
+        <div className="page-master-form-fields">
+          <div className="page-master-form-grid">
+            <Field label="Cost Center Name *" icon="bi-tag">
+              <input
+                ref={nameRef}
+                type="text"
+                name="cost_center_name"
+                className="page-field-input w-full min-w-0"
+                value={costCenter.cost_center_name}
+                onChange={(event) =>
+                  onCostCenterChange({ ...costCenter, cost_center_name: event.target.value })
+                }
+                maxLength={100}
+                autoComplete="off"
+                placeholder="Enter cost center name"
+              />
+            </Field>
 
-          <Field label="Under" icon="bi-diagram-3">
-            <select
-              name="under_id"
-              className="page-field-input w-full min-w-0"
-              value={costCenter.under_id}
-              disabled={underOptionsLoading}
-              onChange={(event) =>
-                onCostCenterChange({ ...costCenter, under_id: event.target.value })
-              }
-            >
-              {underOptions.map((option) => (
-                <option key={option.id ?? "primary"} value={option.id ?? ""}>
-                  {option.cost_center_name}
-                </option>
-              ))}
-            </select>
-          </Field>
+            <Field label="Under" icon="bi-diagram-3">
+              <select
+                name="under_id"
+                className="page-field-input w-full min-w-0"
+                value={costCenter.under_id}
+                disabled={underOptionsLoading}
+                onChange={(event) =>
+                  onCostCenterChange({ ...costCenter, under_id: event.target.value })
+                }
+              >
+                {underOptions.map((option) => (
+                  <option key={option.id ?? "primary"} value={option.id ?? ""}>
+                    {option.cost_center_name}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          </div>
         </div>
-      </div>
 
-      {formMessage && (
-        <div
-          className={`flex items-start gap-2 rounded-lg border px-3 py-2.5 text-sm normal-case tracking-normal ${
-            formMessage.type === "success"
-              ? "border-emerald-500/30 bg-emerald-950/20 text-emerald-400"
-              : "border-red-500/30 bg-red-950/20 text-red-400"
-          }`}
-        >
-          <i
-            className={`bi mt-0.5 shrink-0 ${
-              formMessage.type === "success" ? "bi-check-circle" : "bi-exclamation-circle"
+        {formMessage && (
+          <div
+            className={`mt-4 flex items-start gap-2 rounded-lg border px-3 py-2.5 text-sm normal-case tracking-normal ${
+              formMessage.type === "success"
+                ? "border-emerald-500/30 bg-emerald-950/20 text-emerald-400"
+                : "border-red-500/30 bg-red-950/20 text-red-400"
             }`}
-          ></i>
-          {Array.isArray(formMessage.message) ? (
-            <div className="space-y-1">
-              {formMessage.message.map((msg) => (
-                <p key={msg}>{msg}</p>
-              ))}
-            </div>
-          ) : (
-            <span>{formMessage.message}</span>
-          )}
-        </div>
-      )}
+          >
+            <i
+              className={`bi mt-0.5 shrink-0 ${
+                formMessage.type === "success" ? "bi-check-circle" : "bi-exclamation-circle"
+              }`}
+            ></i>
+            {Array.isArray(formMessage.message) ? (
+              <div className="space-y-1">
+                {formMessage.message.map((msg) => (
+                  <p key={msg}>{msg}</p>
+                ))}
+              </div>
+            ) : (
+              <span>{formMessage.message}</span>
+            )}
+          </div>
+        )}
+      </div>
 
       <div className="page-master-form-actions">
         <button
