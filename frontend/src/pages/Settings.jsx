@@ -268,7 +268,7 @@ function ProfileTab() {
         <p className="settings-empty">Loading profile…</p>
       ) : (
         <>
-          <form className="settings-profile-form" onSubmit={handleSaveProfile}>
+          <form className="settings-profile-form" onSubmit={handleSaveProfile} autoComplete="off">
             <div className="settings-profile-avatar-row">
               <div className="settings-profile-avatar-wrap">
                 {previewPic ? (
@@ -339,7 +339,7 @@ function ProfileTab() {
                   value={email}
                   disabled={saving}
                   onChange={(event) => setEmail(event.target.value)}
-                  autoComplete="email"
+                  autoComplete="off"
                 />
               </label>
 
@@ -351,7 +351,7 @@ function ProfileTab() {
                   value={phone}
                   disabled={saving}
                   onChange={(event) => setPhone(event.target.value)}
-                  autoComplete="tel"
+                  autoComplete="off"
                 />
               </label>
             </div>
@@ -361,7 +361,7 @@ function ProfileTab() {
             </button>
           </form>
 
-          <form className="settings-profile-form settings-profile-password" onSubmit={handleChangePassword}>
+          <form className="settings-profile-form settings-profile-password" onSubmit={handleChangePassword} autoComplete="off">
             <h3 className="settings-profile-subtitle">Change password</h3>
             <div className="settings-profile-grid">
               <label className="settings-profile-field">
@@ -372,7 +372,7 @@ function ProfileTab() {
                   value={currentPassword}
                   disabled={passwordSaving}
                   onChange={(event) => setCurrentPassword(event.target.value)}
-                  autoComplete="current-password"
+                  autoComplete="off"
                 />
               </label>
 
@@ -384,7 +384,7 @@ function ProfileTab() {
                   value={newPassword}
                   disabled={passwordSaving}
                   onChange={(event) => setNewPassword(event.target.value)}
-                  autoComplete="new-password"
+                  autoComplete="off"
                 />
               </label>
 
@@ -396,7 +396,7 @@ function ProfileTab() {
                   value={confirmPassword}
                   disabled={passwordSaving}
                   onChange={(event) => setConfirmPassword(event.target.value)}
-                  autoComplete="new-password"
+                  autoComplete="off"
                 />
               </label>
             </div>

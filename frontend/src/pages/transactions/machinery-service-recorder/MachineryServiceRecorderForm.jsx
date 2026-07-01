@@ -1,7 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import MachineAutocomplete from "../../../components/MachineAutocomplete";
 import { validateServiceRecord } from "./machineryServiceRecorderUtils";
-import { machineOptionLabel } from "../../../utils/machineryUtils";
 
 const Field = ({ label, icon, children, className = "" }) => (
   <div className={`page-master-form-field ${className}`.trim()}>
@@ -37,7 +36,7 @@ const MachineryServiceRecorderForm = ({
   const selectedMachine = machines.find(
     (machine) => String(machine.id) === String(record.machinery_id)
   );
-  const machineDisplayValue = selectedMachine ? machineOptionLabel(selectedMachine) : "";
+  const machineDisplayValue = selectedMachine?.machine_name?.trim() || "";
 
   const handleMachineSelect = (machineryId, machineId) => {
     onRecordChange({
@@ -58,7 +57,7 @@ const MachineryServiceRecorderForm = ({
   };
 
   return (
-    <form className="page-master-form mx-auto" onSubmit={handleSubmit}>
+    <form className="page-master-form mx-auto" onSubmit={handleSubmit} autoComplete="off">
       <div className="page-master-form-body">
         <div className="page-master-form-fields">
           <div className="page-master-form-grid">
@@ -71,6 +70,7 @@ const MachineryServiceRecorderForm = ({
                 value={machineDisplayValue}
                 machines={machines}
                 disabled={machinesLoading}
+                nameOnly
                 onSelect={(machineryId) => {
                   const selected = machines.find(
                     (machine) => String(machine.id) === String(machineryId)

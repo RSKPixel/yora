@@ -79,7 +79,7 @@ const Login = () => {
                   type="text"
                   value={userId}
                   onChange={(e) => setUserId(e.target.value)}
-                  autoComplete="username"
+                  autoComplete="off"
                   disabled={loading}
                   className="login-input"
                 />
@@ -100,7 +100,7 @@ const Login = () => {
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  autoComplete="current-password"
+                  autoComplete="off"
                   disabled={loading}
                   className="login-input"
                 />

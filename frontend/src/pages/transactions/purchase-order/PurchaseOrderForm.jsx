@@ -27,6 +27,7 @@ const numInput = (value, onChange, { min, max, step = "0.01" } = {}) => (
     max={max}
     step={step}
     onChange={onChange}
+    autoComplete="off"
   />
 );
 
@@ -38,6 +39,7 @@ const readOnlyAmount = (value) => (
     readOnly
     tabIndex={-1}
     aria-readonly="true"
+    autoComplete="off"
   />
 );
 
@@ -198,7 +200,11 @@ const PurchaseOrderForm = ({
   };
 
   return (
-    <div className="flex flex-col gap-4 min-h-0">
+    <form
+      autoComplete="off"
+      className="flex flex-col gap-4 min-h-0"
+      onSubmit={(event) => event.preventDefault()}
+    >
       <section className="rounded-lg border border-gray-700/80 bg-neutral-800/50 p-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="space-y-2">
@@ -513,7 +519,7 @@ const PurchaseOrderForm = ({
           </button>
         </div>
       </div>
-    </div>
+    </form>
   );
 };
 

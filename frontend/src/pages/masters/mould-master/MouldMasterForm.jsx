@@ -50,7 +50,7 @@ const MouldMasterForm = ({
   const machineDisplayValue = selectedMachine ? machineOptionLabel(selectedMachine) : "";
 
   return (
-    <form className="page-master-form mx-auto" onSubmit={handleSubmit}>
+    <form className="page-master-form mx-auto" onSubmit={handleSubmit} autoComplete="off">
       <div className="page-master-form-body">
         <div className="page-master-form-fields">
           <div className="page-master-form-grid">

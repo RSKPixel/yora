@@ -1,0 +1,23 @@
+---
+description: Disable browser autocomplete on all forms and fields
+globs: frontend/src/**/*.{jsx,tsx}
+alwaysApply: true
+---
+
+# Form autocomplete
+
+Always disable **browser** autocomplete on ERP forms. This does not apply to custom in-app pickers (`AutocompleteField`, `MachineAutocomplete`, spotlight search, etc.).
+
+## Required
+
+- Every `<form>` must include `autoComplete="off"`.
+- Every native `<input>`, `<textarea>`, and `<select>` must include `autoComplete="off"`.
+- Do **not** use `autoComplete="username"`, `email`, `tel`, `current-password`, or `new-password`.
+
+## Div-based editors
+
+If a screen uses a `<div>` instead of `<form>` (e.g. purchase order), wrap fields in `<form autoComplete="off" onSubmit={(e) => e.preventDefault()}>` or ensure each field has `autoComplete="off"`.
+
+## Reference
+
+`FormAutoCompleteGuard` in `frontend/src/components/FormAutoCompleteGuard.jsx` enforces this at runtime; still set attributes in JSX for clarity.

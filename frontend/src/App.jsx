@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import "./App.css";
 import "./Buttons.css";
+import FormAutoCompleteGuard from "./components/FormAutoCompleteGuard";
 import BasetemplateAi from "./templates/Basetemplate-ai";
 import { AuthProvider } from "./templates/AuthContext";
 import ProtectedRoute from "./templates/ProtectedRoute";
@@ -26,6 +27,7 @@ function App() {
   return (
     <Router>
       <AuthProvider>
+        <FormAutoCompleteGuard />
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route

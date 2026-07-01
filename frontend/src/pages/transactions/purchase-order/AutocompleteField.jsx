@@ -6,6 +6,7 @@ const AutocompleteField = ({
   items,
   onSelect,
   getLabel,
+  getSearchText,
   getKey,
   getMeta,
   placeholder,
@@ -16,6 +17,7 @@ const AutocompleteField = ({
   const [open, setOpen] = useState(false);
   const [position, setPosition] = useState(null);
   const inputRef = useRef(null);
+  const matchText = getSearchText || getLabel;
 
   useEffect(() => {
     setQuery(value || "");
@@ -48,7 +50,7 @@ const AutocompleteField = ({
 
   const filtered = items
     .filter((item) =>
-      getLabel(item).toLowerCase().includes(query.trim().toLowerCase())
+      matchText(item).toLowerCase().includes(query.trim().toLowerCase())
     )
     .slice(0, 50);
 

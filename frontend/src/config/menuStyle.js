@@ -6,7 +6,7 @@ export const MENU_STYLE_OPTIONS = [
   {
     id: MENU_STYLE_MODERN,
     label: "Modern",
-    description: "Card-based sections with icons — the current sidebar design.",
+    description: "Card-based sections — one section expanded at a time.",
   },
   {
     id: MENU_STYLE_LINUX_TREE,

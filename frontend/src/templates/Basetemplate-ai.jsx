@@ -89,14 +89,12 @@ const BasetemplateShell = ({
   const [expandedSection, setExpandedSection] = useState(null);
 
   useEffect(() => {
-    if (!isTreeMenu) return;
-
     const activeSection = menu.sections.find((section) =>
       section.items.some((item) => isPathActive(location.pathname, item.path))
     );
 
     setExpandedSection(activeSection?.label ?? null);
-  }, [location.pathname, menu.sections, isTreeMenu]);
+  }, [location.pathname, menu.sections]);
 
   const expandSectionForPath = useCallback(
     (path) => {
@@ -262,7 +260,7 @@ const BasetemplateShell = ({
                       ref={sidebarSearchRef}
                       menu={menu}
                       onNavigate={closeSidebar}
-                      onSelectPath={isTreeMenu ? expandSectionForPath : undefined}
+                      onSelectPath={expandSectionForPath}
                     />
                     <button
                       type="button"
@@ -287,13 +285,13 @@ const BasetemplateShell = ({
                         onExpandedSectionChange={setExpandedSection}
                       />
                     ) : (
-                      <div className="space-y-4">
-                        <AppShellNavModern
-                          menu={menu}
-                          menuLoading={menuLoading}
-                          onNavigate={closeSidebar}
-                        />
-                      </div>
+                      <AppShellNavModern
+                        menu={menu}
+                        menuLoading={menuLoading}
+                        onNavigate={closeSidebar}
+                        expandedSection={expandedSection}
+                        onExpandedSectionChange={setExpandedSection}
+                      />
                     )}
                   </nav>
                 </aside>
