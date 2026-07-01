@@ -5,12 +5,9 @@ import { MENU_STYLE_OPTIONS } from "../config/menuStyle";
 import { useQuickAccess } from "../hooks/useQuickAccess";
 import { useUserProfile } from "../hooks/useUserProfile";
 import { useMenuStyle } from "../templates/MenuStyleContext";
+import { useQuickAccessVisibility } from "../templates/QuickAccessVisibilityContext";
+import { useUserPreferences } from "../templates/UserPreferencesContext";
 import { useRootFontSize } from "../templates/RootFontSizeContext";
-import {
-  ROOT_FONT_SIZE_MAX,
-  ROOT_FONT_SIZE_MIN,
-  ROOT_FONT_SIZE_STEP,
-} from "../config/rootFontSize";
 
 const SETTINGS_TABS = [
   { id: "general", label: "General", icon: "bi-sliders" },
@@ -413,6 +410,8 @@ function ProfileTab() {
 
 function GeneralTab() {
   const { menuStyle, setMenuStyle } = useMenuStyle();
+  const { quickAccessVisible, setQuickAccessVisible } = useQuickAccessVisibility();
+  const { dashboardSearchVisible, setDashboardSearchVisible } = useUserPreferences();
   const {
     rootFontSize,
     increaseRootFontSize,
@@ -422,85 +421,88 @@ function GeneralTab() {
   } = useRootFontSize();
 
   return (
-    <section className="settings-section" aria-labelledby="general-heading">
-      <div className="settings-section-header">
-        <div>
-          <h2 id="general-heading" className="settings-section-title">
-            General
-          </h2>
-          <p className="settings-section-desc">
-            Application preferences for this browser. Changes apply immediately.
-          </p>
+    <section className="settings-section settings-general" aria-label="General preferences">
+      <div className="settings-general-list">
+        <div className="settings-general-row">
+          <span className="settings-general-label">Font size</span>
+          <div className="settings-font-size-control">
+            <button
+              type="button"
+              className="settings-font-size-btn"
+              aria-label="Decrease font size"
+              disabled={!canDecreaseRootFontSize}
+              onClick={decreaseRootFontSize}
+            >
+              <i className="bi bi-dash-lg" aria-hidden="true" />
+            </button>
+            <span className="settings-font-size-value" aria-live="polite">
+              {rootFontSize % 1 === 0 ? `${rootFontSize}px` : `${rootFontSize.toFixed(1)}px`}
+            </span>
+            <button
+              type="button"
+              className="settings-font-size-btn"
+              aria-label="Increase font size"
+              disabled={!canIncreaseRootFontSize}
+              onClick={increaseRootFontSize}
+            >
+              <i className="bi bi-plus-lg" aria-hidden="true" />
+            </button>
+          </div>
         </div>
-      </div>
 
-      <div className="settings-preference-block">
-        <h3 className="settings-preference-title">Interface font size</h3>
-        <p className="settings-preference-desc">
-          Adjust the base text size across the app in {ROOT_FONT_SIZE_STEP}px steps (
-          {ROOT_FONT_SIZE_MIN}px–{ROOT_FONT_SIZE_MAX}px).
-        </p>
+        <div className="settings-general-row">
+          <span className="settings-general-label">Menu style</span>
+          <div className="settings-segment" role="radiogroup" aria-label="Navigation menu style">
+            {MENU_STYLE_OPTIONS.map((option) => {
+              const selected = menuStyle === option.id;
 
-        <div className="settings-font-size-control">
+              return (
+                <label
+                  key={option.id}
+                  className={`settings-segment-option${selected ? " settings-segment-option-active" : ""}`}
+                  title={option.description}
+                >
+                  <input
+                    type="radio"
+                    name="menuStyle"
+                    value={option.id}
+                    checked={selected}
+                    onChange={() => setMenuStyle(option.id)}
+                    className="settings-segment-input"
+                  />
+                  {option.label}
+                </label>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="settings-general-row">
+          <span className="settings-general-label">Quick access menu</span>
           <button
             type="button"
-            className="settings-font-size-btn"
-            aria-label="Decrease font size"
-            disabled={!canDecreaseRootFontSize}
-            onClick={decreaseRootFontSize}
+            role="switch"
+            aria-checked={quickAccessVisible}
+            aria-label="Toggle dashboard quick access menu"
+            className={`settings-switch${quickAccessVisible ? " settings-switch-on" : ""}`}
+            onClick={() => setQuickAccessVisible(!quickAccessVisible)}
           >
-            <i className="bi bi-dash-lg" aria-hidden="true" />
-          </button>
-          <span className="settings-font-size-value" aria-live="polite">
-            {rootFontSize % 1 === 0 ? `${rootFontSize}px` : `${rootFontSize.toFixed(1)}px`}
-          </span>
-          <button
-            type="button"
-            className="settings-font-size-btn"
-            aria-label="Increase font size"
-            disabled={!canIncreaseRootFontSize}
-            onClick={increaseRootFontSize}
-          >
-            <i className="bi bi-plus-lg" aria-hidden="true" />
+            <span className="settings-switch-thumb" aria-hidden="true" />
           </button>
         </div>
-      </div>
 
-      <div className="settings-preference-block">
-        <h3 className="settings-preference-title">Navigation menu style</h3>
-        <p className="settings-preference-desc">
-          Choose how the sidebar navigation is displayed.
-        </p>
-
-        <div className="settings-style-options" role="radiogroup" aria-label="Navigation menu style">
-          {MENU_STYLE_OPTIONS.map((option) => {
-            const selected = menuStyle === option.id;
-
-            return (
-              <label
-                key={option.id}
-                className={`settings-style-option${selected ? " settings-style-option-active" : ""}`}
-              >
-                <input
-                  type="radio"
-                  name="menuStyle"
-                  value={option.id}
-                  checked={selected}
-                  onChange={() => setMenuStyle(option.id)}
-                  className="settings-style-option-input"
-                />
-                <span className="settings-style-option-copy">
-                  <span className="settings-style-option-label">{option.label}</span>
-                  <span className="settings-style-option-desc">{option.description}</span>
-                </span>
-                {selected && (
-                  <span className="settings-style-option-check" aria-hidden="true">
-                    <i className="bi bi-check-lg" />
-                  </span>
-                )}
-              </label>
-            );
-          })}
+        <div className="settings-general-row">
+          <span className="settings-general-label">Dashboard search</span>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={dashboardSearchVisible}
+            aria-label="Toggle dashboard search module"
+            className={`settings-switch${dashboardSearchVisible ? " settings-switch-on" : ""}`}
+            onClick={() => setDashboardSearchVisible(!dashboardSearchVisible)}
+          >
+            <span className="settings-switch-thumb" aria-hidden="true" />
+          </button>
         </div>
       </div>
     </section>
@@ -509,10 +511,24 @@ function GeneralTab() {
 
 const Settings = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const { quickAccessVisible } = useQuickAccessVisibility();
   const tabParam = searchParams.get("tab");
-  const activeTab = VALID_TABS.has(tabParam) ? tabParam : "general";
+
+  useEffect(() => {
+    if (!quickAccessVisible && tabParam === "quick-access") {
+      setSearchParams({}, { replace: true });
+    }
+  }, [quickAccessVisible, tabParam, setSearchParams]);
+
+  const activeTab =
+    tabParam === "quick-access" && !quickAccessVisible
+      ? "general"
+      : VALID_TABS.has(tabParam)
+        ? tabParam
+        : "general";
 
   const setActiveTab = (tabId) => {
+    if (tabId === "quick-access" && !quickAccessVisible) return;
     setSearchParams(tabId === "general" ? {} : { tab: tabId }, { replace: true });
   };
 
@@ -538,21 +554,34 @@ const Settings = () => {
       </div>
 
       <nav className="settings-tabs" aria-label="Settings sections">
-        {SETTINGS_TABS.map((tab) => (
-          <button
-            key={tab.id}
-            type="button"
-            className={`settings-tab${activeTab === tab.id ? " settings-tab-active" : ""}`}
-            aria-current={activeTab === tab.id ? "page" : undefined}
-            onClick={() => setActiveTab(tab.id)}
-          >
-            <i className={`bi ${tab.icon}`} aria-hidden="true" />
-            {tab.label}
-          </button>
-        ))}
+        {SETTINGS_TABS.map((tab) => {
+          const disabled = tab.id === "quick-access" && !quickAccessVisible;
+
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              className={`settings-tab${activeTab === tab.id ? " settings-tab-active" : ""}${disabled ? " settings-tab-disabled" : ""}`}
+              aria-current={activeTab === tab.id ? "page" : undefined}
+              aria-disabled={disabled || undefined}
+              disabled={disabled}
+              title={
+                disabled
+                  ? "Enable the dashboard quick access menu in General to configure items."
+                  : undefined
+              }
+              onClick={() => setActiveTab(tab.id)}
+            >
+              <i className={`bi ${tab.icon}`} aria-hidden="true" />
+              {tab.label}
+            </button>
+          );
+        })}
       </nav>
 
-      <div className="page-card-body settings-body">
+      <div
+        className={`page-card-body settings-body${activeTab === "general" ? " settings-body-compact" : ""}`}
+      >
         {renderTab()}
       </div>
     </div>

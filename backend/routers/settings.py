@@ -24,6 +24,22 @@ DEFAULT_QUICK_ACCESS_PATHS = [
     "/reports/stockposition",
 ]
 
+MENU_STYLE_MODERN = "modern"
+MENU_STYLE_LINUX_TREE = "linux_tree"
+MENU_STYLE_VALUES = {MENU_STYLE_MODERN, MENU_STYLE_LINUX_TREE}
+
+ROOT_FONT_SIZE_MIN = 15.0
+ROOT_FONT_SIZE_MAX = 18.0
+ROOT_FONT_SIZE_DEFAULT = 17.0
+ROOT_FONT_SIZE_STEP = 0.5
+
+DEFAULT_USER_PREFERENCES = {
+    "menu_style": MENU_STYLE_MODERN,
+    "root_font_size": ROOT_FONT_SIZE_DEFAULT,
+    "dashboard_quick_access_visible": True,
+    "dashboard_search_visible": True,
+}
+
 
 def _normalize_paths(raw) -> list[str]:
     if isinstance(raw, str):
@@ -178,6 +194,213 @@ def _validate_profile_pic(profile_pic: str) -> Tuple[Optional[str], Optional[str
     if len(profile_pic.encode("utf-8")) > MAX_PROFILE_PIC_BYTES:
         return None, "Profile picture must be 1 MB or smaller."
     return profile_pic, None
+
+
+def _normalize_menu_style(value: Optional[str]) -> str:
+    cleaned = (value or MENU_STYLE_MODERN).strip().lower()
+    if cleaned not in MENU_STYLE_VALUES:
+        return MENU_STYLE_MODERN
+    return cleaned
+
+
+def _normalize_root_font_size(value) -> float:
+    try:
+        parsed = float(value)
+    except (TypeError, ValueError):
+        parsed = ROOT_FONT_SIZE_DEFAULT
+
+    stepped = round(parsed / ROOT_FONT_SIZE_STEP) * ROOT_FONT_SIZE_STEP
+    return float(min(ROOT_FONT_SIZE_MAX, max(ROOT_FONT_SIZE_MIN, stepped)))
+
+
+def _normalize_bool(value, default: bool) -> bool:
+    if value is None:
+        return default
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float)):
+        return bool(value)
+    cleaned = str(value).strip().lower()
+    if cleaned in {"1", "true", "yes", "on"}:
+        return True
+    if cleaned in {"0", "false", "no", "off"}:
+        return False
+    return default
+
+
+def _serialize_user_preferences(row) -> dict:
+    return {
+        "menu_style": _normalize_menu_style(row["menu_style"]),
+        "root_font_size": _normalize_root_font_size(row["root_font_size"]),
+        "dashboard_quick_access_visible": _normalize_bool(
+            row["dashboard_quick_access_visible"],
+            DEFAULT_USER_PREFERENCES["dashboard_quick_access_visible"],
+        ),
+        "dashboard_search_visible": _normalize_bool(
+            row["dashboard_search_visible"],
+            DEFAULT_USER_PREFERENCES["dashboard_search_visible"],
+        ),
+    }
+
+
+def _fetch_user_preferences(connection, user_id: str):
+    return (
+        connection.execute(
+            text(
+                """
+                SELECT
+                    menu_style,
+                    root_font_size,
+                    dashboard_quick_access_visible,
+                    dashboard_search_visible
+                FROM yora_user_preferences
+                WHERE user_id = :user_id
+                LIMIT 1
+                """
+            ),
+            {"user_id": user_id},
+        )
+        .mappings()
+        .first()
+    )
+
+
+def _ensure_user_preferences(connection, user_id: str) -> dict:
+    row = _fetch_user_preferences(connection, user_id)
+    if row:
+        return _serialize_user_preferences(row)
+
+    connection.execute(
+        text(
+            """
+            INSERT INTO yora_user_preferences (
+                user_id,
+                menu_style,
+                root_font_size,
+                dashboard_quick_access_visible,
+                dashboard_search_visible
+            )
+            VALUES (
+                :user_id,
+                :menu_style,
+                :root_font_size,
+                :dashboard_quick_access_visible,
+                :dashboard_search_visible
+            )
+            """
+        ),
+        {"user_id": user_id, **DEFAULT_USER_PREFERENCES},
+    )
+    created = _fetch_user_preferences(connection, user_id)
+    return _serialize_user_preferences(created)
+
+
+def _save_user_preferences(connection, user_id: str, updates: dict) -> dict:
+    current = _ensure_user_preferences(connection, user_id)
+    merged = {**current, **updates}
+
+    connection.execute(
+        text(
+            """
+            INSERT INTO yora_user_preferences (
+                user_id,
+                menu_style,
+                root_font_size,
+                dashboard_quick_access_visible,
+                dashboard_search_visible
+            )
+            VALUES (
+                :user_id,
+                :menu_style,
+                :root_font_size,
+                :dashboard_quick_access_visible,
+                :dashboard_search_visible
+            )
+            ON DUPLICATE KEY UPDATE
+                menu_style = VALUES(menu_style),
+                root_font_size = VALUES(root_font_size),
+                dashboard_quick_access_visible = VALUES(dashboard_quick_access_visible),
+                dashboard_search_visible = VALUES(dashboard_search_visible)
+            """
+        ),
+        {"user_id": user_id, **merged},
+    )
+
+    saved = _fetch_user_preferences(connection, user_id)
+    return _serialize_user_preferences(saved)
+
+
+@router.post("/preferences")
+def get_preferences(current_user: dict = Depends(get_current_user)):
+    try:
+        with engine_mysql.begin() as connection:
+            preferences = _ensure_user_preferences(connection, current_user["user_id"])
+
+        return {
+            "status": "success",
+            "message": "User preferences fetched successfully!",
+            "data": preferences,
+        }
+    except Exception as e:
+        print(e.args)
+        return {
+            "status": "error",
+            "message": f"Unable to load user preferences: {e}",
+            "data": None,
+        }
+
+
+@router.post("/preferences/update")
+def update_preferences(
+    current_user: dict = Depends(get_current_user),
+    menu_style: Optional[str] = Form(None),
+    root_font_size: Optional[str] = Form(None),
+    dashboard_quick_access_visible: Optional[str] = Form(None),
+    dashboard_search_visible: Optional[str] = Form(None),
+):
+    updates = {}
+
+    if menu_style is not None and menu_style.strip() != "":
+        updates["menu_style"] = _normalize_menu_style(menu_style)
+
+    if root_font_size is not None and root_font_size.strip() != "":
+        updates["root_font_size"] = _normalize_root_font_size(root_font_size)
+
+    if dashboard_quick_access_visible is not None and dashboard_quick_access_visible.strip() != "":
+        updates["dashboard_quick_access_visible"] = _normalize_bool(
+            dashboard_quick_access_visible,
+            DEFAULT_USER_PREFERENCES["dashboard_quick_access_visible"],
+        )
+
+    if dashboard_search_visible is not None and dashboard_search_visible.strip() != "":
+        updates["dashboard_search_visible"] = _normalize_bool(
+            dashboard_search_visible,
+            DEFAULT_USER_PREFERENCES["dashboard_search_visible"],
+        )
+
+    if not updates:
+        return {
+            "status": "error",
+            "message": "No preference changes were provided.",
+            "data": None,
+        }
+
+    try:
+        with engine_mysql.begin() as connection:
+            saved = _save_user_preferences(connection, current_user["user_id"], updates)
+
+        return {
+            "status": "success",
+            "message": "User preferences saved successfully!",
+            "data": saved,
+        }
+    except Exception as e:
+        print(e.args)
+        return {
+            "status": "error",
+            "message": f"Unable to save user preferences: {e}",
+            "data": None,
+        }
 
 
 @router.post("/profile")

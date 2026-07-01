@@ -540,12 +540,48 @@ select {
   @apply space-y-6;
 }
 
+.settings-body-compact {
+  @apply space-y-0 px-3 py-2;
+}
+
+.settings-general {
+  @apply space-y-0;
+}
+
+.settings-general-list {
+  @apply divide-y divide-sky-900/40;
+}
+
+.settings-general-row {
+  @apply flex items-center justify-between gap-3 py-2;
+}
+
+.settings-general-label {
+  @apply shrink-0 text-xs font-medium normal-case tracking-normal text-white/75;
+}
+
+.settings-segment {
+  @apply inline-flex rounded-lg border border-sky-900/55 bg-neutral-950/40 p-0.5;
+}
+
+.settings-segment-option {
+  @apply cursor-pointer rounded-md px-2.5 py-1 text-xs font-medium normal-case tracking-normal text-white/45 transition-colors hover:text-white/70;
+}
+
+.settings-segment-option-active {
+  @apply bg-sky-950/55 text-white/90;
+}
+
+.settings-segment-input {
+  @apply sr-only;
+}
+
 .settings-tabs {
   @apply flex flex-wrap gap-1 border-b border-sky-900/50 px-4;
 }
 
 .settings-tab {
-  @apply inline-flex items-center gap-2 border-b-2 border-transparent px-3 py-2.5 text-sm font-medium normal-case tracking-normal text-white/45 transition-colors hover:text-white/70;
+  @apply inline-flex items-center gap-1.5 border-b-2 border-transparent px-2.5 py-2 text-xs font-medium normal-case tracking-normal text-white/45 transition-colors hover:text-white/70;
 }
 
 .settings-tab i {
@@ -558,6 +594,16 @@ select {
 
 .settings-tab-active i {
   @apply text-sky-300;
+}
+
+.settings-tab-disabled,
+.settings-tab:disabled {
+  @apply cursor-not-allowed opacity-40 hover:text-white/45;
+}
+
+.settings-tab-disabled i,
+.settings-tab:disabled i {
+  @apply text-sky-400/40;
 }
 
 .settings-section {
@@ -589,15 +635,39 @@ select {
 }
 
 .settings-font-size-control {
-  @apply flex items-center gap-3;
+  @apply flex items-center gap-2;
 }
 
 .settings-font-size-btn {
-  @apply flex h-8 w-8 items-center justify-center rounded-lg border border-sky-900/55 bg-neutral-900/50 text-sm text-sky-300/85 transition-colors hover:border-sky-700/55 hover:bg-sky-950/60 hover:text-sky-200 disabled:cursor-not-allowed disabled:opacity-40;
+  @apply flex h-7 w-7 items-center justify-center rounded-md border border-sky-900/55 bg-neutral-900/50 text-xs text-sky-300/85 transition-colors hover:border-sky-700/55 hover:bg-sky-950/60 hover:text-sky-200 disabled:cursor-not-allowed disabled:opacity-40;
 }
 
 .settings-font-size-value {
-  @apply min-w-[4.5rem] text-center text-sm font-semibold tabular-nums normal-case tracking-normal text-white/90;
+  @apply min-w-[3.25rem] text-center text-xs font-semibold tabular-nums normal-case tracking-normal text-white/90;
+}
+
+.settings-toggle-row {
+  @apply flex items-center justify-between gap-4;
+}
+
+.settings-toggle-copy {
+  @apply min-w-0 flex-1 space-y-1;
+}
+
+.settings-switch {
+  @apply relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border border-sky-900/55 bg-neutral-800/80 transition-colors hover:border-sky-700/55;
+}
+
+.settings-switch-on {
+  @apply border-sky-500/50 bg-sky-600/70;
+}
+
+.settings-switch-thumb {
+  @apply pointer-events-none inline-block h-4 w-4 translate-x-1 rounded-full bg-white/90 shadow transition-transform;
+}
+
+.settings-switch-on .settings-switch-thumb {
+  @apply translate-x-6;
 }
 
 .settings-style-options {

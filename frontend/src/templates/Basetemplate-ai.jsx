@@ -2,8 +2,8 @@ import React, { useContext, useMemo, useState, useEffect, useCallback, useRef } 
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import AuthContext from "./AuthContext";
 import { AppMenuProvider, useAppMenu } from "./AppMenuContext";
-import { MenuStyleProvider, useMenuStyle } from "./MenuStyleContext";
-import { RootFontSizeProvider } from "./RootFontSizeContext";
+import { UserPreferencesProvider } from "./UserPreferencesContext";
+import { useMenuStyle } from "./MenuStyleContext";
 import AppShellNavModern from "../components/sidebar/AppShellNavModern";
 import AppShellNavTree from "../components/sidebar/AppShellNavTree";
 import SidebarMenuSearch from "../components/sidebar/SidebarMenuSearch";
@@ -46,8 +46,7 @@ const BasetemplateAi = ({ children }) => {
   return (
     <SpotlightProvider>
       <AppMenuProvider>
-        <MenuStyleProvider>
-          <RootFontSizeProvider>
+        <UserPreferencesProvider>
           <BasetemplateShell
             user={user}
             company={company}
@@ -60,8 +59,7 @@ const BasetemplateAi = ({ children }) => {
           >
             {children}
           </BasetemplateShell>
-          </RootFontSizeProvider>
-        </MenuStyleProvider>
+        </UserPreferencesProvider>
       </AppMenuProvider>
     </SpotlightProvider>
   );
