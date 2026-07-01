@@ -1,6 +1,7 @@
 import React, { useCallback, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useQuickAccess } from "../hooks/useQuickAccess";
+import { useSettingsModal } from "../templates/SettingsModalContext";
 
 const DOCK_BASE_SIZE = 52;
 const DOCK_MAX_SCALE = 1.45;
@@ -14,6 +15,7 @@ function getDockScale(distance) {
 
 const QuickAccessDock = () => {
   const { items, loading, error } = useQuickAccess();
+  const { openSettings } = useSettingsModal();
   const dockRef = useRef(null);
   const itemRefs = useRef([]);
 
@@ -65,9 +67,13 @@ const QuickAccessDock = () => {
       <section className="dashboard-dock-section" aria-label="Quick access">
         <div className="dashboard-dock-empty">
           <p className="dashboard-dock-empty-text">No quick access items yet.</p>
-          <Link to="/clientprofile?tab=quick-access" className="dashboard-dock-empty-link">
+          <button
+            type="button"
+            className="dashboard-dock-empty-link"
+            onClick={() => openSettings("quick-access")}
+          >
             Add items in Settings
-          </Link>
+          </button>
         </div>
       </section>
     );

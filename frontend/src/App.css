@@ -498,6 +498,18 @@ select {
   @apply rounded-xl border border-sky-900/50 bg-neutral-900/85 shadow-2xl backdrop-blur-sm overflow-hidden;
 }
 
+.settings-page-card {
+  @apply mx-auto w-[38rem] max-w-full;
+}
+
+.settings-modal {
+  @apply w-[38rem] max-w-full;
+}
+
+.settings-modal .page-modal-body.settings-body {
+  @apply flex-1 min-h-0 p-0 pt-3;
+}
+
 .page-card-fit {
   @apply mx-auto w-fit max-w-full;
 }
@@ -537,11 +549,52 @@ select {
 }
 
 .settings-body {
-  @apply space-y-6;
+  @apply p-0 pt-3;
 }
 
-.settings-body-compact {
-  @apply space-y-0 px-3 py-2;
+.settings-tab-panel {
+  @apply w-full;
+}
+
+.settings-tab-panel .settings-section {
+  @apply px-4;
+}
+
+.settings-tab-panel .page-master-form,
+.settings-tab-panel .page-master-form-body {
+  @apply w-full max-w-full;
+}
+
+.settings-tab-panel .page-master-form-body {
+  @apply px-4;
+}
+
+.settings-tab-panel .page-master-form-grid .page-master-form-field {
+  @apply w-full max-w-full;
+}
+
+.settings-tab-panel .page-master-form-grid {
+  @apply gap-x-4 gap-y-1;
+}
+
+.settings-tab-panel .page-master-form-actions {
+  @apply mx-0 w-full;
+}
+
+.profile-avatar-wrap {
+  @apply flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full border border-sky-900/55 bg-sky-950/50;
+}
+
+.profile-avatar-image {
+  @apply h-full w-full object-cover;
+}
+
+.profile-avatar-fallback {
+  @apply text-lg font-semibold text-sky-200/90;
+}
+
+.settings-profile-actions .btn {
+  @apply inline-flex items-center gap-1.5 min-h-8 px-3 py-1.5 text-xs font-medium normal-case tracking-normal rounded-lg;
 }
 
 .settings-general {
@@ -553,7 +606,7 @@ select {
 }
 
 .settings-general-row {
-  @apply flex items-center justify-between gap-3 py-2;
+  @apply flex items-center justify-between gap-3 px-4 py-2;
 }
 
 .settings-general-label {
@@ -767,62 +820,6 @@ select {
   @apply text-sm normal-case tracking-normal text-emerald-300/90;
 }
 
-.settings-profile-form {
-  @apply space-y-4 rounded-xl border border-sky-900/45 bg-neutral-950/40 p-4;
-}
-
-.settings-profile-password {
-  @apply mt-6;
-}
-
-.settings-profile-subtitle {
-  @apply text-sm font-bold normal-case tracking-normal text-white/85;
-}
-
-.settings-profile-avatar-row {
-  @apply flex flex-wrap items-center gap-4;
-}
-
-.settings-profile-avatar-wrap {
-  @apply flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full border border-sky-900/55 bg-sky-950/50;
-}
-
-.settings-profile-avatar-image {
-  @apply h-full w-full object-cover;
-}
-
-.settings-profile-avatar-fallback {
-  @apply text-2xl font-semibold text-sky-200/90;
-}
-
-.settings-profile-avatar-actions {
-  @apply flex flex-wrap items-center gap-2;
-}
-
-.settings-profile-upload-btn {
-  @apply inline-flex cursor-pointer items-center rounded-lg border border-sky-700/55 bg-sky-900/60 px-3 py-1.5 text-xs font-medium normal-case tracking-normal text-sky-100 transition-colors hover:bg-sky-800/70;
-}
-
-.settings-profile-file-input {
-  @apply hidden;
-}
-
-.settings-profile-grid {
-  @apply grid grid-cols-1 gap-3 md:grid-cols-2;
-}
-
-.settings-profile-field {
-  @apply block space-y-1;
-}
-
-.settings-profile-label {
-  @apply block text-xs font-medium normal-case tracking-normal text-white/50;
-}
-
-.settings-profile-input {
-  @apply w-full rounded-lg border border-sky-900/55 bg-neutral-950/70 px-3 py-2 text-sm normal-case tracking-normal text-white/85 outline-none focus:border-sky-600/60 disabled:cursor-not-allowed disabled:opacity-60;
-}
-
 .dashboard {
   @apply mx-auto flex min-h-[calc(100dvh-10rem)] w-full flex-col gap-6;
 }
@@ -932,7 +929,7 @@ select {
 }
 
 .dashboard-dock-empty-link {
-  @apply mt-2 inline-block text-sm font-medium normal-case tracking-normal text-sky-400/85 hover:text-sky-300;
+  @apply mt-2 inline-block border-0 bg-transparent p-0 text-sm font-medium normal-case tracking-normal text-sky-400/85 hover:text-sky-300 cursor-pointer;
 }
 
 .dashboard-panel {
@@ -1305,6 +1302,10 @@ select {
 
 .page-modal-overlay {
   @apply fixed inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm z-50 p-4;
+}
+
+.page-modal-overlay.settings-modal-overlay {
+  @apply bg-black/40 backdrop-blur-[2px];
 }
 
 .page-modal {

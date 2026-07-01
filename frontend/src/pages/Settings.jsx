@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useSearchParams } from "react-router-dom";
-import DashboardBackLink from "../components/DashboardBackLink";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { MENU_STYLE_OPTIONS } from "../config/menuStyle";
 import { useQuickAccess } from "../hooks/useQuickAccess";
 import { useUserProfile } from "../hooks/useUserProfile";
@@ -8,14 +7,46 @@ import { useMenuStyle } from "../templates/MenuStyleContext";
 import { useQuickAccessVisibility } from "../templates/QuickAccessVisibilityContext";
 import { useUserPreferences } from "../templates/UserPreferencesContext";
 import { useRootFontSize } from "../templates/RootFontSizeContext";
+import {
+  SETTINGS_TABS,
+  useSettingsModal,
+} from "../templates/SettingsModalContext";
 
-const SETTINGS_TABS = [
-  { id: "general", label: "General", icon: "bi-sliders" },
-  { id: "profile", label: "Profile", icon: "bi-person-circle" },
-  { id: "quick-access", label: "Quick Access", icon: "bi-grid" },
-];
+function MasterFormField({ label, icon, children, className = "" }) {
+  return (
+    <div className={`page-master-form-field ${className}`.trim()}>
+      <label className="page-form-label">{label}</label>
+      <div className="page-field-wrap">
+        <span className="page-field-icon" aria-hidden="true">
+          <i className={`bi ${icon}`} />
+        </span>
+        {children}
+      </div>
+    </div>
+  );
+}
 
-const VALID_TABS = new Set(SETTINGS_TABS.map((tab) => tab.id));
+function MasterFormMessage({ type, message }) {
+  if (!message) return null;
+
+  return (
+    <div
+      className={`flex items-start gap-2 rounded-lg border px-3 py-2.5 text-sm normal-case tracking-normal ${
+        type === "success"
+          ? "border-emerald-500/30 bg-emerald-950/20 text-emerald-400"
+          : "border-red-500/30 bg-red-950/20 text-red-400"
+      }`}
+    >
+      <i
+        className={`bi mt-0.5 shrink-0 ${
+          type === "success" ? "bi-check-circle" : "bi-exclamation-circle"
+        }`}
+        aria-hidden="true"
+      />
+      <span>{message}</span>
+    </div>
+  );
+}
 
 function QuickAccessTab() {
   const {
@@ -149,13 +180,10 @@ function ProfileTab() {
     profile,
     loading,
     saving,
-    passwordSaving,
     error,
     success,
     setError,
-    setSuccess,
     saveProfile,
-    changePassword,
   } = useUserProfile();
 
   const [name, setName] = useState("");
@@ -164,9 +192,6 @@ function ProfileTab() {
   const [previewPic, setPreviewPic] = useState("");
   const [pendingPic, setPendingPic] = useState("");
   const [removeProfilePic, setRemoveProfilePic] = useState(false);
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const fileInputRef = useRef(null);
 
   useEffect(() => {
@@ -215,7 +240,6 @@ function ProfileTab() {
 
   const handleSaveProfile = async (event) => {
     event.preventDefault();
-    setSuccess(null);
     await saveProfile({
       name,
       email,
@@ -224,6 +248,141 @@ function ProfileTab() {
       removeProfilePic,
     });
   };
+
+  const avatarInitial = (name || profile.user_id || "?").charAt(0).toUpperCase();
+  const profileFeedback = error || success;
+
+  if (loading) {
+    return <p className="settings-empty text-xs">Loading profile…</p>;
+  }
+
+  if (error && !profile.user_id) {
+    return <MasterFormMessage type="error" message={error} />;
+  }
+
+  return (
+    <form className="page-master-form" onSubmit={handleSaveProfile} autoComplete="off">
+      <div className="page-master-form-body">
+        <div className="page-master-form-fields">
+          <div className="page-master-form-grid">
+            <div className="page-master-form-field page-master-form-field-full">
+              <label className="page-form-label">Profile picture</label>
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="profile-avatar-wrap">
+                  {previewPic ? (
+                    <img src={previewPic} alt="" className="profile-avatar-image" />
+                  ) : (
+                    <span className="profile-avatar-fallback" aria-hidden="true">
+                      {avatarInitial}
+                    </span>
+                  )}
+                </div>
+                <div className="settings-profile-actions flex flex-wrap items-center gap-2">
+                  <label className="btn btn-secondary cursor-pointer">
+                    <i className="bi bi-upload" aria-hidden="true" />
+                    Change photo
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      className="sr-only"
+                      disabled={saving}
+                      autoComplete="off"
+                      onChange={handlePicChange}
+                    />
+                  </label>
+                  {(previewPic || profile.profile_pic) && (
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      disabled={saving}
+                      onClick={handleRemovePic}
+                    >
+                      <i className="bi bi-trash" aria-hidden="true" />
+                      Remove
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <MasterFormField label="User ID" icon="bi-person-badge">
+              <input
+                type="text"
+                className="page-field-input w-full min-w-0"
+                value={profile.user_id}
+                disabled
+                autoComplete="off"
+              />
+            </MasterFormField>
+
+            <MasterFormField label="Name *" icon="bi-person">
+              <input
+                type="text"
+                className="page-field-input w-full min-w-0"
+                value={name}
+                disabled={saving}
+                onChange={(event) => setName(event.target.value)}
+                required
+                autoComplete="off"
+              />
+            </MasterFormField>
+
+            <MasterFormField label="Email" icon="bi-envelope">
+              <input
+                type="email"
+                className="page-field-input w-full min-w-0"
+                value={email}
+                disabled={saving}
+                onChange={(event) => setEmail(event.target.value)}
+                autoComplete="off"
+              />
+            </MasterFormField>
+
+            <MasterFormField label="Phone" icon="bi-telephone">
+              <input
+                type="tel"
+                className="page-field-input w-full min-w-0"
+                value={phone}
+                disabled={saving}
+                onChange={(event) => setPhone(event.target.value)}
+                autoComplete="off"
+              />
+            </MasterFormField>
+          </div>
+
+          {profileFeedback && (
+            <MasterFormMessage
+              type={error ? "error" : "success"}
+              message={profileFeedback}
+            />
+          )}
+        </div>
+      </div>
+
+      <div className="page-master-form-actions">
+        <button type="submit" className="btn btn-success" disabled={saving}>
+          <i className="bi bi-check-lg" aria-hidden="true" />
+          {saving ? "Saving…" : "Save profile"}
+        </button>
+      </div>
+    </form>
+  );
+}
+
+function PasswordTab() {
+  const {
+    passwordSaving,
+    error,
+    success,
+    setError,
+    setSuccess,
+    changePassword,
+  } = useUserProfile();
+
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   const handleChangePassword = async (event) => {
     event.preventDefault();
@@ -242,169 +401,64 @@ function ProfileTab() {
     }
   };
 
-  const avatarInitial = (name || profile.user_id || "?").charAt(0).toUpperCase();
+  const feedback = error || success;
 
   return (
-    <section className="settings-section" aria-labelledby="profile-heading">
-      <div className="settings-section-header">
-        <div>
-          <h2 id="profile-heading" className="settings-section-title">
-            User Profile
-          </h2>
-          <p className="settings-section-desc">
-            Update your display name, contact details, profile picture, and password.
-          </p>
+    <form className="page-master-form" onSubmit={handleChangePassword} autoComplete="off">
+      <div className="page-master-form-body">
+        <div className="page-master-form-fields">
+          <div className="page-master-form-grid">
+            <MasterFormField
+              label="Current password"
+              icon="bi-key"
+              className="page-master-form-field-full"
+            >
+              <input
+                type="password"
+                className="page-field-input w-full min-w-0"
+                value={currentPassword}
+                disabled={passwordSaving}
+                onChange={(event) => setCurrentPassword(event.target.value)}
+                autoComplete="off"
+              />
+            </MasterFormField>
+
+            <MasterFormField label="New password" icon="bi-shield-lock">
+              <input
+                type="password"
+                className="page-field-input w-full min-w-0"
+                value={newPassword}
+                disabled={passwordSaving}
+                onChange={(event) => setNewPassword(event.target.value)}
+                autoComplete="off"
+              />
+            </MasterFormField>
+
+            <MasterFormField label="Confirm new password" icon="bi-shield-check">
+              <input
+                type="password"
+                className="page-field-input w-full min-w-0"
+                value={confirmPassword}
+                disabled={passwordSaving}
+                onChange={(event) => setConfirmPassword(event.target.value)}
+                autoComplete="off"
+              />
+            </MasterFormField>
+          </div>
+
+          {feedback && (
+            <MasterFormMessage type={error ? "error" : "success"} message={feedback} />
+          )}
         </div>
       </div>
 
-      {error && <p className="settings-error">{error}</p>}
-      {success && <p className="settings-success">{success}</p>}
-      {(saving || passwordSaving) && <p className="settings-note">Saving…</p>}
-
-      {loading ? (
-        <p className="settings-empty">Loading profile…</p>
-      ) : (
-        <>
-          <form className="settings-profile-form" onSubmit={handleSaveProfile} autoComplete="off">
-            <div className="settings-profile-avatar-row">
-              <div className="settings-profile-avatar-wrap">
-                {previewPic ? (
-                  <img
-                    src={previewPic}
-                    alt=""
-                    className="settings-profile-avatar-image"
-                  />
-                ) : (
-                  <span className="settings-profile-avatar-fallback" aria-hidden="true">
-                    {avatarInitial}
-                  </span>
-                )}
-              </div>
-              <div className="settings-profile-avatar-actions">
-                <label className="settings-profile-upload-btn">
-                  Change photo
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    className="settings-profile-file-input"
-                    disabled={saving}
-                    onChange={handlePicChange}
-                  />
-                </label>
-                {(previewPic || profile.profile_pic) && (
-                  <button
-                    type="button"
-                    className="settings-reset-btn"
-                    disabled={saving}
-                    onClick={handleRemovePic}
-                  >
-                    Remove photo
-                  </button>
-                )}
-              </div>
-            </div>
-
-            <div className="settings-profile-grid">
-              <label className="settings-profile-field">
-                <span className="settings-profile-label">User ID</span>
-                <input
-                  type="text"
-                  className="settings-profile-input"
-                  value={profile.user_id}
-                  disabled
-                />
-              </label>
-
-              <label className="settings-profile-field">
-                <span className="settings-profile-label">Name</span>
-                <input
-                  type="text"
-                  className="settings-profile-input"
-                  value={name}
-                  disabled={saving}
-                  onChange={(event) => setName(event.target.value)}
-                  required
-                />
-              </label>
-
-              <label className="settings-profile-field">
-                <span className="settings-profile-label">Email</span>
-                <input
-                  type="email"
-                  className="settings-profile-input"
-                  value={email}
-                  disabled={saving}
-                  onChange={(event) => setEmail(event.target.value)}
-                  autoComplete="off"
-                />
-              </label>
-
-              <label className="settings-profile-field">
-                <span className="settings-profile-label">Phone</span>
-                <input
-                  type="tel"
-                  className="settings-profile-input"
-                  value={phone}
-                  disabled={saving}
-                  onChange={(event) => setPhone(event.target.value)}
-                  autoComplete="off"
-                />
-              </label>
-            </div>
-
-            <button type="submit" className="settings-add-btn" disabled={saving}>
-              Save profile
-            </button>
-          </form>
-
-          <form className="settings-profile-form settings-profile-password" onSubmit={handleChangePassword} autoComplete="off">
-            <h3 className="settings-profile-subtitle">Change password</h3>
-            <div className="settings-profile-grid">
-              <label className="settings-profile-field">
-                <span className="settings-profile-label">Current password</span>
-                <input
-                  type="password"
-                  className="settings-profile-input"
-                  value={currentPassword}
-                  disabled={passwordSaving}
-                  onChange={(event) => setCurrentPassword(event.target.value)}
-                  autoComplete="off"
-                />
-              </label>
-
-              <label className="settings-profile-field">
-                <span className="settings-profile-label">New password</span>
-                <input
-                  type="password"
-                  className="settings-profile-input"
-                  value={newPassword}
-                  disabled={passwordSaving}
-                  onChange={(event) => setNewPassword(event.target.value)}
-                  autoComplete="off"
-                />
-              </label>
-
-              <label className="settings-profile-field">
-                <span className="settings-profile-label">Confirm new password</span>
-                <input
-                  type="password"
-                  className="settings-profile-input"
-                  value={confirmPassword}
-                  disabled={passwordSaving}
-                  onChange={(event) => setConfirmPassword(event.target.value)}
-                  autoComplete="off"
-                />
-              </label>
-            </div>
-
-            <button type="submit" className="settings-add-btn" disabled={passwordSaving}>
-              Update password
-            </button>
-          </form>
-        </>
-      )}
-    </section>
+      <div className="page-master-form-actions">
+        <button type="submit" className="btn btn-success" disabled={passwordSaving}>
+          <i className="bi bi-check-lg" aria-hidden="true" />
+          {passwordSaving ? "Saving…" : "Update password"}
+        </button>
+      </div>
+    </form>
   );
 }
 
@@ -421,7 +475,7 @@ function GeneralTab() {
   } = useRootFontSize();
 
   return (
-    <section className="settings-section settings-general" aria-label="General preferences">
+    <section className="settings-general" aria-label="General preferences">
       <div className="settings-general-list">
         <div className="settings-general-row">
           <span className="settings-general-label">Font size</span>
@@ -509,50 +563,24 @@ function GeneralTab() {
   );
 }
 
-const Settings = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
+export function SettingsPanel({ activeTab, onActiveTabChange }) {
   const { quickAccessVisible } = useQuickAccessVisibility();
-  const tabParam = searchParams.get("tab");
 
   useEffect(() => {
-    if (!quickAccessVisible && tabParam === "quick-access") {
-      setSearchParams({}, { replace: true });
+    if (!quickAccessVisible && activeTab === "quick-access") {
+      onActiveTabChange("general");
     }
-  }, [quickAccessVisible, tabParam, setSearchParams]);
-
-  const activeTab =
-    tabParam === "quick-access" && !quickAccessVisible
-      ? "general"
-      : VALID_TABS.has(tabParam)
-        ? tabParam
-        : "general";
-
-  const setActiveTab = (tabId) => {
-    if (tabId === "quick-access" && !quickAccessVisible) return;
-    setSearchParams(tabId === "general" ? {} : { tab: tabId }, { replace: true });
-  };
+  }, [quickAccessVisible, activeTab, onActiveTabChange]);
 
   const renderTab = () => {
     if (activeTab === "quick-access") return <QuickAccessTab />;
     if (activeTab === "profile") return <ProfileTab />;
+    if (activeTab === "password") return <PasswordTab />;
     return <GeneralTab />;
   };
 
   return (
-    <div className="page-card">
-      <div className="page-card-header">
-        <div>
-          <h1 className="page-card-title">
-            <span className="page-card-title-icon" aria-hidden="true">
-              <i className="bi bi-gear" />
-            </span>
-            Settings
-          </h1>
-          <p className="page-card-subtitle">Personalize your workspace</p>
-        </div>
-        <DashboardBackLink />
-      </div>
-
+    <>
       <nav className="settings-tabs" aria-label="Settings sections">
         {SETTINGS_TABS.map((tab) => {
           const disabled = tab.id === "quick-access" && !quickAccessVisible;
@@ -570,7 +598,7 @@ const Settings = () => {
                   ? "Enable the dashboard quick access menu in General to configure items."
                   : undefined
               }
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => onActiveTabChange(tab.id)}
             >
               <i className={`bi ${tab.icon}`} aria-hidden="true" />
               {tab.label}
@@ -579,13 +607,28 @@ const Settings = () => {
         })}
       </nav>
 
-      <div
-        className={`page-card-body settings-body${activeTab === "general" ? " settings-body-compact" : ""}`}
-      >
-        {renderTab()}
+      <div className="page-modal-body settings-body">
+        <div className="settings-tab-panel">{renderTab()}</div>
       </div>
-    </div>
+    </>
   );
-};
+}
 
-export default Settings;
+export function SettingsRouteRedirect() {
+  const { openSettings } = useSettingsModal();
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    openSettings(searchParams.get("tab") || "general");
+
+    if (window.history.length > 1) {
+      navigate(-1);
+      return;
+    }
+
+    navigate("/dashboard", { replace: true });
+  }, [openSettings, navigate, searchParams]);
+
+  return null;
+}

@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import AuthContext from "./AuthContext";
 import { AppMenuProvider, useAppMenu } from "./AppMenuContext";
 import { UserPreferencesProvider } from "./UserPreferencesContext";
+import { SettingsModalProvider, useSettingsModal } from "./SettingsModalContext";
 import { useMenuStyle } from "./MenuStyleContext";
 import AppShellNavModern from "../components/sidebar/AppShellNavModern";
 import AppShellNavTree from "../components/sidebar/AppShellNavTree";
@@ -47,18 +48,20 @@ const BasetemplateAi = ({ children }) => {
     <SpotlightProvider>
       <AppMenuProvider>
         <UserPreferencesProvider>
-          <BasetemplateShell
-            user={user}
-            company={company}
-            isAuthenticated={isAuthenticated}
-            sidebarOpen={sidebarOpen}
-            sidebarPinned={sidebarPinned}
-            setSidebarOpen={setSidebarOpen}
-            onToggleSidebarPin={toggleSidebarPin}
-            onLogout={handleLogout}
-          >
-            {children}
-          </BasetemplateShell>
+          <SettingsModalProvider>
+            <BasetemplateShell
+              user={user}
+              company={company}
+              isAuthenticated={isAuthenticated}
+              sidebarOpen={sidebarOpen}
+              sidebarPinned={sidebarPinned}
+              setSidebarOpen={setSidebarOpen}
+              onToggleSidebarPin={toggleSidebarPin}
+              onLogout={handleLogout}
+            >
+              {children}
+            </BasetemplateShell>
+          </SettingsModalProvider>
         </UserPreferencesProvider>
       </AppMenuProvider>
     </SpotlightProvider>
@@ -79,6 +82,7 @@ const BasetemplateShell = ({
   const { overlayOpen, closeOverlay } = useSpotlight();
   const { menu, loading: menuLoading } = useAppMenu();
   const { menuStyle } = useMenuStyle();
+  const { openSettings } = useSettingsModal();
   const location = useLocation();
   const userInitials = useMemo(() => getUserInitials(user?.name), [user?.name]);
   const isDashboard = location.pathname === "/dashboard";
@@ -210,10 +214,15 @@ const BasetemplateShell = ({
                   <div className="app-shell-user-dropdown-header">
                     <p className="app-shell-user-dropdown-name">{user.name}</p>
                   </div>
-                  <Link to="/clientprofile" className="app-shell-user-dropdown-item" role="menuitem">
+                  <button
+                    type="button"
+                    className="app-shell-user-dropdown-item"
+                    role="menuitem"
+                    onClick={() => openSettings("general")}
+                  >
                     <i className="bi bi-gear" aria-hidden="true"></i>
                     Settings
-                  </Link>
+                  </button>
                   <button
                     type="button"
                     onClick={onLogout}

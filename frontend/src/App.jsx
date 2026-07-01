@@ -13,7 +13,7 @@ import StockSummary from "./pages/reports/stock-report/StockSummary";
 import Sales from "./pages/transactions/sales/Sales";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
-import Settings from "./pages/Settings";
+import { SettingsRouteRedirect } from "./pages/Settings";
 import CostCenter from "./pages/masters/cost-center/CostCenter";
 import MouldMaster from "./pages/masters/mould-master/MouldMaster";
 import MachineryMaster from "./pages/masters/machinery-master/MachineryMaster";
@@ -37,7 +37,7 @@ function App() {
                 <BasetemplateAi>
                   <Routes>
                     <Route path="/dashboard" element={<Dashboard />} />
-                    <Route path="/clientprofile" element={<Settings />} />
+                    <Route path="/clientprofile" element={<SettingsRouteRedirect />} />
                     <Route path="/" element={<Navigate to="/dashboard" replace />} />
                     <Route path="/masters">
                       <Route path="cost-center" element={<CostCenter />} />
