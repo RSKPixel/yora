@@ -1,0 +1,53 @@
+---
+description: Standard company letterhead for A4 PDF exports
+alwaysApply: true
+---
+
+# PDF company letterhead
+
+When the user asks for **company letterhead** (or PDF header with company details), use the shared helper in `frontend/src/utils/pdfCompanyLetterhead.js`.
+
+Do not recreate header layout/spacing/font sizes in individual PDF files.
+
+## Required helper
+
+```js
+import {
+  drawCompanyLetterhead,
+  addPdfReportTitle,
+  LETTERHEAD_MARGIN,
+} from "../../../utils/pdfCompanyLetterhead";
+import {
+  loadPdfCandaraFonts,
+  registerPdfCandaraFonts,
+} from "../../../utils/pdfCandaraFont";
+
+const fonts = await loadPdfCandaraFonts();
+const doc = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
+registerPdfCandaraFonts(doc, fonts);
+
+const { y, pageWidth, margin } = drawCompanyLetterhead(doc, company);
+let contentY = addPdfReportTitle(doc, pageWidth, "Purchase Report", y);
+```
+
+## Exact letterhead spec
+
+- Font: **Candara** (`pdfCandaraFont.js`, files in `frontend/public/fonts/`)
+- A4 portrait, margin **14mm**, start Y **16mm**
+- **Company name**: title case, **23pt bold**, tight bottom gap (line height **2**), then separator
+- **Middle block** (vertically centered between separators, block height **14mm**):
+  - Line 1: `address, area, city, state - pincode` at **11pt**
+  - Line 2: `GSTIN: {gstin}` at **11pt bold**
+- Separator, then **5mm** gap
+- **Contact line** at **11pt**: `Phone:` / `Email:` normal, values **bold**
+- Report title below letterhead: title case, **16pt bold** (via `addPdfReportTitle`)
+
+## Company data
+
+Use fresh company from `POST /masters/company` before PDF generation when possible. Required fields:
+
+`company_name`, `address`, `area`, `city`, `state`, `pincode`, `gstin`, `phone`, `email`
+
+## Reference implementation
+
+`frontend/src/pages/reports/purchase/purchaseReportPdf.js`

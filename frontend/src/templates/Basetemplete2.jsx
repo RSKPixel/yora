@@ -18,6 +18,7 @@ const Basetemplate2 = ({ children }) => {
       "Stock Report": "/reports/stockposition",
       "Stock Summary": "/reports/stocksummary",
       "Purchase Order Report": "/reports/purchaseorder",
+      "Purchase Report": "/reports/purchase",
     },
   };
 

@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Form
 from core.dependencies import engine_mysql
 from sqlalchemy import text, bindparam
+from sqlalchemy.exc import SQLAlchemyError
 import json
 from fastapi import HTTPException
 from datetime import date, datetime
@@ -471,4 +472,104 @@ def purchase(
         "status": "success",
         "message": "Purchase fetched successfully!",
         "data": purchases,
+    }
+
+
+@router.post("/report")
+def purchase_report(
+    date_from: str = Form(...),
+    date_to: str = Form(...),
+    vendor: str = Form(...),
+    group: str = Form(""),
+):
+    """Purchase quantities grouped by stock item for a vendor."""
+    date_from = date_from.strip()
+    date_to = date_to.strip()
+    vendor = vendor.strip()
+    group = group.strip()
+
+    if not vendor:
+        raise HTTPException(
+            status_code=400,
+            detail="Vendor is required.",
+        )
+
+    if date_from > date_to:
+        raise HTTPException(
+            status_code=400,
+            detail="From date cannot be after to date.",
+        )
+
+    group_filter = "AND TRIM(si.parent) = :group" if group else ""
+
+    report_sql = text(
+        f"""
+        SELECT
+            pd.stock_item,
+            COALESCE(SUM(pd.carton), 0) AS carton,
+            COALESCE(SUM(pd.qty), 0) AS qty,
+            CASE
+                WHEN COALESCE(SUM(pd.qty), 0) > 0
+                THEN SUM(pd.qty * COALESCE(pd.list_price, 0)) / SUM(pd.qty)
+                ELSE NULL
+            END AS list_price
+        FROM yora_purchase p
+        INNER JOIN yora_purchase_details pd
+            ON pd.purchase_id = p.purchase_id
+            AND pd.purchase_date = p.purchase_date
+        INNER JOIN yora_stockitems si
+            ON si.stock_item = pd.stock_item
+        WHERE p.purchase_date BETWEEN :date_from AND :date_to
+          AND p.vendor = :vendor
+          {group_filter}
+        GROUP BY pd.stock_item
+        ORDER BY pd.stock_item ASC
+        """
+    )
+
+    try:
+        with engine_mysql.connect() as connection:
+            rows = (
+                connection.execute(
+                    report_sql,
+                    {
+                        "date_from": date_from,
+                        "date_to": date_to,
+                        "vendor": vendor,
+                        "group": group,
+                    },
+                )
+                .mappings()
+                .all()
+            )
+    except SQLAlchemyError as exc:
+        raise HTTPException(
+            status_code=500,
+            detail="Unable to generate purchase report. Please try again later.",
+        ) from exc
+
+    report_rows = [_serialize_row(dict(row)) for row in rows]
+    totals = {
+        "carton": sum(float(row.get("carton") or 0) for row in report_rows),
+        "qty": sum(float(row.get("qty") or 0) for row in report_rows),
+    }
+
+    return {
+        "status": "success",
+        "message": (
+            "Purchase report generated."
+            if report_rows
+            else "No purchases found for the selected filters."
+        ),
+        "data": {
+            "date_from": date_from,
+            "date_to": date_to,
+            "vendor": vendor,
+            "group": group,
+            "rows": report_rows,
+            "totals": totals,
+            "summary": {
+                "row_count": len(report_rows),
+            },
+        },
     }

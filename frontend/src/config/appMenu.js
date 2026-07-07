@@ -38,6 +38,7 @@ export const DEFAULT_APP_MENU = {
         { label: "Stock Report", path: "/reports/stockposition", icon: "bi-boxes" },
         { label: "Stock Summary", path: "/reports/stocksummary", icon: "bi-pie-chart" },
         { label: "Purchase Order Report", path: "/reports/purchaseorder", icon: "bi-file-earmark-bar-graph" },
+        { label: "Purchase Report", path: "/reports/purchase", icon: "bi-cart-check" },
       ],
     },
   ],

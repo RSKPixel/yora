@@ -1,0 +1,43 @@
+---
+description: Display dates as dd-mm-yyyy across the ERP UI
+alwaysApply: true
+---
+
+# Date display format
+
+Use **dd-mm-yyyy** (`DD-MM-YYYY`) for every user-visible date in the app.
+
+## Display vs storage
+
+- **Display** (tables, summaries, PDFs, labels, toasts): `dd-mm-yyyy`
+- **Storage/API/forms** (`<input type="date">`, request payloads): keep ISO `yyyy-mm-dd`
+
+Do not show raw `2026-04-01` to users when a formatted date is intended.
+
+## Frontend helper
+
+Use `formatDisplayDate` / `formatDisplayDateRange` from `frontend/src/utils/formatDisplayDate.js`.
+
+PDF exports use **Candara** via `frontend/src/utils/pdfCandaraFont.js` and `frontend/public/fonts/Candara-*.ttf`.
+
+Company letterhead for PDFs: use `drawCompanyLetterhead()` from `frontend/src/utils/pdfCompanyLetterhead.js` (see `.cursor/rules/pdf-company-letterhead.mdc`).
+
+```jsx
+import { formatDisplayDate, formatDisplayDateRange } from "../../../utils/formatDisplayDate";
+
+<span>{formatDisplayDate(invoice.invoice_date)}</span>
+<span>{formatDisplayDateRange(filters.date_from, filters.date_to)}</span>
+```
+
+With moment where already used: `moment(value).format("DD-MM-YYYY")`.
+
+## Rules
+
+- New UI date output: use the shared helper (or `DD-MM-YYYY` in moment).
+- Date range summaries: `01-04-2026 to 31-03-2027`, not ISO strings.
+- PDFs/exports: same display format.
+- Do not change API contracts or `<input type="date">` values to dd-mm-yyyy.
+
+## Reference
+
+Already aligned: Sales, Purchases, PO lists, master lists, PDFs. Report summaries should use the shared helper.

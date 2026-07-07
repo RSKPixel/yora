@@ -100,7 +100,8 @@ def company():
             state,
             pincode,
             email,
-            phone
+            phone,
+            gstin
         FROM yora_company
         LIMIT 1
         """
@@ -128,5 +129,6 @@ def company():
             "pincode": row.pincode,
             "email": row.email,
             "phone": row.phone,
+            "gstin": row.gstin,
         },
     }

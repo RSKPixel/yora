@@ -49,6 +49,7 @@ DEFAULT_NAV_MENU = {
                 {"label": "Stock Report", "path": "/reports/stockposition", "icon": "bi-boxes", "sort_order": 1},
                 {"label": "Stock Summary", "path": "/reports/stocksummary", "icon": "bi-pie-chart", "sort_order": 2},
                 {"label": "Purchase Order Report", "path": "/reports/purchaseorder", "icon": "bi-file-earmark-bar-graph", "sort_order": 3},
+                {"label": "Purchase Report", "path": "/reports/purchase", "icon": "bi-cart-check", "sort_order": 4},
             ],
         },
     ],

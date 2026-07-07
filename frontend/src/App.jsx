@@ -8,6 +8,7 @@ import ProtectedRoute from "./templates/ProtectedRoute";
 import Purchase from "./pages/transactions/purchase/Purchase";
 import PurchaseOrder from "./pages/transactions/purchase-order/PurchaseOrder";
 import PurchaseOrderReport from "./pages/reports/purchase-order/PurchaseOrderReport";
+import PurchaseReport from "./pages/reports/purchase/PurchaseReport";
 import StockReport from "./pages/reports/stock-report/StockReport";
 import StockSummary from "./pages/reports/stock-report/StockSummary";
 import Sales from "./pages/transactions/sales/Sales";
@@ -58,6 +59,7 @@ function App() {
                       <Route path="stockposition" element={<StockReport />} />
                       <Route path="stocksummary" element={<StockSummary />} />
                       <Route path="purchaseorder" element={<PurchaseOrderReport />} />
+                      <Route path="purchase" element={<PurchaseReport />} />
                     </Route>
                   </Routes>
                 </BasetemplateAi>

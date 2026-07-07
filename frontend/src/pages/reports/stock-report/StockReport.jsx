@@ -3,6 +3,7 @@ import moment from "moment";
 import numeral from "numeral";
 import AuthContext from "../../../templates/AuthContext";
 import { getCurrentAccountingYear } from "../../../utils/DatePeriods";
+import { formatDisplayDate, formatDisplayDateRange } from "../../../utils/formatDisplayDate";
 import DashboardBackLink from "../../../components/DashboardBackLink";
 
 const createDefaultFilters = (mode = "detail") => {
@@ -288,14 +289,12 @@ const StockReport = ({ mode = "detail" }) => {
   );
   const periodLabel = useMemo(() => {
     if (isSummary) {
-      return appliedFilters.as_on || "—";
+      return formatDisplayDate(appliedFilters.as_on);
     }
 
     const { date_from: from, date_to: to } = appliedFilters;
-    if (from && to) return `${from} to ${to}`;
-    if (from) return `from ${from}`;
-    if (to) return `up to ${to}`;
-    return "all dates";
+    const range = formatDisplayDateRange(from, to);
+    return range || "all dates";
   }, [appliedFilters, isSummary]);
 
   const SortableHeader = ({ label, sortKey, align = "text-end" }) => {
