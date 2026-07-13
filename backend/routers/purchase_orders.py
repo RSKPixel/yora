@@ -155,9 +155,25 @@ def _parse_details(raw_details: str) -> list[dict]:
     return parsed
 
 
-def _next_po_no(connection) -> str:
-    year_suffix = str(datetime.now().year)[-2:]
-    prefix = f"PO-{year_suffix}-"
+def _parse_po_date(po_date: str) -> date:
+    try:
+        return date.fromisoformat(str(po_date).strip()[:10])
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid purchase order date.",
+        ) from exc
+
+
+def _indian_fy_code(d: date) -> str:
+    """Indian FY code: Apr–Mar → e.g. 2025-04-01 → 2526."""
+    start_year = d.year if d.month >= 4 else d.year - 1
+    return f"{start_year % 100:02d}{(start_year + 1) % 100:02d}"
+
+
+def _next_po_no(connection, po_date: date) -> str:
+    """Format: PO/{FY}/{running} e.g. PO/2526/0001."""
+    prefix = f"PO/{_indian_fy_code(po_date)}/"
     row = (
         connection.execute(
             text(
@@ -178,7 +194,7 @@ def _next_po_no(connection) -> str:
     if not row:
         return f"{prefix}0001"
 
-    seq = int(row["po_no"][len(prefix) :])
+    seq = int(str(row["po_no"])[len(prefix) :])
     return f"{prefix}{seq + 1:04d}"
 
 
@@ -267,6 +283,8 @@ def _save_order(
         raise HTTPException(status_code=400, detail="Vendor is required.")
     if not po_date:
         raise HTTPException(status_code=400, detail="Purchase order date is required.")
+
+    parsed_po_date = _parse_po_date(po_date)
 
     insert_header_sql = text(
         """
@@ -366,7 +384,11 @@ def _save_order(
                 raise HTTPException(status_code=400, detail="Vendor not found in ledger.")
 
             is_update = bool(po_no and po_no.strip())
-            target_po_no = po_no.strip() if is_update else _next_po_no(connection)
+            target_po_no = (
+                po_no.strip()
+                if is_update
+                else _next_po_no(connection, parsed_po_date)
+            )
 
             if is_update:
                 existing = connection.execute(

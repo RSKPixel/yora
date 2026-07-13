@@ -67,7 +67,7 @@ const PurchaseOrderList = ({ orders, loading, deleting, listMessage, onNew, onEd
                     <td>{order.vendor}</td>
                     <td>{order.status || "Open"}</td>
                     <td className="text-end">{order.details.length}</td>
-                    <td className="text-end">{numeral(totals.qty).format("0,0.##")}</td>
+                    <td className="text-end">{numeral(totals.qty).format("0,0")}</td>
                     <td className="text-end">{numeral(totals.gstValue).format("0,0.00")}</td>
                     <td className="text-end">{numeral(totals.total).format("0,0.00")}</td>
                     <td>

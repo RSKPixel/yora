@@ -84,7 +84,10 @@ export const getDisplayPoNo = ({ isSaved, poNo, isDirty }) => {
 export const getPoPdfFileName = (displayPoNo) => {
   if (!displayPoNo || displayPoNo === "—") return "purchase-order.pdf";
   if (displayPoNo === "Draft") return "purchase-order-draft.pdf";
-  return `${displayPoNo.replace(/\s+\(revised\)$/i, "-revised")}.pdf`;
+  const slug = displayPoNo
+    .replace(/\s+\(revised\)$/i, "-revised")
+    .replace(/\//g, "-");
+  return `${slug}.pdf`;
 };
 
 export const calcLine = (line) => {

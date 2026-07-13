@@ -1,10 +1,11 @@
-import React, { useContext, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import numeral from "numeral";
 import AuthContext from "../../../templates/AuthContext";
+import PdfPreviewModal from "../../../components/PdfPreviewModal";
 import { calcLine, calcOrderTotals, emptyLine, DEFAULT_PO_STATUS, PO_STATUS_OPTIONS, VENDOR_PRIMARY_GROUP, validateOrder } from "./purchaseOrderUtils";
 import StockItemAutocomplete from "./StockItemAutocomplete";
 import AutocompleteField from "./AutocompleteField";
-import { generatePurchaseOrderPdf } from "./purchaseOrderPdf";
+import { createPurchaseOrderPdfBlob } from "./purchaseOrderPdf";
 
 const Field = ({ label, icon, children }) => (
   <div className="space-y-2">
@@ -84,6 +85,8 @@ const PurchaseOrderForm = ({
   const [stockItems, setStockItems] = useState([]);
   const [ledgers, setLedgers] = useState([]);
   const [pdfMessage, setPdfMessage] = useState(null);
+  const [pdfPreview, setPdfPreview] = useState(null);
+  const [loadingPdf, setLoadingPdf] = useState(false);
   const totals = calcOrderTotals(order.details);
 
   useEffect(() => {
@@ -105,6 +108,36 @@ const PurchaseOrderForm = ({
         }
       });
   }, [api, authFetch]);
+
+  useEffect(() => {
+    return () => {
+      if (pdfPreview?.url) {
+        URL.revokeObjectURL(pdfPreview.url);
+      }
+    };
+  }, [pdfPreview?.url]);
+
+  const closePdfPreview = useCallback(() => {
+    setPdfPreview((current) => {
+      if (current?.url) {
+        URL.revokeObjectURL(current.url);
+      }
+      return null;
+    });
+  }, []);
+
+  const loadCompanyForPdf = useCallback(async () => {
+    try {
+      const response = await authFetch(`${api}/masters/company`, { method: "POST" });
+      const data = await response.json();
+      if (data.status === "success" && data.data) {
+        return data.data;
+      }
+    } catch {
+      // Fall back to cached company details.
+    }
+    return company;
+  }, [api, authFetch, company]);
 
   const vendorDetails = useMemo(() => {
     const ledger = ledgers.find((item) => item.name === order.vendor);
@@ -173,7 +206,7 @@ const PurchaseOrderForm = ({
     });
   };
 
-  const handleSavePdf = () => {
+  const handleOpenPdf = useCallback(async () => {
     setPdfMessage(null);
     const errors = validateOrder(order);
     if (errors.length > 0) {
@@ -181,22 +214,48 @@ const PurchaseOrderForm = ({
       return;
     }
 
+    closePdfPreview();
+    setLoadingPdf(true);
+    setPdfPreview({ url: "", fileName: "" });
+
     try {
-      generatePurchaseOrderPdf({
+      const companyForPdf = await loadCompanyForPdf();
+      const { blob, fileName } = await createPurchaseOrderPdfBlob({
         order,
         poDisplayNo: displayPoNo,
-        company,
+        company: companyForPdf,
         vendorAddress,
         vendorDetails,
       });
-      setPdfMessage({ type: "success", message: "Purchase order PDF downloaded." });
+      const url = URL.createObjectURL(blob);
+      setPdfPreview({ url, fileName });
     } catch (err) {
       console.error("PDF generation failed:", err);
+      closePdfPreview();
       setPdfMessage({
         type: "error",
         message: err?.message || "Failed to generate PDF. Please try again.",
       });
+    } finally {
+      setLoadingPdf(false);
     }
+  }, [
+    closePdfPreview,
+    displayPoNo,
+    loadCompanyForPdf,
+    order,
+    vendorAddress,
+    vendorDetails,
+  ]);
+
+  const handleDownloadPdf = () => {
+    if (!pdfPreview?.url || !pdfPreview?.fileName) return;
+
+    const link = document.createElement("a");
+    link.href = pdfPreview.url;
+    link.download = pdfPreview.fileName;
+    link.click();
+    setPdfMessage({ type: "success", message: "Purchase order PDF downloaded." });
   };
 
   return (
@@ -382,7 +441,7 @@ const PurchaseOrderForm = ({
               <tr className="font-semibold">
                 <td className="text-white/90">Total</td>
                 <td className="text-end tabular-nums text-white/90 w-40 min-w-40">
-                  {numeral(totals.qty).format("0,0.##")}
+                  {numeral(totals.qty).format("0,0")}
                 </td>
                 <td className="text-end tabular-nums text-white/90 w-32 min-w-32">
                   {numeral(totals.amount).format("0,0.00")}
@@ -502,11 +561,11 @@ const PurchaseOrderForm = ({
           <button
             type="button"
             className="btn btn-secondary flex items-center gap-1.5 normal-case tracking-normal"
-            onClick={handleSavePdf}
-            disabled={saving || deleting}
+            onClick={handleOpenPdf}
+            disabled={saving || deleting || loadingPdf}
           >
             <i className="bi bi-file-earmark-pdf"></i>
-            Save as PDF
+            {loadingPdf ? "Generating..." : "View PDF"}
           </button>
           <button
             type="button"
@@ -519,6 +578,20 @@ const PurchaseOrderForm = ({
           </button>
         </div>
       </div>
+
+      <PdfPreviewModal
+        open={loadingPdf || Boolean(pdfPreview)}
+        title="Purchase Order"
+        fileName={pdfPreview?.fileName}
+        pdfUrl={pdfPreview?.url}
+        loading={loadingPdf}
+        onClose={() => {
+          if (!loadingPdf) {
+            closePdfPreview();
+          }
+        }}
+        onDownload={handleDownloadPdf}
+      />
     </form>
   );
 };

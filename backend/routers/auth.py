@@ -1,10 +1,9 @@
-from fastapi import APIRouter, Depends, Form, HTTPException, Request, status
+from fastapi import APIRouter, Depends, Form, Request
 from pydantic import BaseModel
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 
-from core.auth import AUTH_BYPASS, create_access_token, get_current_user
-from core.config import IS_PRODUCTION
+from core.auth import create_access_token, get_current_user
 from core.dependencies import engine_mysql
 from core.limiter import limiter
 from core.login_guard import check_login_allowed, clear_failed_logins, record_failed_login
@@ -110,47 +109,15 @@ def login(
 @router.post("/login/json")
 @limiter.limit(_LOGIN_RATE)
 def login_json(request: Request, body: LoginJson):
-    """Postman-friendly login using raw JSON body."""
+    """Login using raw JSON body."""
     return _authenticate(body.user_id, body.password)
 
 
 @router.get("/me")
 def me(current_user: dict = Depends(get_current_user)):
-    """Use this to verify your Bearer token is working."""
+    """Verify the Bearer token is working."""
     return {
         "status": "success",
         "message": "Authenticated.",
         "data": current_user,
-    }
-
-
-@router.get("/postman-help")
-def postman_help():
-    if IS_PRODUCTION:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Not found",
-        )
-
-    return {
-        "status": "success",
-        "message": "Postman setup guide",
-        "data": {
-            "login_form": "POST /auth/login — Body: form-data → user_id, password",
-            "login_json": 'POST /auth/login/json — Body: raw JSON → {"user_id":"<id>","password":"<password>"}',
-            "verify_token": "GET /auth/me — Authorization: Bearer <access_token>",
-            "protected_endpoints": "Use form-data (not raw JSON) for /sales, /purchases, etc.",
-            "bearer_token": "Copy only access_token from login response — do not add 'Bearer' in the token field",
-            "dev_bypass_enabled": AUTH_BYPASS,
-            "important": (
-                "Login via POST /auth/login/json, copy data.access_token "
-                "(starts with eyJ...), and use it as the Bearer token."
-            ),
-            "dev_bypass_hint": (
-                "Optional local shortcut only — start server with AUTH_BYPASS=true "
-                "and YORA_ENV=development, then use the AUTH_BYPASS_TOKEN value."
-                if AUTH_BYPASS
-                else "Bypass is OFF. Login first to get a JWT access_token."
-            ),
-        },
     }

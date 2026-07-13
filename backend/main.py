@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
-from core.auth import AUTH_BYPASS, AUTH_BYPASS_TOKEN, get_current_user
+from core.auth import get_current_user
 from core.config import validate_security_config
 from core.limiter import limiter
 from routers import purchase, purchase_orders, sales, stock_report
@@ -31,11 +31,6 @@ CORS_ORIGINS = [
 app = FastAPI()
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
-
-if AUTH_BYPASS:
-    print(
-        f"[AUTH] Postman bypass ENABLED — use Bearer token: {AUTH_BYPASS_TOKEN}"
-    )
 
 require_auth = [Depends(get_current_user)]
 
