@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import AuthContext from '../templates/AuthContext';
-import AppIcon from '../components/AppIcon';
+import AppBrandName from '../components/AppBrandName';
 
 const Login = () => {
   const { login, isAuthenticated } = useContext(AuthContext);
@@ -56,11 +56,9 @@ const Login = () => {
       <div className="relative z-10 w-full max-w-md px-4">
         <div className="rounded-xl border border-sky-900/80 bg-neutral-900/90 shadow-2xl backdrop-blur-sm overflow-hidden">
           <div className="border-b border-sky-900/60 bg-sky-950 px-6 py-5 text-center">
-            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center">
-              <AppIcon size={48} className="h-12 w-12" />
+            <div className="flex justify-center">
+              <AppBrandName />
             </div>
-            <h1 className="text-xl font-bold tracking-wide text-white/95">YORA ERP</h1>
-            <p className="mt-1 text-xs text-white/45 normal-case tracking-normal">Enterprises Resource Planning</p>
             <p className="mt-2 text-[10px] text-white/30 normal-case tracking-normal">Sign in to continue</p>
           </div>
 

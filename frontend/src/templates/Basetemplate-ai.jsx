@@ -11,7 +11,7 @@ import SidebarMenuSearch from "../components/sidebar/SidebarMenuSearch";
 import { findSectionLabelForPath, isPathActive } from "../components/sidebar/sidebarNav";
 import { MENU_STYLE_LINUX_TREE } from "../config/menuStyle";
 import { readSidebarPinned, writeSidebarPinned } from "../config/sidebarPin";
-import AppIcon from "../components/AppIcon";
+import AppBrandName from "../components/AppBrandName";
 import SpotlightSearch from "../components/SpotlightSearch";
 import { SpotlightProvider, useSpotlight } from "./SpotlightContext";
 
@@ -162,13 +162,7 @@ const BasetemplateShell = ({
         <div className="app-shell-header-inner">
           <div className="app-shell-header-start">
             <Link to="/dashboard" className="app-shell-brand">
-              <span className="app-shell-brand-mark">
-                <AppIcon size={44} className="h-11 w-11" />
-              </span>
-              <span className="app-shell-brand-copy">
-                <span className="app-shell-brand-name">YORA ERP</span>
-                <span className="app-shell-brand-tag">Resource Management System</span>
-              </span>
+              <AppBrandName />
             </Link>
           </div>
 

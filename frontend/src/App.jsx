@@ -23,7 +23,7 @@ import StockJournal from "./pages/stock-movement/stock-journal/StockJournal";
 import Blowing from "./pages/stock-movement/blowing/Blowing";
 
 function App() {
-  document.title = "YORA ERP";
+  document.title = "yora pet";
 
   return (
     <Router>

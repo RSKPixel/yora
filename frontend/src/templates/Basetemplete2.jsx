@@ -1,6 +1,7 @@
 import React, { useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AuthContext from "./AuthContext";
+import AppBrandName from "../components/AppBrandName";
 
 const Basetemplate2 = ({ children }) => {
   const { user, isAuthenticated, logout } = useContext(AuthContext);
@@ -32,8 +33,8 @@ const Basetemplate2 = ({ children }) => {
       {/* Top Bar */}
       <div className="flex flex-row w-full justify-between items-center bg-sky-950 px-4 py-1 shadow text-stone-100 border-b border-sky-900">
         <div className="flex flex-col cursor-pointer hover:text-yellow-300">
-          <Link to={"/"} className="text-xl text-center font-bold w-full">
-            YORA ERP
+          <Link to={"/"} className="w-full">
+            <AppBrandName className="justify-center" />
           </Link>
           <span className="text-xs italic font-bold text-gray-400"></span>
         </div>
