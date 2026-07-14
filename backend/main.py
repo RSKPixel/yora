@@ -19,7 +19,8 @@ validate_security_config()
 _DEFAULT_CORS_ORIGINS = (
     "http://localhost:5173,"
     "http://127.0.0.1:5173,"
-    "https://erp.yorapac.com"
+    "https://erp.yorapac.com,"
+    "https://pet.yoratech.com"
 )
 
 CORS_ORIGINS = [
